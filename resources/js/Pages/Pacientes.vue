@@ -10,11 +10,11 @@ const selectedPaciente = ref(null)
 
 const form = useForm({
     nombre: '',
-    expediente: '',
     fecha_nacimiento: '',
     telefono: '',
     direccion: '',
     genero: '',
+    encargado_id: '', 
 })
 
 function openModal(paciente) {
@@ -25,6 +25,7 @@ function openModal(paciente) {
     form.telefono = paciente.telefono
     form.direccion = paciente.direccion
     form.genero = paciente.genero
+    form.encargado_id = paciente.encargados?.[0]?.id || '' 
     isOpen.value = true
 }
 
@@ -65,6 +66,18 @@ function newPaciente() {
     form.reset()
     isOpen.value = true
 }
+
+const showExpediente = ref(false)
+
+function openExpediente(paciente) {
+    selectedPaciente.value = paciente 
+    showExpediente.value = true
+}
+
+function closeExpediente() {
+    showExpediente.value = false
+    selectedPaciente.value = null 
+}
 </script>
 
 <template>
@@ -95,10 +108,11 @@ function newPaciente() {
                 <!-- Nombre y expediente -->
                 <div class="mt-4">
                     <h3 class="text-lg font-semibold text-gray-900">{{ paciente.nombre }}</h3>
-                    <p class="text-sm text-gray-500">Expediente: {{ paciente.expediente }}</p>
+                    <p class="text-sm text-gray-500">Expediente: {{ paciente.expediente?.id || 'No asignado' }}</p>
                     <p class="text-sm text-gray-500">Teléfono: {{ paciente.telefono }}</p>
                     <p class="text-sm text-gray-500">Dirección: {{ paciente.direccion }}</p>
                     <p class="text-sm text-gray-500">Género: {{ paciente.genero }}</p>
+                    <p class="text-sm text-gray-500">Encargado: {{ paciente.encargados?.[0]?.nombre || 'No asignado' }}</p>
                 </div>
 
                 <!-- Botones de acciones -->
@@ -118,7 +132,7 @@ function newPaciente() {
                 <div class="grid grid-cols-2 gap-2 p-4 w-full border-t"
                     v-if="$page.props.auth.user.permissions.includes('gestionar pacientes')">
                     <button class="bg-caine-azul text-white py-2 rounded-md text-sm hover:bg-caine-morado"
-                        @click="router.visit(route('pacientes.expediente', paciente.id))">
+                        @click="openExpediente(paciente)">
                         Expediente
                     </button>
                     <button class="bg-caine-verde text-white py-2 rounded-md text-sm hover:bg-caine-azul"
@@ -164,12 +178,17 @@ function newPaciente() {
             <div v-if="form.errors.genero" class="text-red-500 text-sm">{{ form.errors.genero }}</div>
             </div>
 
-            <!-- Expediente -->
+            <!-- Encargado -->
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Expediente</label>
-                <input v-model="form.expediente" type="text"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
-                <div v-if="form.errors.expediente" class="text-red-500 text-sm">{{ form.errors.expediente }}</div>
+                <label class="block text-sm font-medium text-gray-700">Encargado</label>
+                <select v-model="form.encargado_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="">Seleccione...</option>
+                    <option v-for="encargado in $page.props.encargados" :key="encargado.id" :value="encargado.id">
+                    {{ encargado.nombre }}
+                    </option>
+                </select>
+                <div v-if="form.errors.encargado_id" class="text-red-500 text-sm">{{ form.errors.encargado_id }}
+                </div>
             </div>
 
             <!-- Fecha de nacimiento -->
@@ -209,6 +228,31 @@ function newPaciente() {
             </div>
         </div>
     </div>
+    <!-- Modal Expediente -->
+    <div v-if="showExpediente" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-2/3 max-w-3xl h-5/6 overflow-y-auto relative">
+            <!-- Header -->
+            <div class="flex justify-between items-center border-b p-4">
+            <h2 class="text-xl font-bold text-caine-azul">
+                Expediente de {{ selectedPaciente?.nombre }}
+            </h2>
+            <button @click="closeExpediente" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+            <p><strong>Código:</strong> {{ selectedPaciente?.expediente?.id }}</p>
+            <p><strong>Fecha de apertura:</strong> {{ selectedPaciente?.expediente?.fecha_apertura }}</p>
+            <p><strong>Estado:</strong> {{ selectedPaciente?.expediente?.estado }}</p>
+            <p><strong>Observaciones:</strong> {{ selectedPaciente?.expediente?.observaciones_administrativas || 'Ninguna' }}</p>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end border-t p-4">
+            </div>
+        </div>
+    </div>
+
 </template>
 
 <script>
