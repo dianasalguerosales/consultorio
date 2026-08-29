@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
             EncargadosSeeder::class,
             PacientesSeeder::class,
             RolesAndPermissionsSeeder::class,
+            ServicioSeeder::class,
+            ProgramaSeeder::class,
+            EstadoCitaSeeder::class,
+            CitaSeeder::class,
         ]);
     }
 }

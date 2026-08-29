@@ -33,4 +33,8 @@ class Paciente extends Model
     {
         return $this->belongsTo(Expediente::class, 'expediente_id', 'id');
     }
+
+    public function citas() {
+        return $this->hasMany(Cita::class);
+    }
 }

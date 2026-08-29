@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Paciente;
 use App\Models\Expediente;
+use App\Models\Cita;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,7 +12,15 @@ class PacientesController extends Controller
 {
     public function index()
     {
-        $pacientes = Paciente::with('expediente', 'encargados')->get();
+        $pacientes = Paciente::with([
+            'expediente',
+            'encargados',
+            'citas.servicio',
+            'citas.programa',
+            'citas.estadoCita',
+            'citas.terapeuta',
+        ])->get();
+
         $encargados = \App\Models\Encargado::all();
 
         return Inertia::render('Pacientes', [
@@ -27,6 +36,20 @@ class PacientesController extends Controller
         return Inertia::render('Expedientes/Show', [
             'paciente' => $paciente,
             'expediente' => $expediente,
+        ]);
+    }
+
+    public function historial(Paciente $paciente)
+    {
+        $citas = Cita::with(['terapeuta', 'servicio', 'programa', 'estadoCita'])
+            ->where('paciente_id', $paciente->id)
+            ->orderBy('fecha', 'desc')
+            ->orderBy('hora_inicio', 'desc')
+            ->get();
+
+        return Inertia::render('Pacientes/Historial', [
+            'paciente' => $paciente,
+            'citas' => $citas,
         ]);
     }
 
