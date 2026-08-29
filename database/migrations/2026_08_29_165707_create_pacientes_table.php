@@ -12,9 +12,9 @@ return new class extends Migration {
     {
         Schema::create('pacientes', function (Blueprint $table) {
             $table->id();
+            $table->string('expediente_id')->nullable()->unique();
             $table->string('nombre');
             $table->date('fecha_nacimiento')->nullable();
-            $table->text('expediente')->nullable();
             $table->string('telefono')->nullable();
             $table->string('direccion')->nullable();
             $table->string('genero')->nullable();

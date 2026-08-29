@@ -25,6 +25,6 @@ class Encargado extends Model
 
     public function pacientes()
     {
-        return $this->belongsToMany(Paciente::class, 'encargado_paciente');
+        return $this->belongsToMany(Paciente::class, 'encargado_paciente')->withTimestamps();
     }
 }

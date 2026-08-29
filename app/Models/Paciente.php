@@ -12,7 +12,7 @@ class Paciente extends Model
     protected $fillable = [
         'nombre',
         'fecha_nacimiento',
-        'expediente',
+        'expediente_id',
         'telefono',
         'direccion',
         'genero',
@@ -26,6 +26,11 @@ class Paciente extends Model
 
     public function encargados()
     {
-        return $this->belongsToMany(Encargado::class, 'encargado_paciente');
+        return $this->belongsToMany(Encargado::class, 'encargado_paciente')->withTimestamps();
+    }
+    
+    public function expediente()
+    {
+        return $this->belongsTo(Expediente::class, 'expediente_id', 'id');
     }
 }

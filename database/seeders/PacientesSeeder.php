@@ -14,7 +14,7 @@ class PacientesSeeder extends Seeder
     public function run(): void
     {
         Paciente::updateOrCreate(
-            ['expediente' => 'KID-261001'],
+            ['expediente_id' => 'KID-261001'],
             [
                 'nombre' => 'Pedro Ramírez',
                 'fecha_nacimiento' => '2010-09-01',
@@ -25,7 +25,7 @@ class PacientesSeeder extends Seeder
         );
 
         Paciente::updateOrCreate(
-            ['expediente' => 'KID-262001'],
+            ['expediente_id' => 'KID-262001'],
             [
                 'nombre' => 'Lucía Fernández',
                 'fecha_nacimiento' => '2012-05-12',
