@@ -8,30 +8,27 @@ use App\Models\Paciente;
 
 class PacientesSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         Paciente::updateOrCreate(
-            ['expediente_id' => 'KID-261001'],
+            ['nombre' => 'Pedro Ramírez'],
             [
-                'nombre' => 'Pedro Ramírez',
                 'fecha_nacimiento' => '2010-09-01',
-                'telefono' => '555-4444',
-                'direccion' => 'Zona 11, Guatemala',
-                'genero' => 'Masculino',
+                'telefono' => '555-1111',
+                'direccion' => 'Zona 10, Guatemala',
+                'genero' => 'masculino',
+                'expediente_id' => 'KID-2026001',
             ]
         );
 
         Paciente::updateOrCreate(
-            ['expediente_id' => 'KID-262001'],
+            ['nombre' => 'Lucía Fernández'],
             [
-                'nombre' => 'Lucía Fernández',
                 'fecha_nacimiento' => '2012-05-12',
-                'telefono' => '555-5555',
-                'direccion' => 'Zona 16, Guatemala',
-                'genero' => 'Femenino',
+                'telefono' => '555-2222',
+                'direccion' => 'Zona 15, Guatemala',
+                'genero' => 'femenino',
+                'expediente_id' => 'KID-2026002',
             ]
         );
     }

@@ -8,13 +8,10 @@ use App\Models\Cita;
 
 class CitaSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run()
     {
         Cita::create([
-            'paciente_id' => 5,
+            'paciente_id' => 1,
             'terapeuta_id' => 1,
             'servicio_id' => 1,
             'estado_cita_id' => 1,
@@ -25,5 +22,4 @@ class CitaSeeder extends Seeder
             'observaciones' => 'Primera consulta de evaluación',
         ]);
     }
-
 }

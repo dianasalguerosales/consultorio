@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ExpedienteController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -43,6 +44,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/pacientes/{paciente}/historial', [PacientesController::class, 'historial'])->name('pacientes.historial');
         Route::get('/pacientes/{paciente}/observaciones', [PacientesController::class, 'observaciones'])->name('pacientes.observaciones');
         Route::get('/pacientes/{paciente}/seguimiento', [PacientesController::class, 'seguimiento'])->name('pacientes.seguimiento');
+    });
+
+    // Expedientes: administrador y coordinador
+    Route::middleware(['role:administrador|coordinador'])->group(function () {
+        Route::get('/expediente', [ExpedienteController::class, 'index'])->name('expediente.index');
+        Route::post('/expediente/{paciente}', [ExpedienteController::class, 'store'])->name('expediente.store');
     });
 });
 

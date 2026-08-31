@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Terapeuta;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -17,33 +15,21 @@ class ProfileController extends Controller
             'roles',
             'terapeuta' => fn($q) => $q->withCount('pacientes'),
             'encargado' => fn($q) => $q->withCount('pacientes'),
+            'administrativo',
         ]);
 
         return Inertia::render('Perfil', [
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
                 'email' => $user->email,
-                'telefono' => $user->telefono,
-                'direccion' => $user->direccion,
-                'fecha_nacimiento' => $user->fecha_nacimiento,
-                'genero' => $user->genero,
-                'nacionalidad' => $user->nacionalidad,
-                'estado_civil' => $user->estado_civil,
-                'avatar' => $user->avatar,
-                'idioma' => $user->idioma,
-                'notificaciones' => $user->notificaciones,
-                'historial_accesos' => $user->historial_accesos,
-                'ultima_sesion' => $user->ultima_sesion,
-                'estado' => $user->estado,
-                'created_at' => $user->created_at ? $user->created_at->format('d-m-Y') : null,
-                'updated_at' => $user->updated_at ? $user->updated_at->format('d-m-Y') : null,
                 'roles' => $user->getRoleNames(),
+                'created_at' => $user->created_at?->format('d-m-Y'),
+                'updated_at' => $user->updated_at?->format('d-m-Y'),
             ],
             'terapeuta' => $user->terapeuta ? [
                 'nombre' => $user->terapeuta->nombre,
                 'especialidad' => $user->terapeuta->especialidad,
-                'fecha_nacimiento' => $user->terapeuta->fecha_nacimiento ? Carbon::parse($user->terapeuta->fecha_nacimiento)->format('d-m-Y') : null,
+                'fecha_nacimiento' => $user->terapeuta->fecha_nacimiento,
                 'telefono' => $user->terapeuta->telefono,
                 'correo' => $user->terapeuta->correo,
                 'numero_colegiado' => $user->terapeuta->numero_colegiado,
@@ -51,6 +37,14 @@ class ProfileController extends Controller
                 'formacion' => $user->terapeuta->formacion,
                 'certificaciones' => $user->terapeuta->certificaciones,
                 'pacientes_count' => $user->terapeuta->pacientes_count,
+            ] : null,
+            'administrativo' => $user->administrativo ? [
+                'nombre' => $user->administrativo->nombre,
+                'fecha_nacimiento' => $user->administrativo->fecha_nacimiento,
+                'telefono' => $user->administrativo->telefono,
+                'correo' => $user->administrativo->correo,
+                'direccion' => $user->administrativo->direccion,
+                'tipo' => $user->administrativo->tipo,
             ] : null,
             'encargado' => $user->encargado ? [
                 'nombre' => $user->encargado->nombre,

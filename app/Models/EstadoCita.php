@@ -11,7 +11,8 @@ class EstadoCita extends Model
 
     protected $fillable = ['nombre'];
 
-    public function citas() {
+    public function citas()
+    {
         return $this->hasMany(Cita::class);
     }
 }

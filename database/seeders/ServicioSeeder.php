@@ -8,15 +8,10 @@ use App\Models\Servicio;
 
 class ServicioSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        Servicio::insert([
-            ['nombre' => 'Terapia Individual'],
-            ['nombre' => 'Terapia de Grupo'],
-            ['nombre' => 'Evaluación Inicial'],
-        ]);
+        Servicio::updateOrCreate(['nombre' => 'Terapia de Lenguaje']);
+        Servicio::updateOrCreate(['nombre' => 'Terapia Ocupacional']);
+        Servicio::updateOrCreate(['nombre' => 'Evaluación Psicológica']);
     }
 }

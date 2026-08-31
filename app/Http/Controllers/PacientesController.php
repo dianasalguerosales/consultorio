@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 use App\Models\Paciente;
 use App\Models\Expediente;
 use App\Models\Cita;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\Encargado;
 
 class PacientesController extends Controller
 {
@@ -21,7 +22,7 @@ class PacientesController extends Controller
             'citas.terapeuta',
         ])->get();
 
-        $encargados = \App\Models\Encargado::all();
+        $encargados = Encargado::all();
 
         return Inertia::render('Pacientes', [
             'pacientes' => $pacientes,
@@ -66,7 +67,8 @@ class PacientesController extends Controller
 
         $paciente = Paciente::create($validated);
 
-        $codigo = $this->generarCodigoExpediente($paciente->genero);
+        // Nuevo formato de código: KIDYYYYXXX
+        $codigo = $this->generarCodigoExpediente();
         Expediente::create([
             'id' => $codigo,
             'paciente_id' => $paciente->id,
@@ -114,22 +116,19 @@ class PacientesController extends Controller
         return redirect()->back()->with('success', 'Paciente eliminado correctamente');
     }
 
-    private function generarCodigoExpediente($genero)
+    /**
+     * Genera código de expediente en formato KIDYYYYXXX
+     */
+    private function generarCodigoExpediente()
     {
-        $anio = date('y');
-        $generoCodigo = $genero === 'Masculino' ? '1' : '2';
+        $anio = date('Y');
 
-        $ultimo = Expediente::where('id', 'like', 'KID-'.$anio.$generoCodigo.'%')
+        $ultimo = Expediente::where('id', 'like', 'KID-'.$anio.'%')
             ->orderBy('id', 'desc')
             ->first();
 
-        if ($ultimo) {
-            $ultimoNumero = intval(substr($ultimo->id, 7));
-            $correlativo = $ultimoNumero + 1;
-        } else {
-            $correlativo = 1;
-        }
+        $correlativo = $ultimo ? intval(substr($ultimo->id, 7)) + 1 : 1;
 
-        return 'KID-'.$anio.$generoCodigo.str_pad($correlativo, 3, '0', STR_PAD_LEFT);
+        return 'KID'.$anio.str_pad($correlativo, 3, '0', STR_PAD_LEFT);
     }
 }

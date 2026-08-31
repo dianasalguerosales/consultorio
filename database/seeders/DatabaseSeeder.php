@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
             RolesSeeder::class,
             UserRolesSeeder::class,
+            AdministrativosSeeder::class,
             TerapeutasSeeder::class,
             EncargadosSeeder::class,
             PacientesSeeder::class,
@@ -23,6 +24,8 @@ class DatabaseSeeder extends Seeder
             ServicioSeeder::class,
             ProgramaSeeder::class,
             EstadoCitaSeeder::class,
+            DiagnosticoSeeder::class,
+            EscolaridadSeeder::class,
             CitaSeeder::class,
         ]);
     }

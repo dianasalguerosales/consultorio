@@ -8,13 +8,10 @@ use App\Models\Encargado;
 
 class EncargadosSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         Encargado::updateOrCreate(
-            ['user_id' => 5],
+            ['user_id' => 3],
             [
                 'nombre' => 'Carlos Gómez',
                 'telefono' => '555-9876',
@@ -24,7 +21,7 @@ class EncargadosSeeder extends Seeder
         );
 
         Encargado::updateOrCreate(
-            ['user_id' => 6],
+            ['user_id' => 4],
             [
                 'nombre' => 'Ana Torres',
                 'telefono' => '555-6543',

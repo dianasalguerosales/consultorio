@@ -15,7 +15,6 @@ class Cita extends Model
         'terapeuta_id',
         'servicio_id',
         'programa_id',
-        'paciente_programa_id',
         'estado_cita_id',
         'fecha',
         'hora_inicio',
@@ -27,7 +26,6 @@ class Cita extends Model
         'confirmada_por_encargado_at',
     ];
 
-    // Relaciones
     public function paciente() { return $this->belongsTo(Paciente::class); }
     public function encargado() { return $this->belongsTo(Encargado::class); }
     public function terapeuta() { return $this->belongsTo(Terapeuta::class); }

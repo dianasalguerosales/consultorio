@@ -9,7 +9,10 @@ class Programa extends Model
 {
     use HasFactory;
 
-    public function citas() {
+    protected $fillable = ['nombre'];
+
+    public function citas()
+    {
         return $this->hasMany(Cita::class);
     }
 }

@@ -14,7 +14,7 @@ const roles = props.auth?.user?.roles ?? []
 // Menús por rol
 const menuPorRol = {
   administrador: [
-    'usuarios', 'pacientes', 'terapeutas', 'agenda', 'historial',
+    'usuarios', 'pacientes', 'terapeutas', 'agenda', 'expediente',
     'programas', 'indicadores', 'pagos', 'informes'
   ],
   auxiliar: [
@@ -29,7 +29,7 @@ const menuPorRol = {
   ],
   pruebas: [
     'usuarios', 'pacientes', 'indicadores', 'informes',
-    'pagos', 'historial'
+    'pagos', 'expediente'
   ],
   terapeuta: [
     'terapias-dia', 'pacientes', 'agenda', 'objetivos',
@@ -46,7 +46,7 @@ const ordenMenu = [
   'pacientes',
   'terapeutas',
   'agenda',
-  'historial',
+  'expediente',
   'programas',
   'indicadores',
   'pagos',
@@ -80,7 +80,7 @@ const menuConfig = {
   pacientes: { icon: 'family_restroom', label: 'Pacientes', href: '/pacientes' },
   terapeutas: { icon: 'psychology', label: 'Terapeutas', href: '/terapeutas' },
   agenda: { icon: 'today', label: 'Agenda', href: '/agenda' },
-  historial: { icon: 'history', label: 'Historial Clínico', href: '/historial' },
+  expediente: { icon: 'folder_shared', label: 'Expediente', href: '/expediente' },
   programas: { icon: 'collections_bookmark', label: 'Programas', href: '/programas' },
   indicadores: { icon: 'insights', label: 'Indicadores', href: '/indicadores' },
   pagos: { icon: 'payments', label: 'Pagos', href: '/pagos' },
@@ -161,7 +161,7 @@ const menuConfig = {
           <div class="relative">
             <button class="flex items-center space-x-2 focus:outline-none"
               @click="open = !open; mostrarDropdownNotificaciones = false">
-              <span>{{ $page.props.auth?.user?.name }}</span>
+              <span>{{ $page.props.auth?.user?.nombre || $page.props.auth?.user?.email }}</span>
               <span class="material-icons">expand_more</span>
             </button>
             <div v-if="open" class="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">

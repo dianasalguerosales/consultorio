@@ -9,6 +9,12 @@ class UserRolesSeeder extends Seeder
 {
     public function run(): void
     {
+        $roles = ['administrador','terapeuta','coordinador','encargado','pruebas'];
+
+        foreach ($roles as $rol) {
+            \Spatie\Permission\Models\Role::firstOrCreate(['name' => $rol, 'guard_name' => 'web']);
+        }
+
         User::where('email', 'admin@caine.com')->first()?->assignRole('administrador');
         User::where('email', 'juan@example.com')->first()?->assignRole('terapeuta');
         User::where('email', 'maria@example.com')->first()?->assignRole('coordinador');

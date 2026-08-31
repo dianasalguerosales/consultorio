@@ -2,27 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Expediente;
-use App\Models\Paciente;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Expediente;
+use App\Models\Paciente;
 
 class ExpedienteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $expedientes = Expediente::with('paciente')->get();
+        $query = Expediente::with('paciente');
 
-        return Inertia::render('Expedientes/Index', [
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        if ($request->filled('codigo')) {
+            $query->where('id', 'like', '%'.$request->codigo.'%');
+        }
+
+        if ($request->filled('paciente')) {
+            $query->whereHas('paciente', function ($q) use ($request) {
+                $q->where('nombre', 'like', '%'.$request->paciente.'%');
+            });
+        }
+
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('fecha_apertura', $request->fecha_inicio);
+        }
+
+        $expedientes = $query->orderBy('fecha_apertura', 'desc')->get();
+
+        return Inertia::render('Expediente', [
             'expedientes' => $expedientes,
         ]);
     }
 
     public function store(Request $request, Paciente $paciente)
     {
-        $codigo = $this->generarCodigoExpediente($paciente->genero);
+        $codigo = $this->generarCodigoExpediente();
 
-        \App\Models\Expediente::create([
+        $expediente = Expediente::create([
             'id' => $codigo,
             'paciente_id' => $paciente->id,
             'fecha_apertura' => now(),
@@ -34,20 +54,20 @@ class ExpedienteController extends Controller
         $paciente->update([
             'expediente_id' => $codigo,
         ]);
+
         return redirect()->back()->with('success', 'Expediente creado correctamente');
     }
 
-    private function generarCodigoExpediente($genero)
+    private function generarCodigoExpediente()
     {
-        $anio = date('y');
-        $generoCodigo = $genero === 'Masculino' ? '1' : '2';
+        $anio = date('Y');
 
-        $ultimo = Expediente::where('id', 'like', $anio.$generoCodigo.'%')
+        $ultimo = Expediente::where('id', 'like', 'KID-'.$anio.'%')
             ->orderBy('id', 'desc')
             ->first();
 
-        $correlativo = $ultimo ? intval(substr($ultimo->id, 2)) + 1 : 1;
+        $correlativo = $ultimo ? intval(substr($ultimo->id, 7)) + 1 : 1;
 
-        return intval($anio.$generoCodigo.str_pad($correlativo, 3, '0', STR_PAD_LEFT));
+        return 'KID'.$anio.str_pad($correlativo, 3, '0', STR_PAD_LEFT);
     }
 }

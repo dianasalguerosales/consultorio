@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Terapeuta extends Model
+class Administrativo extends Model
 {
     use HasFactory;
 
@@ -15,10 +15,8 @@ class Terapeuta extends Model
         'fecha_nacimiento',
         'telefono',
         'correo',
-        'numero_colegiado',
-        'especialidad',
-        'formacion',
-        'certificaciones',
+        'direccion',
+        'tipo', // administrador, coordinador, auxiliar
     ];
 
     public function user()
@@ -28,6 +26,6 @@ class Terapeuta extends Model
 
     public function pacientes()
     {
-        return $this->belongsToMany(Paciente::class, 'paciente_terapeuta');
+        return $this->belongsToMany(Paciente::class, 'administrativo_paciente')->withTimestamps();
     }
 }

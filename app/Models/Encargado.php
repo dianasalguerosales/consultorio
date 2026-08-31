@@ -17,7 +17,6 @@ class Encargado extends Model
         'relacion',
     ];
 
-
     public function user()
     {
         return $this->belongsTo(User::class);
