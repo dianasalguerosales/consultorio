@@ -9,20 +9,15 @@ class Anamnesis extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'paciente_id',
-        'antecedentes_familiares',
-        'antecedentes_medicos',
-        'observaciones',
-    ];
+    protected $fillable = ['observaciones'];
 
-    public function paciente()
+    public function items()
     {
-        return $this->belongsTo(Paciente::class);
+        return $this->hasMany(AnamnesisItem::class);
     }
 
     public function expediente()
     {
-        return $this->hasOne(Expediente::class);
+        return $this->belongsTo(Expediente::class, 'id', 'anamnesis_id');
     }
 }

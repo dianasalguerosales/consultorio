@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
             DiagnosticoSeeder::class,
             EscolaridadSeeder::class,
             CitaSeeder::class,
+            DiagnosticosSeeder::class,
+            TerapiasSeeder::class,
+            EvaluacionesSeeder::class,
         ]);
     }
 }

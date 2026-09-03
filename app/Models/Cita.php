@@ -26,10 +26,33 @@ class Cita extends Model
         'confirmada_por_encargado_at',
     ];
 
-    public function paciente() { return $this->belongsTo(Paciente::class); }
-    public function encargado() { return $this->belongsTo(Encargado::class); }
-    public function terapeuta() { return $this->belongsTo(Terapeuta::class); }
-    public function servicio() { return $this->belongsTo(Servicio::class); }
-    public function programa() { return $this->belongsTo(Programa::class); }
-    public function estadoCita() { return $this->belongsTo(EstadoCita::class); }
+    public function paciente()
+    {
+        return $this->belongsTo(Paciente::class);
+    }
+    public function encargado()
+    {
+        return $this->belongsTo(Encargado::class);
+    }
+    public function terapeuta()
+    {
+        return $this->belongsTo(Terapeuta::class);
+    }
+    public function servicio()
+    {
+        return $this->belongsTo(Servicio::class);
+    }
+    public function programa()
+    {
+        return $this->belongsTo(Programa::class);
+    }
+    public function estadoCita()
+    {
+        return $this->belongsTo(EstadoCita::class);
+    }
+
+    public function sesion()
+    {
+        return $this->hasOne(Sesion::class);
+    }
 }

@@ -10,16 +10,15 @@ class Expediente extends Model
     use HasFactory;
 
     protected $fillable = [
-        'id', // Código KID-2026001
+        'id',
         'nombre_pila',
         'fecha_apertura',
         'estado',
         'motivo_consulta',
         'modalidad',
-        'diagnostico_id',
         'escolaridad_id',
         'anamnesis_id',
-        'paciente_id', // opcional
+        'paciente_id',
         'creado_por_usuario_id',
         'observaciones_administrativas',
     ];
@@ -37,9 +36,19 @@ class Expediente extends Model
         return $this->belongsTo(User::class, 'creado_por_usuario_id');
     }
 
-    public function diagnostico()
+    public function diagnosticos()
     {
-        return $this->belongsTo(Diagnostico::class);
+        return $this->belongsToMany(Diagnostico::class, 'expediente_diagnostico');
+    }
+
+    public function terapias()
+    {
+        return $this->belongsToMany(Terapia::class, 'expediente_terapia');
+    }
+
+    public function evaluaciones()
+    {
+        return $this->belongsToMany(Evaluacion::class, 'expediente_evaluacion');
     }
 
     public function escolaridad()
@@ -49,6 +58,6 @@ class Expediente extends Model
 
     public function anamnesis()
     {
-        return $this->belongsTo(Anamnesis::class);
+        return $this->hasOne(Anamnesis::class);
     }
 }

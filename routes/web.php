@@ -5,7 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExpedienteController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\AnamnesisController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -48,8 +48,12 @@ Route::middleware('auth')->group(function () {
 
     // Expedientes: administrador y coordinador
     Route::middleware(['role:administrador|coordinador'])->group(function () {
-        Route::get('/expediente', [ExpedienteController::class, 'index'])->name('expediente.index');
-        Route::post('/expediente/{paciente}', [ExpedienteController::class, 'store'])->name('expediente.store');
+        Route::get('/expedientes', [ExpedienteController::class, 'index'])->name('expedientes.index');
+        Route::post('/expedientes', [ExpedienteController::class, 'store'])->name('expedientes.store');
+        Route::put('/expedientes/{expediente}', [ExpedienteController::class, 'update'])->name('expedientes.update');
+
+        Route::post('/anamnesis', [AnamnesisController::class, 'store'])->name('anamnesis.store');
+        Route::put('/anamnesis/{anamnesis}', [AnamnesisController::class, 'update'])->name('anamnesis.update');
     });
 });
 

@@ -14,7 +14,7 @@ const roles = props.auth?.user?.roles ?? []
 // Menús por rol
 const menuPorRol = {
   administrador: [
-    'usuarios', 'pacientes', 'terapeutas', 'agenda', 'expediente',
+    'usuarios', 'pacientes', 'terapeutas', 'agenda', 'expedientes',
     'programas', 'indicadores', 'pagos', 'informes'
   ],
   auxiliar: [
@@ -29,7 +29,7 @@ const menuPorRol = {
   ],
   pruebas: [
     'usuarios', 'pacientes', 'indicadores', 'informes',
-    'pagos', 'expediente'
+    'pagos', 'expedientes'
   ],
   terapeuta: [
     'terapias-dia', 'pacientes', 'agenda', 'objetivos',
@@ -46,7 +46,7 @@ const ordenMenu = [
   'pacientes',
   'terapeutas',
   'agenda',
-  'expediente',
+  'expedientes',
   'programas',
   'indicadores',
   'pagos',
@@ -80,7 +80,7 @@ const menuConfig = {
   pacientes: { icon: 'family_restroom', label: 'Pacientes', href: '/pacientes' },
   terapeutas: { icon: 'psychology', label: 'Terapeutas', href: '/terapeutas' },
   agenda: { icon: 'today', label: 'Agenda', href: '/agenda' },
-  expediente: { icon: 'folder_shared', label: 'Expediente', href: '/expediente' },
+  expedientes: { icon: 'folder_shared', label: 'Expedientes', href: '/expedientes' },
   programas: { icon: 'collections_bookmark', label: 'Programas', href: '/programas' },
   indicadores: { icon: 'insights', label: 'Indicadores', href: '/indicadores' },
   pagos: { icon: 'payments', label: 'Pagos', href: '/pagos' },
@@ -99,12 +99,12 @@ const menuConfig = {
   <div class="flex min-h-screen bg-[#FAF9F7]">
     <!-- Menú lateral fijo -->
     <aside :class="colapsado ? 'w-20' : 'w-64'"
-      class="bg-[#2D2B5B] text-white flex flex-col h-screen fixed left-0 top-0 transition-all duration-300">
+      class="bg-[#1F1D3F] text-white flex flex-col h-screen fixed left-0 top-0 transition-all duration-300">
       <!-- Logo -->
       <div class="flex justify-center items-center py-4">
         <Link href="/dashboard">
-          <img v-if="!colapsado" src="/images/01_caine_logo.png" alt="CAINE Logo" class="h-12 w-auto" />
-          <img v-else src="/images/02_caine_logo.png" alt="CAINE Logo reducido" class="h-8 w-auto" />
+          <img v-if="!colapsado" src="/images/Logo_blanco.webp" alt="CAINE Logo" class="h-22 w-auto" />
+          <img v-else src="/images/Isotipo_blanco.webp" alt="CAINE Logo reducido" class="h-20 w-auto" />
         </Link>
       </div>
 

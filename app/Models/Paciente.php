@@ -15,7 +15,7 @@ class Paciente extends Model
         'telefono',
         'direccion',
         'genero',
-        'expediente_id', // referencia, no FK estricta
+        'expediente_id',
     ];
 
     public function terapeutas()

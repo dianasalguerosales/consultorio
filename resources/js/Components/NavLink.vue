@@ -25,7 +25,7 @@ const props = defineProps({
 
 const classes = computed(() =>
   props.active
-    ? 'bg-[#1f1d3f] text-[#53C6D3] font-bold flex items-center px-6 py-3'
-    : 'hover:bg-[#1f1d3f] text-white flex items-center px-6 py-3'
+    ? 'bg-[#{2D2B5B}] text-[#53C6D3] font-bold flex items-center px-6 py-3'
+    : 'hover:bg-[#2D2B5B] text-white flex items-center px-6 py-3'
 )
 </script>

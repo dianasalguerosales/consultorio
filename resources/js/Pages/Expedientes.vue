@@ -1,19 +1,27 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import ExpedienteModal from '@/Components/ExpedienteModal.vue'
+import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
 
 const props = defineProps({
-  expedientes: Array
+  expedientes: Array,
+  diagnosticosList: Array,
+  terapiasList: Array,
+  evaluacionesList: Array,
+  escolaridadesList: Array
 })
 
 const search = ref('')
 const showModal = ref(false)
 const selectedExpediente = ref(null)
 
+const showEditModal = ref(false)
+const expedienteEditData = ref(null)
+
 const expedientesFiltrados = computed(() => {
   return props.expedientes.filter(exp => {
-    const texto = `${exp.id} ${exp.paciente?.nombre} ${exp.fecha_apertura} ${exp.estado}`.toLowerCase()
+    const texto = `${exp.id} ${exp.paciente?.nombre ?? exp.nombre_pila} ${exp.fecha_apertura} ${exp.estado}`.toLowerCase()
     return texto.includes(search.value.toLowerCase())
   })
 })
@@ -31,24 +39,35 @@ function closeModal() {
   showModal.value = false
   selectedExpediente.value = null
 }
+
+function openEditModal(exp = null) {
+  expedienteEditData.value = exp
+  showEditModal.value = true
+}
+function closeEditModal() {
+  showEditModal.value = false
+  expedienteEditData.value = null
+}
 </script>
 
 <template>
+
+  <Head title="Expedientes" />
   <div class="bg-white rounded-lg shadow-md p-8 w-full">
     <div class="flex justify-between items-center mb-16">
       <h2 class="text-2xl font-bold text-[#2D2B5B]">Expedientes</h2>
       <div class="flex items-center space-x-3">
         <div class="relative">
           <span class="material-icons absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
-          <input v-model="search" type="text" placeholder="Buscar..." 
-                 class="pl-8 pr-3 py-2 border rounded-md text-md focus:ring-2 focus:ring-[#53C6D3]" />
+          <input v-model="search" type="text" placeholder="Buscar..."
+            class="pl-8 pr-3 py-2 border rounded-md text-md focus:ring-2 focus:ring-[#53C6D3]" />
         </div>
         <!-- Botón agregar -->
-        <Link href="/expedientes/create" 
-              class="inline-flex items-center px-4 py-2 bg-[#2D2B5B] text-white rounded-md hover:bg-green-700">
+        <button @click="openEditModal()"
+          class="inline-flex items-center px-4 py-2 bg-[#2D2B5B] text-white rounded-md hover:bg-green-700">
           <span class="material-icons mr-1">add_circle</span>
           <span>Nuevo</span>
-        </Link>
+        </button>
       </div>
     </div>
 
@@ -66,15 +85,18 @@ function closeModal() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="exp in expedientesFiltrados" :key="exp.id" 
-              class="border-t hover:bg-[#FAF9F7] transition">
+          <tr v-for="exp in expedientesFiltrados" :key="exp.id" class="border-t hover:bg-[#FAF9F7] transition">
             <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ exp.id }}</td>
-            <!-- Avatar columna pequeña -->
             <td class="px-2 py-2 text-center">
-              <img src="/images/avatar.png" alt="avatar" class="w-8 h-8 rounded-full border inline-block" />
+              <img :src="exp.paciente?.genero === 'femenino'
+                ? '/images/Femenino.webp'
+                : exp.paciente?.genero === 'masculino'
+                  ? '/images/Masculino.webp'
+                  : '/images/avatar.png'" alt="avatar" class="w-8 h-8 rounded-full border inline-block" />
             </td>
-            <!-- Nombre del paciente -->
-            <td class="px-4 py-2">{{ exp.paciente?.nombre }}</td>
+            <td class="px-4 py-2">
+              {{ exp.paciente ? exp.paciente.nombre : exp.nombre_pila }}
+            </td>
             <td class="px-4 py-2">{{ exp.fecha_apertura }}</td>
             <td class="px-4 py-2">
               <span :class="{
@@ -88,31 +110,35 @@ function closeModal() {
             </td>
             <td class="px-4 py-2 text-center">
               <div class="flex justify-center space-x-2">
-                <button @click="openModal(exp)" 
-                        class="inline-flex items-center px-3 py-1 text-[#74BE69] hover:text-[#1f1d3f]">
+                <button @click="openModal(exp)"
+                  class="inline-flex items-center px-3 py-1 text-[#74BE69] hover:text-[#1f1d3f]">
                   <span class="material-icons text-base">assignment</span>
                   <span class="ml-1">Ver</span>
                 </button>
-                <!-- Botón Editar -->
-                <Link :href="`/expedientes/${exp.id}/edit`" 
-                      class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
+                <button @click="openEditModal(exp)"
+                  class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
                   <span class="material-icons text-base">edit</span>
                   <span class="ml-1">Editar</span>
-                </Link>
+                </button>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    
+
+    <!-- Modal detalle -->
     <ExpedienteModal v-if="showModal" :expediente="selectedExpediente" @close="closeModal" />
+
+    <!-- Modal crear/editar -->
+    <ExpedienteEditModal v-if="showEditModal" :expediente="expedienteEditData" :diagnosticos-list="diagnosticosList"
+      :terapias-list="terapiasList" :evaluaciones-list="evaluacionesList" :escolaridades-list="escolaridadesList"
+      @close="closeEditModal" />
   </div>
 </template>
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-
 export default {
   layout: AuthenticatedLayout
 }

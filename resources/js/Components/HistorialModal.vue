@@ -7,17 +7,19 @@ defineEmits(['close'])
 
 <template>
   <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl w-2/3 max-w-3xl h-5/6 overflow-y-auto relative">
+    <!-- Ajuste de tamaño igual al Expediente -->
+    <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-6xl h-5/6 overflow-y-auto flex flex-col">
+      
       <!-- Header -->
       <div class="flex justify-between items-center border-b p-4">
-        <h2 class="text-xl font-bold text-caine-verde">
+        <h2 class="text-2xl font-bold text-caine-verde">
           Historial de citas de {{ paciente?.nombre }}
         </h2>
         <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
       </div>
 
       <!-- Body -->
-      <div class="p-6 space-y-4">
+      <div class="flex-1 p-6 space-y-4 bg-gray-50">
         <table class="w-full border-collapse">
           <thead>
             <tr class="bg-gray-100">
@@ -28,6 +30,9 @@ defineEmits(['close'])
               <th class="p-2 border">Estado</th>
               <th class="p-2 border">Modalidad</th>
               <th class="p-2 border">Observaciones</th>
+              <th class="p-2 border">Evolución</th>
+              <th class="p-2 border">Observaciones clínicas</th>
+              <th class="p-2 border">Observaciones generales</th>
             </tr>
           </thead>
           <tbody>
@@ -39,13 +44,16 @@ defineEmits(['close'])
               <td class="p-2 border">{{ cita.estado_cita?.nombre }}</td>
               <td class="p-2 border">{{ cita.modalidad }}</td>
               <td class="p-2 border">{{ cita.observaciones }}</td>
+              <td class="p-2 border">{{ cita.sesion?.evolucion || 'Pendiente' }}</td>
+              <td class="p-2 border">{{ cita.sesion?.observaciones_clinicas }}</td>
+              <td class="p-2 border">{{ cita.sesion?.observaciones_generales }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Footer -->
-      <div class="flex justify-end border-t p-4">
+      <div class="flex justify-end border-t p-4 bg-gray-50">
         <button @click="$emit('close')" class="px-4 py-2 bg-caine-verde text-white rounded-md hover:bg-caine-azul">
           Cerrar
         </button>
