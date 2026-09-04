@@ -9,6 +9,8 @@ class Anamnesis extends Model
 {
     use HasFactory;
 
+    protected $table = 'anamnesis';
+
     protected $fillable = ['observaciones'];
 
     public function items()

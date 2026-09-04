@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('anamnesis', function (Blueprint $table) {
-            $table->string('expediente_id');
+            $table->string('expediente_id')->nullable();
             $table->foreign('expediente_id')
                 ->references('id')
                 ->on('expedientes')
