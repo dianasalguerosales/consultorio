@@ -8,17 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::Create('anamnesis_items', function (Blueprint $table) {
+        Schema::create('criterios', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('anamnesis_id')->constrained()->onDelete('cascade');
-            $table->foreignId('criterio_id')->constrained()->onDelete('cascade');
-            $table->tinyInteger('respuesta');
+            $table->string('modulo');
+            $table->string('area');
+            $table->integer('numero');
+            $table->string('descripcion');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('anamnesis_items');
+        Schema::dropIfExists('criterios');
     }
 };

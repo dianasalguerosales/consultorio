@@ -6,6 +6,7 @@ use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\AnamnesisController;
+use App\Http\Controllers\TerapeutaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -54,6 +55,11 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/anamnesis', [AnamnesisController::class, 'store'])->name('anamnesis.store');
         Route::put('/anamnesis/{anamnesis}', [AnamnesisController::class, 'update'])->name('anamnesis.update');
+
+        Route::get('/terapeutas', [TerapeutaController::class, 'index'])->name('terapeutas.index');
+        Route::post('/terapeutas', [TerapeutaController::class, 'store'])->name('terapeutas.store');
+        Route::put('/terapeutas/{terapeuta}', [TerapeutaController::class, 'update'])->name('terapeutas.update');
+        Route::delete('/terapeutas/{terapeuta}', [TerapeutaController::class, 'destroy'])->name('terapeutas.destroy');
     });
 });
 

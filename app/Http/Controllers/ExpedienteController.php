@@ -10,6 +10,7 @@ use App\Models\Diagnostico;
 use App\Models\Terapia;
 use App\Models\Evaluacion;
 use App\Models\Escolaridad;
+use App\Models\Criterio;
 
 class ExpedienteController extends Controller
 {
@@ -48,6 +49,9 @@ class ExpedienteController extends Controller
             'terapiasList' => Terapia::all(),
             'evaluacionesList' => Evaluacion::all(),
             'escolaridadesList' => Escolaridad::all(),
+            'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
+            'criteriosModulo2' => Criterio::where('modulo', 'Evaluación Cognitiva')->get(),
+            'criteriosModulo3' => Criterio::where('modulo', 'Evaluación Socioemocional')->get(),
         ]);
     }
 
@@ -60,6 +64,9 @@ class ExpedienteController extends Controller
             'terapiasList' => Terapia::all(),
             'evaluacionesList' => Evaluacion::all(),
             'escolaridadesList' => Escolaridad::all(),
+            'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
+            'criteriosModulo2' => Criterio::where('modulo', 'Evaluación Cognitiva')->get(),
+            'criteriosModulo3' => Criterio::where('modulo', 'Evaluación Socioemocional')->get(),
         ]);
     }
 
@@ -69,7 +76,7 @@ class ExpedienteController extends Controller
         $codigo = $this->generarCodigoExpediente();
 
         $validated = $request->validate([
-            'paciente_id' => 'nullable|integer|exists:pacientes,id', 
+            'paciente_id' => 'nullable|integer|exists:pacientes,id',
             'nombre_pila' => 'nullable|string|max:100',
             'estado' => 'required|string',
             'modalidad' => 'nullable|string',
@@ -112,6 +119,9 @@ class ExpedienteController extends Controller
             'terapiasList' => Terapia::all(),
             'evaluacionesList' => Evaluacion::all(),
             'escolaridadesList' => Escolaridad::all(),
+            'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
+            'criteriosModulo2' => Criterio::where('modulo', 'Evaluación Cognitiva')->get(),
+            'criteriosModulo3' => Criterio::where('modulo', 'Evaluación Socioemocional')->get(),
         ]);
     }
 

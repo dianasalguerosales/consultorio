@@ -8,7 +8,10 @@ const props = defineProps({
   diagnosticosList: { type: Array, default: () => [] },
   terapiasList: { type: Array, default: () => [] },
   evaluacionesList: { type: Array, default: () => [] },
-  escolaridadesList: { type: Array, default: () => [] }
+  escolaridadesList: { type: Array, default: () => [] },
+  criteriosModulo1: { type: Array, default: () => [] },
+  criteriosModulo2: { type: Array, default: () => [] },
+  criteriosModulo3: { type: Array, default: () => [] }
 })
 
 const emit = defineEmits(['close'])
@@ -27,18 +30,26 @@ const form = useForm({
   diagnosticos: props.expediente?.diagnosticos?.map(d => d.id) || [],
   terapias: props.expediente?.terapias?.map(t => t.id) || [],
   evaluaciones: props.expediente?.evaluaciones?.map(e => e.id) || [],
-  anamnesis: {
-    modulo1: [],
-    modulo2: [],
-    modulo3: [],
-    observaciones: ''
-  }
+  observaciones: '',
+  itemsModulo1: [],
+  itemsModulo2: [],
+  itemsModulo3: []
 })
 
 function nextStep() { step.value++ }
 function prevStep() { step.value-- }
 
 function saveChanges() {
+  // Unir todos los items de los módulos
+  const allItems = [].concat(
+    form.itemsModulo1,
+    form.itemsModulo2,
+    form.itemsModulo3
+  )
+
+  // Asignar al campo "items" que espera tu backend
+  form.items = allItems
+
   if (props.expediente) {
     form.put(route('expedientes.update', props.expediente.id), {
       onSuccess: () => emit('close'),
@@ -51,6 +62,19 @@ function saveChanges() {
     })
   }
 }
+
+props.criteriosModulo1.forEach(c => {
+  form.itemsModulo1.push({ criterio_id: c.id, respuesta: null })
+})
+
+props.criteriosModulo2.forEach(c => {
+  form.itemsModulo2.push({ criterio_id: c.id, respuesta: null })
+})
+
+props.criteriosModulo3.forEach(c => {
+  form.itemsModulo3.push({ criterio_id: c.id, respuesta: null })
+})
+
 </script>
 
 <template>
@@ -148,49 +172,85 @@ function saveChanges() {
           </div>
         </div>
 
-        <!-- Paso 2: Módulo 1 Anamnesis -->
-<div v-if="step === 2" class="space-y-6">
-  <h3 class="text-lg font-semibold mb-4">Anamnesis - Módulo 1 (Desarrollo Infantil)</h3>
+        <!-- Paso 2: Módulo 1 -->
+        <div v-if="step === 2">
+          <h3>Anamnesis - Módulo 1</h3>
+          <div v-for="(criterio, index) in criteriosModulo1" :key="criterio.id">
+            <label>{{ criterio.area }} - {{ criterio.numero }}. {{ criterio.descripcion }}</label>
+            <div>
+              <label><input type="radio" value="3" v-model="form.itemsModulo1[index].respuesta" /> Adecuado</label>
+              <label><input type="radio" value="2" v-model="form.itemsModulo1[index].respuesta" /> En desarrollo</label>
+              <label><input type="radio" value="1" v-model="form.itemsModulo1[index].respuesta" /> Necesita
+                observación</label>
+            </div>
+          </div>
+        </div>
 
-  <!-- Ejemplo: Desarrollo motor grueso -->
-  <div>
-    <h4 class="font-semibold text-caine-azul">Desarrollo motor grueso</h4>
-    <div v-for="(criterio, index) in [
-      'Equilibrio y coordinación.',
-      'Corre y salta adecuadamente.',
-      'Sube y baja escaleras.',
-      'Lanza y atrapa objetos.',
-      'Postura corporal adecuada.'
-    ]" :key="index" class="mt-2">
-      <label class="block text-sm mb-1">{{ criterio }}</label>
-      <div class="flex space-x-4">
-        <label>
-          <input type="radio" :name="'motor_grueso_'+index" value="3"
-                 v-model="form.anamnesis.modulo1[criterio]" />
-          Adecuado
-        </label>
-        <label>
-          <input type="radio" :name="'motor_grueso_'+index" value="2"
-                 v-model="form.anamnesis.modulo1[criterio]" />
-          En desarrollo
-        </label>
-        <label>
-          <input type="radio" :name="'motor_grueso_'+index" value="1"
-                 v-model="form.anamnesis.modulo1[criterio]" />
-          Necesita observación
-        </label>
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Paso 3: Módulo 2 -->
+        <div v-if="step === 3">
+          <h3>Anamnesis - Módulo 2</h3>
+          <div v-for="(criterio, index) in criteriosModulo2" :key="criterio.id">
+            <label>{{ criterio.area }} - {{ criterio.numero }}. {{ criterio.descripcion }}</label>
+            <div>
+              <label><input type="radio" value="3" v-model="form.itemsModulo2[index].respuesta" /> Adecuado</label>
+              <label><input type="radio" value="2" v-model="form.itemsModulo2[index].respuesta" /> En desarrollo</label>
+              <label><input type="radio" value="1" v-model="form.itemsModulo2[index].respuesta" /> Necesita
+                observación</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 4: Módulo 3 -->
+        <div v-if="step === 4">
+          <h3>Anamnesis - Módulo 3</h3>
+          <div v-for="(criterio, index) in criteriosModulo3" :key="criterio.id">
+            <label>{{ criterio.area }} - {{ criterio.numero }}. {{ criterio.descripcion }}</label>
+            <div>
+              <label><input type="radio" value="3" v-model="form.itemsModulo3[index].respuesta" /> Adecuado</label>
+              <label><input type="radio" value="2" v-model="form.itemsModulo3[index].respuesta" /> En desarrollo</label>
+              <label><input type="radio" value="1" v-model="form.itemsModulo3[index].respuesta" /> Necesita
+                observación</label>
+            </div>
+          </div>
+        </div>
+
 
 
 
         <!-- Paso 3: Módulo 2 Anamnesis -->
         <div v-if="step === 3">
-          <h3 class="text-lg font-semibold mb-4">Anamnesis - Módulo 2</h3>
-          <!-- preguntas módulo 2 -->
-          <div class="mt-4 flex justify-between">
+          <h3 class="text-lg font-semibold mb-4">Anamnesis - Módulo 2 (Evaluación Cognitiva)</h3>
+
+          <div v-for="(criterio, index) in criteriosModulo2" :key="criterio.id" class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ criterio.area }} - {{ criterio.numero }}. {{ criterio.descripcion }}
+            </label>
+
+            <div class="flex space-x-6">
+              <label class="flex items-center space-x-1">
+                <input type="radio" :name="'criterio_' + criterio.id" value="3" v-model="form.items[index].respuesta" />
+                <span>Adecuado</span>
+              </label>
+
+              <label class="flex items-center space-x-1">
+                <input type="radio" :name="'criterio_' + criterio.id" value="2" v-model="form.items[index].respuesta" />
+                <span>En desarrollo</span>
+              </label>
+
+              <label class="flex items-center space-x-1">
+                <input type="radio" :name="'criterio_' + criterio.id" value="1" v-model="form.items[index].respuesta" />
+                <span>Necesita observación</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700">Observaciones</label>
+            <textarea v-model="form.observaciones" class="mt-1 block w-full border rounded-md px-3 py-2"></textarea>
+          </div>
+
+          <div class="mt-6 flex justify-between">
             <button @click="prevStep" class="px-4 py-2 bg-gray-300 rounded">Anterior</button>
             <button @click="nextStep" class="px-4 py-2 bg-blue-500 text-white rounded">Siguiente</button>
           </div>
@@ -198,9 +258,38 @@ function saveChanges() {
 
         <!-- Paso 4: Módulo 3 Anamnesis -->
         <div v-if="step === 4">
-          <h3 class="text-lg font-semibold mb-4">Anamnesis - Módulo 3</h3>
-          <!-- preguntas módulo 3 -->
-          <div class="mt-4 flex justify-between">
+          <h3 class="text-lg font-semibold mb-4">Anamnesis - Módulo 3 (Evaluación Socioemocional)</h3>
+
+          <div v-for="(criterio, index) in criteriosModulo3" :key="criterio.id" class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ criterio.area }} - {{ criterio.numero }}. {{ criterio.descripcion }}
+            </label>
+
+            <div class="flex space-x-6">
+              <label class="flex items-center space-x-1">
+                <input type="radio" :name="'criterio_' + criterio.id" value="3" v-model="form.items[index].respuesta" />
+                <span>Adecuado</span>
+              </label>
+
+              <label class="flex items-center space-x-1">
+                <input type="radio" :name="'criterio_' + criterio.id" value="2" v-model="form.items[index].respuesta" />
+                <span>En desarrollo</span>
+              </label>
+
+              <label class="flex items-center space-x-1">
+                <input type="radio" :name="'criterio_' + criterio.id" value="1" v-model="form.items[index].respuesta" />
+                <span>Necesita observación</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="mt-6">
+            <label class="block text-sm font-medium text-gray-700">Observaciones</label>
+            <textarea v-model="form.observaciones" class="mt-1 block w-full border rounded-md px-3 py-2"></textarea>
+          </div>
+
+          <div class="mt-6 flex justify-between">
             <button @click="prevStep" class="px-4 py-2 bg-gray-300 rounded">Anterior</button>
             <button @click="nextStep" class="px-4 py-2 bg-blue-500 text-white rounded">Siguiente</button>
           </div>

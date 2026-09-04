@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
             DiagnosticosSeeder::class,
             TerapiasSeeder::class,
             EvaluacionesSeeder::class,
+            CriteriosSeeder::class,
+            Criterios2Seeder::class,
+            Criterios3Seeder::class,
         ]);
     }
 }

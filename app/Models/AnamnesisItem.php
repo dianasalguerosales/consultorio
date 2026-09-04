@@ -9,7 +9,16 @@ class AnamnesisItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['anamnesis_id', 'area', 'criterio', 'respuesta'];
+    protected $fillable = [
+        'anamnesis_id',
+        'criterio_id',
+        'respuesta',
+    ];
+
+    public function criterio()
+    {
+        return $this->belongsTo(Criterio::class);
+    }
 
     public function anamnesis()
     {

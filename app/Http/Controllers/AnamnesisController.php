@@ -14,8 +14,7 @@ class AnamnesisController extends Controller
         $validated = $request->validate([
             'observaciones' => 'nullable|string',
             'items' => 'required|array',
-            'items.*.area' => 'required|string',
-            'items.*.criterio' => 'required|string',
+            'items.*.criterio_id' => 'required|exists:criterios,id',
             'items.*.respuesta' => 'required|integer|in:1,2,3',
             'expediente_id' => 'required|exists:expedientes,id',
         ]);
@@ -42,9 +41,9 @@ class AnamnesisController extends Controller
         $validated = $request->validate([
             'observaciones' => 'nullable|string',
             'items' => 'required|array',
-            'items.*.area' => 'required|string',
-            'items.*.criterio' => 'required|string',
+            'items.*.criterio_id' => 'required|exists:criterios,id',
             'items.*.respuesta' => 'required|integer|in:1,2,3',
+            'expediente_id' => 'required|exists:expedientes,id',
         ]);
 
         $anamnesis->update([
