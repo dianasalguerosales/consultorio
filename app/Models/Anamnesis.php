@@ -11,8 +11,8 @@ class Anamnesis extends Model
 
     protected $table = 'anamnesis';
 
-    protected $fillable = ['observaciones'];
-
+    protected $fillable = ['expediente_id', 'observaciones'];
+    
     public function items()
     {
         return $this->hasMany(AnamnesisItem::class);

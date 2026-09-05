@@ -15,10 +15,10 @@ import Servicios from './Servicios.vue'
         </section>
 
         <!-- Otra división -->
-        <!--<section>
+        <section>
             <h3 class="text-xl font-semibold text-[#2D2B5B] mb-4">Otro módulo</h3>
             <p class="text-gray-600">Contenido adicional de Programas…</p>
-        </section>-->
+        </section>
     </div>
 </template>
 

@@ -7,12 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('anamnesis', function (Blueprint $table) {
-            $table->string('expediente_id')->nullable();
-            $table->foreign('expediente_id')
-                ->references('id')
-                ->on('expedientes')
-                ->onDelete('cascade');
+        Schema::create('anamnesis', function (Blueprint $table) {
+            $table->id()->nullable();
+            $table->foreignId('expediente_id')->constrained()->onDelete('cascade');
+            $table->text('observaciones')->nullable();
+            $table->timestamps();
         });
     }
 

@@ -3,7 +3,7 @@ const props = defineProps({
   form: Object,
   criteriosModulo3: Array
 })
-const emit = defineEmits(['next','prev'])
+const emit = defineEmits(['next', 'prev'])
 </script>
 
 <template>
@@ -18,10 +18,9 @@ const emit = defineEmits(['next','prev'])
 
       <!-- Tabla compacta -->
       <div class="divide-y border rounded-md">
-        <div v-for="(criterio, index) in criteriosModulo3.filter(c => c.area === area)" 
-             :key="criterio.id" 
-             class="flex justify-between items-center px-4 py-3">
-          
+        <div v-for="criterio in criteriosModulo3.filter(c => c.area === area)" :key="criterio.id"
+          class="flex justify-between items-center px-4 py-3">
+
           <!-- Texto del criterio -->
           <span class="text-sm font-medium text-gray-700 w-2/3">
             {{ criterio.numero }}. {{ criterio.descripcion }}
@@ -30,15 +29,18 @@ const emit = defineEmits(['next','prev'])
           <!-- Radios alineados -->
           <div class="flex space-x-6 w-1/3 justify-end">
             <label class="flex items-center space-x-1">
-              <input type="radio" value="3" v-model="form.itemsModulo3[index].respuesta" />
+              <input type="radio" :name="'criterio_' + criterio.id" value="3"
+                v-model="form.itemsModulo3[criteriosModulo3.findIndex(c => c.id === criterio.id)].respuesta" />
               <span class="text-xs">Adecuado</span>
             </label>
             <label class="flex items-center space-x-1">
-              <input type="radio" value="2" v-model="form.itemsModulo3[index].respuesta" />
+              <input type="radio" :name="'criterio_' + criterio.id" value="2"
+                v-model="form.itemsModulo3[criteriosModulo3.findIndex(c => c.id === criterio.id)].respuesta" />
               <span class="text-xs">En desarrollo</span>
             </label>
             <label class="flex items-center space-x-1">
-              <input type="radio" value="1" v-model="form.itemsModulo3[index].respuesta" />
+              <input type="radio" :name="'criterio_' + criterio.id" value="1"
+                v-model="form.itemsModulo3[criteriosModulo3.findIndex(c => c.id === criterio.id)].respuesta" />
               <span class="text-xs">Observación</span>
             </label>
           </div>
@@ -56,7 +58,8 @@ const emit = defineEmits(['next','prev'])
     <!-- Navegación -->
     <div class="mt-8 flex justify-between">
       <button @click="emit('prev')" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">← Anterior</button>
-      <button @click="emit('next')" class="px-4 py-2 bg-[#2D2B5B] text-white rounded hover:bg-[#53C6D3]">Siguiente →</button>
+      <button @click="emit('next')" class="px-4 py-2 bg-[#2D2B5B] text-white rounded hover:bg-[#53C6D3]">Siguiente
+        →</button>
     </div>
   </div>
 </template>
