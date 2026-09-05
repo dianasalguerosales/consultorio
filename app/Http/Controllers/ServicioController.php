@@ -24,7 +24,7 @@ class ServicioController extends Controller
 
         Servicio::create($request->only('nombre'));
 
-        return redirect()->route('servicios.index')->with('success', 'Servicio creado correctamente');
+        return redirect()->route('programas.index')->with('success', 'Servicio creado correctamente');
     }
 
     public function update(Request $request, Servicio $servicio)
@@ -35,13 +35,13 @@ class ServicioController extends Controller
 
         $servicio->update($request->only('nombre'));
 
-        return redirect()->route('servicios.index')->with('success', 'Servicio actualizado correctamente');
+        return redirect()->route('programas.index')->with('success', 'Servicio actualizado correctamente');
     }
 
     public function destroy(Servicio $servicio)
     {
         $servicio->delete();
 
-        return redirect()->route('servicios.index')->with('success', 'Servicio eliminado correctamente');
+        return redirect()->route('programas.index')->with('success', 'Servicio eliminado correctamente');
     }
 }

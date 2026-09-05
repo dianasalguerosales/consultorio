@@ -108,7 +108,7 @@ function deleteExpediente(exp) {
                 ? '/images/Femenino.webp'
                 : exp.paciente?.genero === 'masculino'
                   ? '/images/Masculino.webp'
-                  : '/images/avatar.png'" alt="avatar" class="w-8 h-8 rounded-full border inline-block" />
+                  : '/images/avatar.webp'" alt="avatar" class="w-8 h-8 rounded-full border inline-block" />
             </td>
             <td class="px-4 py-2">
               {{ exp.paciente ? exp.paciente.nombre : exp.nombre_pila }}

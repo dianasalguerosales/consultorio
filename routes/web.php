@@ -8,6 +8,8 @@ use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\AnamnesisController;
 use App\Http\Controllers\TerapeutaController;
 use App\Http\Controllers\ServicioController;
+use App\Http\Controllers\EspecialidadController;
+use App\Http\Controllers\ProgramaController;
 use App\Models\Servicio;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -64,16 +66,18 @@ Route::middleware('auth')->group(function () {
         Route::put('/terapeutas/{terapeuta}', [TerapeutaController::class, 'update'])->name('terapeutas.update');
         Route::delete('/terapeutas/{terapeuta}', [TerapeutaController::class, 'destroy'])->name('terapeutas.destroy');
 
-        Route::get('/programas', function () {
-            return inertia('Programas/Index', [
-                'servicios' => Servicio::all()
-            ]);
-        })->name('programas.index');
+        Route::get('/programas', [ProgramaController::class, 'index'])->name('programas.index');
+
 
         Route::get('/servicios', [ServicioController::class, 'index'])->name('servicios.index');
         Route::post('/servicios', [ServicioController::class, 'store'])->name('servicios.store');
         Route::put('/servicios/{servicio}', [ServicioController::class, 'update'])->name('servicios.update');
         Route::delete('/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('servicios.destroy');
+
+        Route::get('/especialidades', [EspecialidadController::class, 'index'])->name('especialidades.index');
+        Route::post('/especialidades', [EspecialidadController::class, 'store'])->name('especialidades.store');
+        Route::put('/especialidades/{especialidad}', [EspecialidadController::class, 'update'])->name('especialidades.update');
+        Route::delete('/especialidades/{especialidad}', [EspecialidadController::class, 'destroy'])->name('especialidades.destroy');
     });
 });
 

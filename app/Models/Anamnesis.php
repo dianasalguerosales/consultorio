@@ -9,10 +9,8 @@ class Anamnesis extends Model
 {
     use HasFactory;
 
-    protected $table = 'anamnesis';
-
     protected $fillable = ['expediente_id', 'observaciones'];
-    
+
     public function items()
     {
         return $this->hasMany(AnamnesisItem::class);
@@ -20,6 +18,6 @@ class Anamnesis extends Model
 
     public function expediente()
     {
-        return $this->belongsTo(Expediente::class, 'id', 'anamnesis_id');
+        return $this->belongsTo(Expediente::class);
     }
 }

@@ -58,9 +58,9 @@ const serviciosFiltrados = computed(() => {
       <form @submit.prevent="submit">
         <div class="flex gap-2">
           <input v-model="form.nombre" type="text" placeholder="Nuevo servicio"
-                 class="border rounded px-3 py-2 focus:ring-2 focus:ring-[#2D2B5B]" />
+            class="border rounded px-3 py-2 focus:ring-2 focus:ring-[#2D2B5B]" />
           <button type="submit"
-                  class="inline-flex items-center px-4 py-2 bg-[#2D2B5B] text-white rounded-md hover:bg-green-700">
+            class="inline-flex items-center px-4 py-2 bg-[#2D2B5B] text-white rounded-md hover:bg-green-700">
             <span class="material-icons mr-1">add_circle</span>
             <span>Agregar</span>
           </button>
@@ -73,19 +73,19 @@ const serviciosFiltrados = computed(() => {
       <table class="w-full border border-gray-200 text-md rounded-lg">
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
-            <th class="px-4 py-2 text-left">#</th> <!-- ✅ correlativo -->
-            <th class="px-4 py-2 text-left">Nombre</th>
-            <th class="px-4 py-2 text-center">Acciones</th>
+            <th class="px-4 py-2 text-left w-1/12">#</th>
+            <th class="px-4 py-2 text-left w-2/5">Nombre</th>
+            <th class="px-4 py-2 text-center w-3/5">Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(servicio, index) in serviciosFiltrados" :key="servicio.id"
-              class="border-t hover:bg-[#FAF9F7] transition">
+            class="border-t hover:bg-[#FAF9F7] transition">
             <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ index + 1 }}</td> <!-- correlativo -->
             <td class="px-4 py-2">
               <template v-if="editando === servicio.id">
                 <input v-model="form.nombre" type="text"
-                       class="border rounded px-2 py-1 focus:ring-2 focus:ring-[#2D2B5B]" />
+                  class="border rounded px-2 py-1 focus:ring-2 focus:ring-[#2D2B5B]" />
               </template>
               <template v-else>
                 {{ servicio.nombre }}
@@ -95,24 +95,24 @@ const serviciosFiltrados = computed(() => {
               <div class="flex justify-center space-x-2">
                 <template v-if="editando === servicio.id">
                   <button @click="update(servicio)"
-                          class="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800">
+                    class="inline-flex items-center px-3 py-1 text-green-600 hover:text-green-800">
                     <span class="material-icons text-base">check</span>
                     <span class="ml-1">Guardar</span>
                   </button>
                   <button @click="editando = null"
-                          class="inline-flex items-center px-3 py-1 text-gray-600 hover:text-gray-800">
+                    class="inline-flex items-center px-3 py-1 text-gray-600 hover:text-gray-800">
                     <span class="material-icons text-base">close</span>
                     <span class="ml-1">Cancelar</span>
                   </button>
                 </template>
                 <template v-else>
                   <button @click="startEdit(servicio)"
-                          class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
+                    class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
                     <span class="material-icons text-base">edit</span>
                     <span class="ml-1">Editar</span>
                   </button>
                   <button @click="deleteServicio(servicio)"
-                          class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
+                    class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                     <span class="material-icons text-base">delete</span>
                     <span class="ml-1">Eliminar</span>
                   </button>

@@ -4,19 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
-        Schema::create('escolaridades', function (Blueprint $table) {
+        Schema::create('estado_citas', function (Blueprint $table) {
             $table->id();
-            $table->string('grado');
+            $table->string('nombre')->unique();
+            $table->boolean('activo')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('escolaridades');
+        Schema::dropIfExists('estado_citas');
     }
 };

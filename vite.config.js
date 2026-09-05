@@ -3,10 +3,6 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig(({ mode }) => {
-    // Lee el .env del proyecto. Por defecto el dev server escucha en
-    // localhost, asi arranca en cualquier red. Para exponerlo a la LAN
-    // (probar desde un celular, por ejemplo) poner en el .env:
-    //   VITE_DEV_HOST=0.0.0.0
     const env = loadEnv(mode, process.cwd(), '');
 
     return {
@@ -14,10 +10,13 @@ export default defineConfig(({ mode }) => {
             host: env.VITE_DEV_HOST || 'localhost',
             port: 5173,
             cors: true,
+            hmr: {
+                host: new URL(env.VITE_APP_URL).hostname,
+            },  
         },
         plugins: [
             laravel({
-                input: 'resources/js/app.js',
+                input: ['resources/css/app.css', 'resources/js/app.js'],
                 refresh: true,
             }),
             vue({
