@@ -60,4 +60,13 @@ class Expediente extends Model
     {
         return $this->hasOne(Anamnesis::class);
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($expediente) {
+            $expediente->diagnosticos()->detach();
+            $expediente->terapias()->detach();
+            $expediente->evaluaciones()->detach();
+        });
+    }
 }

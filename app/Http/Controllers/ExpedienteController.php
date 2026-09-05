@@ -151,6 +151,19 @@ class ExpedienteController extends Controller
         return redirect()->route('expedientes.index')->with('success', 'Expediente actualizado correctamente');
     }
 
+    public function destroy(Expediente $expediente)
+    {
+        try {
+            $expediente->delete();
+
+            return redirect()->route('expedientes.index')
+                ->with('success', 'Expediente eliminado correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('expedientes.index')
+                ->with('error', 'No se pudo eliminar el expediente: ' . $e->getMessage());
+        }
+    }
+
     private function generarCodigoExpediente()
     {
         $anio = date('Y');

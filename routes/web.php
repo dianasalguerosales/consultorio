@@ -7,6 +7,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\AnamnesisController;
 use App\Http\Controllers\TerapeutaController;
+use App\Http\Controllers\ServicioController;
+use App\Models\Servicio;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -52,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/expedientes', [ExpedienteController::class, 'index'])->name('expedientes.index');
         Route::post('/expedientes', [ExpedienteController::class, 'store'])->name('expedientes.store');
         Route::put('/expedientes/{expediente}', [ExpedienteController::class, 'update'])->name('expedientes.update');
+        Route::delete('/expedientes/{expediente}', [ExpedienteController::class, 'destroy'])->name('expedientes.destroy');
 
         Route::post('/anamnesis', [AnamnesisController::class, 'store'])->name('anamnesis.store');
         Route::put('/anamnesis/{anamnesis}', [AnamnesisController::class, 'update'])->name('anamnesis.update');
@@ -60,7 +63,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/terapeutas', [TerapeutaController::class, 'store'])->name('terapeutas.store');
         Route::put('/terapeutas/{terapeuta}', [TerapeutaController::class, 'update'])->name('terapeutas.update');
         Route::delete('/terapeutas/{terapeuta}', [TerapeutaController::class, 'destroy'])->name('terapeutas.destroy');
+
+        Route::get('/programas', function () {
+            return inertia('Programas/Index', [
+                'servicios' => Servicio::all()
+            ]);
+        })->name('programas.index');
+
+        Route::get('/servicios', [ServicioController::class, 'index'])->name('servicios.index');
+        Route::post('/servicios', [ServicioController::class, 'store'])->name('servicios.store');
+        Route::put('/servicios/{servicio}', [ServicioController::class, 'update'])->name('servicios.update');
+        Route::delete('/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('servicios.destroy');
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

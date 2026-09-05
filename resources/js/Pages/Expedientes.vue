@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import ExpedienteModal from '@/Components/ExpedienteModal.vue'
 import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
 
@@ -9,7 +9,10 @@ const props = defineProps({
   diagnosticosList: Array,
   terapiasList: Array,
   evaluacionesList: Array,
-  escolaridadesList: Array
+  escolaridadesList: Array,
+  criteriosModulo1: { type: Array, default: () => [] },
+  criteriosModulo2: { type: Array, default: () => [] },
+  criteriosModulo3: { type: Array, default: () => [] }
 })
 
 const search = ref('')
@@ -48,12 +51,25 @@ function closeEditModal() {
   showEditModal.value = false
   expedienteEditData.value = null
 }
+
+function deleteExpediente(exp) {
+  if (confirm(`¿Seguro que deseas eliminar el expediente #${exp.id}?`)) {
+    router.delete(route('expedientes.destroy', exp.id), {
+      onSuccess: () => {
+        console.log('Expediente eliminado correctamente')
+      },
+      onError: (errors) => {
+        console.error(errors)
+      }
+    })
+  }
+}
 </script>
 
 <template>
-
   <Head title="Expedientes" />
   <div class="bg-white rounded-lg shadow-md p-8 w-full">
+    <!-- Encabezado -->
     <div class="flex justify-between items-center mb-16">
       <h2 class="text-2xl font-bold text-[#2D2B5B]">Expedientes</h2>
       <div class="flex items-center space-x-3">
@@ -120,6 +136,12 @@ function closeEditModal() {
                   <span class="material-icons text-base">edit</span>
                   <span class="ml-1">Editar</span>
                 </button>
+                <!-- Botón eliminar -->
+                <button @click="deleteExpediente(exp)"
+                  class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
+                  <span class="material-icons text-base">delete</span>
+                  <span class="ml-1">Eliminar</span>
+                </button>
               </div>
             </td>
           </tr>
@@ -133,13 +155,15 @@ function closeEditModal() {
     <!-- Modal crear/editar -->
     <ExpedienteEditModal v-if="showEditModal" :expediente="expedienteEditData" :diagnosticos-list="diagnosticosList"
       :terapias-list="terapiasList" :evaluaciones-list="evaluacionesList" :escolaridades-list="escolaridadesList"
-      @close="closeEditModal" />
+      :criterios-modulo1="props.criteriosModulo1" :criterios-modulo2="props.criteriosModulo2"
+      :criterios-modulo3="props.criteriosModulo3" @close="closeEditModal" />
   </div>
 </template>
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+
 export default {
-  layout: AuthenticatedLayout
+    layout: AuthenticatedLayout
 }
 </script>
