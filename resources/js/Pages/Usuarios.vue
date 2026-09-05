@@ -104,10 +104,23 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
         class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
         
         <!-- Avatar -->
-        <div class="mt-6">
-          <img :src="`https://ui-avatars.com/api/?name=${usuario.terapeuta?.nombre || usuario.encargado?.nombre || usuario.administrativo?.nombre || usuario.email}&background=random&size=128`"
-            alt="Avatar" class="h-20 w-20 rounded-full mx-auto" />
-        </div>
+                <div class="mt-6">
+                    <img
+                        :src="
+                            usuario.roles.includes('terapeuta')
+                                ? '/images/Terapeuta.webp'
+                                : usuario.roles.includes('administrador')
+                                ? '/images/Admin.webp'
+                                : usuario.roles.includes('coordinador')
+                                ? '/images/Coordinador.webp'
+                                : usuario.roles.includes('encargado')
+                                ? '/images/Madre.webp'
+                                : '/images/avatar.webp'
+                        "
+                        alt="Avatar"
+                        class="h-20 w-20 rounded-full mx-auto"
+                    />
+                </div>
 
         <!-- Nombre y correo -->
         <div class="mt-4">
