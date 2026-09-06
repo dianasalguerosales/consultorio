@@ -4,21 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Terapeuta extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
-        'nombre',
+        'nombres',
+        'apellidos',
         'fecha_nacimiento',
+        'dpi',
         'telefono',
         'correo',
-        'numero_colegiado',
         'especialidad',
-        'formacion',
+        'experiencia',
         'certificaciones',
+        'cursos',
     ];
 
     public function user()
@@ -28,6 +31,12 @@ class Terapeuta extends Model
 
     public function pacientes()
     {
-        return $this->belongsToMany(Paciente::class, 'paciente_terapeuta');
+        return $this->belongsToMany(Paciente::class, 'paciente_terapeuta')
+                    ->withTimestamps();
+    }
+
+    public function citas()
+    {
+        return $this->hasMany(Cita::class);
     }
 }

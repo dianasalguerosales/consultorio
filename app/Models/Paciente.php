@@ -4,33 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Paciente extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nombre',
+        'nombres',
+        'apellidos',
         'fecha_nacimiento',
         'telefono',
         'direccion',
         'genero',
-        'expediente_id',
     ];
 
     public function terapeutas()
     {
-        return $this->belongsToMany(Terapeuta::class, 'paciente_terapeuta');
+        return $this->belongsToMany(Terapeuta::class, 'paciente_terapeuta')
+                    ->withTimestamps();
     }
 
     public function encargados()
     {
-        return $this->belongsToMany(Encargado::class, 'encargado_paciente')->withTimestamps();
+        return $this->belongsToMany(Encargado::class, 'encargado_paciente')
+                    ->withTimestamps();
     }
 
     public function expediente()
     {
-        return $this->belongsTo(Expediente::class, 'expediente_id', 'id');
+        return $this->hasOne(Expediente::class);
     }
 
     public function citas()

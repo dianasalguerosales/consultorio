@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cita extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'paciente_id',
@@ -15,7 +16,7 @@ class Cita extends Model
         'terapeuta_id',
         'servicio_id',
         'programa_id',
-        'estado_cita_id',
+        'estado_citas_id',
         'fecha',
         'hora_inicio',
         'hora_fin',
@@ -30,25 +31,30 @@ class Cita extends Model
     {
         return $this->belongsTo(Paciente::class);
     }
+
     public function encargado()
     {
         return $this->belongsTo(Encargado::class);
     }
+
     public function terapeuta()
     {
         return $this->belongsTo(Terapeuta::class);
     }
+
     public function servicio()
     {
         return $this->belongsTo(Servicio::class);
     }
+
     public function programa()
     {
         return $this->belongsTo(Programa::class);
     }
+
     public function estadoCita()
     {
-        return $this->belongsTo(EstadoCita::class);
+        return $this->belongsTo(EstadoCita::class, 'estado_citas_id');
     }
 
     public function sesion()

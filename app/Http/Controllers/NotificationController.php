@@ -11,11 +11,11 @@ class NotificationController extends Controller
     public function index()
     {
         $notificaciones = Notification::where('user_id', auth()->id())
-                                    ->latest()
-                                    ->take(20)
-                                    ->get();
+            ->latest()
+            ->take(20)
+            ->get();
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('Notificaciones/Index', [
             'notificaciones' => $notificaciones,
         ]);
     }

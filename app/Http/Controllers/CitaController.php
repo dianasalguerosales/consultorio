@@ -13,16 +13,34 @@ class CitaController extends Controller
             'paciente_id' => 'required|exists:pacientes,id',
             'terapeuta_id' => 'required|exists:terapeutas,id',
             'servicio_id' => 'required|exists:servicios,id',
-            'estado_cita_id' => 'required|exists:estado_citas,id',
+            'programa_id' => 'nullable|exists:programas,id',
+            'estado_citas_id' => 'required|exists:estado_citas,id',
             'fecha' => 'required|date',
-            'hora_inicio' => 'required',
-            'hora_fin' => 'required',
-            'modalidad' => 'nullable|string',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+            'modalidad' => 'nullable|string|max:30',
+            'precio_aplicado' => 'nullable|numeric',
+            'motivo_consulta' => 'nullable|string',
             'observaciones' => 'nullable|string',
         ]);
 
+        $existe = Cita::where('terapeuta_id', $validated['terapeuta_id'])
+            ->where('fecha', $validated['fecha'])
+            ->where(function ($q) use ($validated) {
+                $q->whereBetween('hora_inicio', [$validated['hora_inicio'], $validated['hora_fin']])
+                  ->orWhereBetween('hora_fin', [$validated['hora_inicio'], $validated['hora_fin']]);
+            })
+            ->exists();
+
+        if ($existe) {
+            return redirect()->back()->withErrors([
+                'hora_inicio' => 'El terapeuta ya tiene una cita en ese horario.',
+            ]);
+        }
+
         Cita::create($validated);
 
-        return redirect()->back()->with('success', 'Cita creada correctamente');
+        return redirect()->route('citas.index')
+                         ->with('success', 'Cita creada correctamente');
     }
 }

@@ -8,25 +8,35 @@ use App\Models\Encargado;
 use App\Models\Administrativo;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $usuarios = User::with(['roles','terapeuta','encargado','administrativo'])->get()->map(function ($user) {
+        $usuarios = User::with(['terapeuta', 'encargado', 'administrativo'])->get()->map(function ($user) {
             return [
                 'id'    => $user->id,
                 'email' => $user->email,
-                'roles' => $user->roles->pluck('name')->toArray(),
-                'terapeuta' => $user->terapeuta,
-                'encargado' => $user->encargado,
-                'administrativo' => $user->administrativo,
+                'roles' => $user->getRoleNames()->toArray(),
+                'terapeuta' => $user->terapeuta ? [
+                    'id' => $user->terapeuta->id,
+                    'nombre_completo' => $user->terapeuta->nombre_completo,
+                ] : null,
+                'encargado' => $user->encargado ? [
+                    'id' => $user->encargado->id,
+                    'nombre_completo' => $user->encargado->nombre_completo,
+                ] : null,
+                'administrativo' => $user->administrativo ? [
+                    'id' => $user->administrativo->id,
+                    'nombre_completo' => $user->administrativo->nombre_completo,
+                ] : null,
             ];
         });
 
         $roles = Role::all();
 
-        return inertia('Usuarios', [
+        return Inertia::render('Usuarios/Index', [
             'usuarios' => $usuarios,
             'roles'    => $roles,
         ]);
@@ -40,7 +50,8 @@ class UserController extends Controller
             'roles'    => 'array',
             'roles.*'  => 'exists:roles,name',
             'tipo_usuario' => 'required|string|in:administrativo,terapeuta,encargado',
-            'nombre'   => 'required|string|max:255',
+            'nombres'  => 'required|string|max:255',
+            'apellidos'=> 'required|string|max:255',
             'telefono' => 'nullable|string|max:20',
             'direccion'=> 'nullable|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
@@ -63,12 +74,12 @@ class UserController extends Controller
             $user->syncRoles($validated['roles']);
         }
 
-        // Crear registro en tabla correspondiente
         switch ($validated['tipo_usuario']) {
             case 'terapeuta':
                 Terapeuta::create([
                     'user_id' => $user->id,
-                    'nombre' => $validated['nombre'],
+                    'nombres' => $validated['nombres'],
+                    'apellidos' => $validated['apellidos'],
                     'correo' => $validated['email'],
                     'telefono' => $validated['telefono'],
                     'especialidad' => $validated['especialidad'],
@@ -82,7 +93,8 @@ class UserController extends Controller
             case 'encargado':
                 Encargado::create([
                     'user_id' => $user->id,
-                    'nombre' => $validated['nombre'],
+                    'nombres' => $validated['nombres'],
+                    'apellidos' => $validated['apellidos'],
                     'correo' => $validated['email'],
                     'telefono' => $validated['telefono'],
                     'relacion' => $validated['relacion'],
@@ -92,7 +104,8 @@ class UserController extends Controller
             case 'administrativo':
                 Administrativo::create([
                     'user_id' => $user->id,
-                    'nombre' => $validated['nombre'],
+                    'nombres' => $validated['nombres'],
+                    'apellidos' => $validated['apellidos'],
                     'correo' => $validated['email'],
                     'telefono' => $validated['telefono'],
                     'direccion' => $validated['direccion'],
@@ -103,7 +116,7 @@ class UserController extends Controller
                 break;
         }
 
-        return redirect()->route('usuarios')->with('success', 'Usuario creado correctamente');
+        return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente');
     }
 
     public function update(Request $request, User $user)

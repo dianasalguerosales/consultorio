@@ -4,15 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Diagnostico extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = ['nombre','descripcion'];
+    protected $fillable = [
+        'nombre',
+        'descripcion',
+    ];
 
     public function expedientes()
     {
-        return $this->hasMany(Expediente::class);
+        return $this->belongsToMany(Expediente::class, 'expediente_diagnostico')
+                    ->withTimestamps();
     }
 }

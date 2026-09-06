@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Anamnesis;
 use App\Models\Expediente;
-use App\Models\AnamnesisItem;
 use Illuminate\Http\Request;
 
 class AnamnesisController extends Controller
@@ -24,15 +23,18 @@ class AnamnesisController extends Controller
         ]);
 
         foreach ($validated['items'] as $item) {
-            $anamnesis->items()->create($item);
+            $anamnesis->items()->create([
+                'criterio_id' => $item['criterio_id'],
+                'respuesta'   => $item['respuesta'],
+            ]);
         }
 
-        $expediente = Expediente::find($validated['expediente_id']);
-            $expediente->update([
-                'anamnesis_id' => $anamnesis->id,
-            ]);
+        $expediente = Expediente::findOrFail($validated['expediente_id']);
+        $expediente->update([
+            'anamnesis_id' => $anamnesis->id,
+        ]);
 
-        return redirect()->route('expedientes.show', $validated['expediente_id'])
+        return redirect()->route('expedientes.show', $expediente->id)
                          ->with('success', 'Anamnesis registrada correctamente y vinculada al expediente.');
     }
 
@@ -43,7 +45,6 @@ class AnamnesisController extends Controller
             'items' => 'required|array',
             'items.*.criterio_id' => 'required|exists:criterios,id',
             'items.*.respuesta' => 'required|integer|in:1,2,3',
-            'expediente_id' => 'required|exists:expedientes,id',
         ]);
 
         $anamnesis->update([
@@ -52,10 +53,13 @@ class AnamnesisController extends Controller
 
         $anamnesis->items()->delete();
         foreach ($validated['items'] as $item) {
-            $anamnesis->items()->create($item);
+            $anamnesis->items()->create([
+                'criterio_id' => $item['criterio_id'],
+                'respuesta'   => $item['respuesta'],
+            ]);
         }
 
-        return redirect()->route('expedientes.show', $anamnesis->expediente_id)
+        return redirect()->route('expedientes.show', $anamnesis->expediente->id)
                          ->with('success', 'Anamnesis actualizada correctamente.');
     }
 }

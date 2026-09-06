@@ -6,21 +6,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Anamnesis extends Model
+class ResultadoEvaluacion extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'resultado_evaluaciones';
+
     protected $fillable = [
-        'observaciones',
+        'evaluacion_id',
+        'descripcion',
     ];
 
-    public function items()
+    public function evaluacion()
     {
-        return $this->hasMany(AnamnesisItem::class);
-    }
-
-    public function expediente()
-    {
-        return $this->hasOne(Expediente::class);
+        return $this->belongsTo(Evaluacion::class);
     }
 }

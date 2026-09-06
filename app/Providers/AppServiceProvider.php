@@ -29,13 +29,15 @@ class AppServiceProvider extends ServiceProvider
                         'email' => $user->email,
                         'roles' => $user->getRoleNames()->toArray(),
                         'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-                        'nombre' => $user->terapeuta?->nombre
-                            ?? $user->encargado?->nombre
-                            ?? $user->administrativo?->nombre
-                            ?? null,
+                        'nombre' => $user->terapeuta
+                            ? $user->terapeuta->nombres . ' ' . $user->terapeuta->apellidos
+                            : ($user->encargado
+                                ? $user->encargado->nombres . ' ' . $user->encargado->apellidos
+                                : ($user->administrativo
+                                    ? $user->administrativo->nombres . ' ' . $user->administrativo->apellidos
+                                    : null)),
                     ] : null,
                 ];
-
             },
             'notificaciones' => function () {
                 if (auth()->check()) {

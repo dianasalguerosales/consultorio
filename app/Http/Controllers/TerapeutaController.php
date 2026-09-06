@@ -12,7 +12,7 @@ class TerapeutaController extends Controller
     {
         $terapeutas = Terapeuta::withCount('pacientes')->with('user')->get();
 
-        return Inertia::render('Terapeutas', [
+        return Inertia::render('Terapeutas/Index', [
             'terapeutas' => $terapeutas,
         ]);
     }
@@ -21,7 +21,8 @@ class TerapeutaController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'nombre' => 'required|string|max:255',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|email|unique:terapeutas,correo',
@@ -33,13 +34,14 @@ class TerapeutaController extends Controller
 
         Terapeuta::create($request->all());
 
-        return redirect()->route('terapeutas.index')->with('exito', 'Terapeuta creado correctamente.');
+        return redirect()->route('terapeutas.index')->with('success', 'Terapeuta creado correctamente.');
     }
 
     public function update(Request $request, Terapeuta $terapeuta)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|email|unique:terapeutas,correo,' . $terapeuta->id,
@@ -51,26 +53,26 @@ class TerapeutaController extends Controller
 
         $terapeuta->update($request->all());
 
-        return redirect()->route('terapeutas.index')->with('exito', 'Terapeuta actualizado correctamente.');
+        return redirect()->route('terapeutas.index')->with('success', 'Terapeuta actualizado correctamente.');
     }
 
     public function destroy(Terapeuta $terapeuta)
     {
         $terapeuta->delete();
 
-        return redirect()->route('terapeutas.index')->with('exito', 'Terapeuta eliminado correctamente.');
+        return redirect()->route('terapeutas.index')->with('success', 'Terapeuta eliminado correctamente.');
     }
 
     public function perfil(Terapeuta $terapeuta)
     {
-        return Inertia::render('TerapeutaPerfil', [
+        return Inertia::render('Terapeutas/Perfil', [
             'terapeuta' => $terapeuta->load('user', 'pacientes'),
         ]);
     }
 
     public function pacientes(Terapeuta $terapeuta)
     {
-        return Inertia::render('TerapeutaPacientes', [
+        return Inertia::render('Terapeutas/Pacientes', [
             'pacientes' => $terapeuta->pacientes,
         ]);
     }

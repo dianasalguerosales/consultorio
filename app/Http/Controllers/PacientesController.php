@@ -24,7 +24,7 @@ class PacientesController extends Controller
 
         $encargados = Encargado::all();
 
-        return Inertia::render('Pacientes', [
+        return Inertia::render('Pacientes/Index', [
             'pacientes' => $pacientes,
             'encargados' => $encargados,
         ]);
@@ -32,7 +32,7 @@ class PacientesController extends Controller
 
     public function expediente(Paciente $paciente)
     {
-        $expediente = Expediente::where('paciente_id', $paciente->id)->firstOrFail();
+        $expediente = $paciente->expediente()->firstOrFail();
 
         return Inertia::render('Expedientes/Show', [
             'paciente' => $paciente,
@@ -57,46 +57,36 @@ class PacientesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:255',
             'genero' => 'nullable|string|max:20',
+            'expediente_id' => 'nullable|exists:expedientes,id',
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 
         $paciente = Paciente::create($validated);
 
-        // Nuevo formato de código: KIDYYYYXXX
-        $codigo = $this->generarCodigoExpediente();
-        Expediente::create([
-            'id' => $codigo,
-            'paciente_id' => $paciente->id,
-            'fecha_apertura' => now(),
-            'estado' => 'activo',
-            'creado_por_usuario_id' => $request->user()->id,
-            'observaciones_administrativas' => 'Expediente inicial',
-        ]);
-
-        $paciente->update([
-            'expediente_id' => $codigo,
-        ]);
-
         if ($request->filled('encargado_id')) {
             $paciente->encargados()->attach($request->encargado_id);
         }
 
-        return redirect()->back()->with('success', 'Paciente y expediente creados correctamente');
+        return redirect()->route('pacientes.index')
+                         ->with('success', 'Paciente creado correctamente');
     }
 
     public function update(Request $request, Paciente $paciente)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:255',
             'genero' => 'nullable|string|max:20',
+            'expediente_id' => 'nullable|exists:expedientes,id',
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 
@@ -106,29 +96,15 @@ class PacientesController extends Controller
             $paciente->encargados()->sync([$request->encargado_id]);
         }
 
-        return redirect()->back()->with('success', 'Paciente actualizado correctamente');
+        return redirect()->route('pacientes.index')
+                         ->with('success', 'Paciente actualizado correctamente');
     }
 
     public function destroy(Paciente $paciente)
     {
         $paciente->delete();
 
-        return redirect()->back()->with('success', 'Paciente eliminado correctamente');
-    }
-
-    /**
-     * Genera código de expediente en formato KIDYYYYXXX
-     */
-    private function generarCodigoExpediente()
-    {
-        $anio = date('Y');
-
-        $ultimo = Expediente::where('id', 'like', 'KID-'.$anio.'%')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $correlativo = $ultimo ? intval(substr($ultimo->id, 7)) + 1 : 1;
-
-        return 'KID'.$anio.str_pad($correlativo, 3, '0', STR_PAD_LEFT);
+        return redirect()->route('pacientes.index')
+                         ->with('success', 'Paciente eliminado correctamente');
     }
 }

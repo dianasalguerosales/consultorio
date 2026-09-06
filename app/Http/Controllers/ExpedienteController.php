@@ -7,7 +7,7 @@ use Inertia\Inertia;
 use App\Models\Expediente;
 use App\Models\Paciente;
 use App\Models\Diagnostico;
-use App\Models\Terapia;
+use App\Models\Servicio;
 use App\Models\Evaluacion;
 use App\Models\Escolaridad;
 use App\Models\Criterio;
@@ -19,10 +19,11 @@ class ExpedienteController extends Controller
         $query = Expediente::with([
             'paciente',
             'diagnosticos',
-            'terapias',
+            'servicios',
             'evaluaciones',
             'escolaridad'
         ]);
+
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
@@ -33,7 +34,8 @@ class ExpedienteController extends Controller
 
         if ($request->filled('paciente')) {
             $query->whereHas('paciente', function ($q) use ($request) {
-                $q->where('nombre', 'like', '%' . $request->paciente . '%');
+                $q->where('nombres', 'like', '%' . $request->paciente . '%')
+                  ->orWhere('apellidos', 'like', '%' . $request->paciente . '%');
             });
         }
 
@@ -43,10 +45,10 @@ class ExpedienteController extends Controller
 
         $expedientes = $query->orderBy('fecha_apertura', 'desc')->get();
 
-        return Inertia::render('Expedientes', [
+        return Inertia::render('Expedientes/Index', [
             'expedientes' => $expedientes,
             'diagnosticosList' => Diagnostico::all(),
-            'terapiasList' => Terapia::all(),
+            'serviciosList' => Servicio::all(),
             'evaluacionesList' => Evaluacion::all(),
             'escolaridadesList' => Escolaridad::all(),
             'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
@@ -55,13 +57,12 @@ class ExpedienteController extends Controller
         ]);
     }
 
-    // 👉 Mostrar formulario para crear
     public function create(Paciente $paciente)
     {
-        return Inertia::render('ExpedienteEditModal', [
+        return Inertia::render('Expedientes/EditModal', [
             'pacienteId' => $paciente->id,
             'diagnosticosList' => Diagnostico::all(),
-            'terapiasList' => Terapia::all(),
+            'serviciosList' => Servicio::all(),
             'evaluacionesList' => Evaluacion::all(),
             'escolaridadesList' => Escolaridad::all(),
             'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
@@ -70,7 +71,6 @@ class ExpedienteController extends Controller
         ]);
     }
 
-    // 👉 Guardar nuevo expediente
     public function store(Request $request)
     {
         $codigo = $this->generarCodigoExpediente();
@@ -85,8 +85,8 @@ class ExpedienteController extends Controller
             'observaciones_administrativas' => 'nullable|string',
             'diagnosticos' => 'array',
             'diagnosticos.*' => 'integer|exists:diagnosticos,id',
-            'terapias' => 'array',
-            'terapias.*' => 'integer|exists:terapias,id',
+            'servicios' => 'array',
+            'servicios.*' => 'integer|exists:servicios,id',
             'evaluaciones' => 'array',
             'evaluaciones.*' => 'integer|exists:evaluaciones,id',
         ]);
@@ -98,10 +98,9 @@ class ExpedienteController extends Controller
         ]));
 
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
-        $expediente->terapias()->sync($request->terapias ?? []);
+        $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
 
-        // Si tiene paciente, actualiza la relación
         if ($request->filled('paciente_id')) {
             $paciente = Paciente::find($request->paciente_id);
             $paciente?->update(['expediente_id' => $codigo]);
@@ -110,13 +109,12 @@ class ExpedienteController extends Controller
         return redirect()->back()->with('success', 'Expediente creado correctamente');
     }
 
-    // 👉 Mostrar formulario para editar
     public function edit(Expediente $expediente)
     {
-        return Inertia::render('ExpedienteEditModal', [
-            'expediente' => $expediente->load(['paciente', 'diagnosticos', 'terapias', 'evaluaciones', 'escolaridades']),
+        return Inertia::render('Expedientes/EditModal', [
+            'expediente' => $expediente->load(['paciente', 'diagnosticos', 'servicios', 'evaluaciones', 'escolaridad']),
             'diagnosticosList' => Diagnostico::all(),
-            'terapiasList' => Terapia::all(),
+            'serviciosList' => Servicio::all(),
             'evaluacionesList' => Evaluacion::all(),
             'escolaridadesList' => Escolaridad::all(),
             'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
@@ -125,7 +123,6 @@ class ExpedienteController extends Controller
         ]);
     }
 
-    // 👉 Guardar cambios
     public function update(Request $request, Expediente $expediente)
     {
         $validated = $request->validate([
@@ -136,8 +133,8 @@ class ExpedienteController extends Controller
             'observaciones_administrativas' => 'nullable|string',
             'diagnosticos' => 'array',
             'diagnosticos.*' => 'integer|exists:diagnosticos,id',
-            'terapias' => 'array',
-            'terapias.*' => 'integer|exists:terapias,id',
+            'servicios' => 'array',
+            'servicios.*' => 'integer|exists:servicios,id',
             'evaluaciones' => 'array',
             'evaluaciones.*' => 'integer|exists:evaluaciones,id',
         ]);
@@ -145,7 +142,7 @@ class ExpedienteController extends Controller
         $expediente->update($validated);
 
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
-        $expediente->terapias()->sync($request->terapias ?? []);
+        $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
 
         return redirect()->route('expedientes.index')->with('success', 'Expediente actualizado correctamente');
@@ -155,7 +152,6 @@ class ExpedienteController extends Controller
     {
         try {
             $expediente->delete();
-
             return redirect()->route('expedientes.index')
                 ->with('success', 'Expediente eliminado correctamente.');
         } catch (\Exception $e) {

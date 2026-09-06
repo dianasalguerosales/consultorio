@@ -12,7 +12,6 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         $user = $request->user()->load([
-            'roles',
             'terapeuta' => fn($q) => $q->withCount('pacientes'),
             'encargado' => fn($q) => $q->withCount('pacientes'),
             'administrativo',
@@ -27,7 +26,7 @@ class ProfileController extends Controller
                 'updated_at' => $user->updated_at?->format('d-m-Y'),
             ],
             'terapeuta' => $user->terapeuta ? [
-                'nombre' => $user->terapeuta->nombre,
+                'nombre_completo' => $user->terapeuta->nombre_completo,
                 'especialidad' => $user->terapeuta->especialidad,
                 'fecha_nacimiento' => $user->terapeuta->fecha_nacimiento,
                 'telefono' => $user->terapeuta->telefono,
@@ -39,7 +38,7 @@ class ProfileController extends Controller
                 'pacientes_count' => $user->terapeuta->pacientes_count,
             ] : null,
             'administrativo' => $user->administrativo ? [
-                'nombre' => $user->administrativo->nombre,
+                'nombre_completo' => $user->administrativo->nombre_completo,
                 'fecha_nacimiento' => $user->administrativo->fecha_nacimiento,
                 'telefono' => $user->administrativo->telefono,
                 'correo' => $user->administrativo->correo,
@@ -47,7 +46,7 @@ class ProfileController extends Controller
                 'tipo' => $user->administrativo->tipo,
             ] : null,
             'encargado' => $user->encargado ? [
-                'nombre' => $user->encargado->nombre,
+                'nombre_completo' => $user->encargado->nombre_completo,
                 'telefono' => $user->encargado->telefono,
                 'correo' => $user->encargado->correo,
                 'relacion' => $user->encargado->relacion,

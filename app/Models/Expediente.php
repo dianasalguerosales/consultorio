@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Expediente extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'id',
         'nombre_pila',
         'fecha_apertura',
         'estado',
@@ -22,9 +22,6 @@ class Expediente extends Model
         'creado_por_usuario_id',
         'observaciones_administrativas',
     ];
-
-    public $incrementing = false;
-    protected $keyType = 'string';
 
     public function paciente()
     {
@@ -38,17 +35,20 @@ class Expediente extends Model
 
     public function diagnosticos()
     {
-        return $this->belongsToMany(Diagnostico::class, 'expediente_diagnostico');
+        return $this->belongsToMany(Diagnostico::class, 'expediente_diagnostico')
+                    ->withTimestamps();
     }
 
     public function terapias()
     {
-        return $this->belongsToMany(Terapia::class, 'expediente_terapia');
+        return $this->belongsToMany(Terapia::class, 'expediente_terapia')
+                    ->withTimestamps();
     }
 
     public function evaluaciones()
     {
-        return $this->belongsToMany(Evaluacion::class, 'expediente_evaluacion');
+        return $this->belongsToMany(Evaluacion::class, 'expediente_evaluacion')
+                    ->withTimestamps();
     }
 
     public function escolaridad()
@@ -58,7 +58,7 @@ class Expediente extends Model
 
     public function anamnesis()
     {
-        return $this->hasOne(Anamnesis::class);
+        return $this->belongsTo(Anamnesis::class);
     }
 
     protected static function booted()

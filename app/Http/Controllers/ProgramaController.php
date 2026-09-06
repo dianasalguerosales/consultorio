@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Servicio;
-use App\Models\Especialidad;
 use Inertia\Inertia;
+use App\Models\Programa;
 
 class ProgramaController extends Controller
 {
     public function index()
     {
+        $programas = Programa::with(['servicios', 'especialidades'])->get();
+
         return Inertia::render('Programas/Index', [
-            'servicios' => Servicio::all(),
-            'especialidades' => Especialidad::all(),
+            'programas' => $programas,
         ]);
     }
 }
