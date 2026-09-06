@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up()
     {
         Schema::create('notifications', function (Blueprint $table) {
@@ -15,7 +14,10 @@ return new class extends Migration
             $table->text('descripcion');
             $table->string('icono')->nullable();
             $table->timestamp('fecha')->nullable();
+            $table->boolean('leida')->default(false);
             $table->timestamps();
+            $table->softDeletes();
+            $table->index('user_id');
         });
     }
 

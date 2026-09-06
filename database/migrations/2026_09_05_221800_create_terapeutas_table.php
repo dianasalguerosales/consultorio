@@ -9,24 +9,18 @@ return new class extends Migration {
     {
         Schema::create('terapeutas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained()
-                  ->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
             // Datos personales
             $table->string('nombres');
             $table->string('apellidos');
             $table->date('fecha_nacimiento')->nullable();
             $table->integer('dpi')->nullable();
-            $table->phone('telefono')->nullable();
+            $table->string('telefono')->nullable();
             $table->string('correo')->nullable();
 
             // Información profesional
-            $table->foreignId('especialidad_id')
-                  ->nullable()
-                  ->constrained('especialidades')
-                  ->nullOnDelete();
+            $table->foreignId('especialidad_id')->nullable()->constrained('especialidades')->nullOnDelete();
             $table->text('experiencia')->nullable();
             $table->text('certificaciones')->nullable();
             $table->text('cursos')->nullable();

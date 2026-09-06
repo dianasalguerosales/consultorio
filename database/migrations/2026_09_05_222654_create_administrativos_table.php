@@ -9,10 +9,7 @@ return new class extends Migration {
     {
         Schema::create('administrativos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained()
-                  ->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
 
             // Datos personales
             $table->string('nombres');
@@ -23,14 +20,8 @@ return new class extends Migration {
             $table->string('correo')->nullable();
 
             // Información laboral
-            $table->foreignId('cargo_id')
-                  ->nullable()
-                  ->constrained('cargos')
-                  ->nullOnDelete();
-            $table->foreignId('especialidad_id')
-                  ->nullable()
-                  ->constrained('especialidades')
-                  ->nullOnDelete();
+            $table->foreignId('cargo_id')->nullable()->constrained('cargos')->nullOnDelete();
+            $table->foreignId('especialidad_id')->nullable()->constrained('especialidades')->nullOnDelete();
             $table->text('experiencia')->nullable();
             $table->text('certificaciones')->nullable();
             $table->text('cursos')->nullable();
