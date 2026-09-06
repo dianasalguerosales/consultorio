@@ -12,29 +12,21 @@ class Cita extends Model
 
     protected $fillable = [
         'paciente_id',
-        'encargado_id',
         'terapeuta_id',
+        'estado_cita_id',
+        'modalidad_id',
+        'tipo_cita_id',
         'servicio_id',
         'programa_id',
-        'estado_citas_id',
         'fecha',
         'hora_inicio',
         'hora_fin',
-        'modalidad',
         'precio_aplicado',
-        'motivo_consulta',
-        'observaciones',
-        'confirmada_por_encargado_at',
     ];
 
     public function paciente()
     {
         return $this->belongsTo(Paciente::class);
-    }
-
-    public function encargado()
-    {
-        return $this->belongsTo(Encargado::class);
     }
 
     public function terapeuta()
@@ -54,7 +46,17 @@ class Cita extends Model
 
     public function estadoCita()
     {
-        return $this->belongsTo(EstadoCita::class, 'estado_citas_id');
+        return $this->belongsTo(EstadoCita::class, 'estado_cita_id');
+    }
+
+    public function modalidad()
+    {
+        return $this->belongsTo(Modalidad::class);
+    }
+
+    public function tipoCita()
+    {
+        return $this->belongsTo(TipoCita::class);
     }
 
     public function sesion()

@@ -20,7 +20,7 @@ class PacientesController extends Controller
             'citas.programa',
             'citas.estadoCita',
             'citas.terapeuta',
-        ])->get();
+        ])->orderBy('apellidos')->get();
 
         $encargados = Encargado::all();
 
@@ -32,7 +32,11 @@ class PacientesController extends Controller
 
     public function expediente(Paciente $paciente)
     {
-        $expediente = $paciente->expediente()->firstOrFail();
+        $expediente = $paciente->expediente;
+
+        if (!$expediente) {
+            abort(404, 'Expediente no encontrado');
+        }
 
         return Inertia::render('Expedientes/Show', [
             'paciente' => $paciente,
@@ -63,7 +67,6 @@ class PacientesController extends Controller
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:255',
             'genero' => 'nullable|string|max:20',
-            'expediente_id' => 'nullable|exists:expedientes,id',
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 
@@ -86,7 +89,6 @@ class PacientesController extends Controller
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:255',
             'genero' => 'nullable|string|max:20',
-            'expediente_id' => 'nullable|exists:expedientes,id',
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 

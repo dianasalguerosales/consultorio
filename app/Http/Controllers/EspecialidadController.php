@@ -10,7 +10,7 @@ class EspecialidadController extends Controller
 {
     public function index()
     {
-        $especialidades = Especialidad::all();
+        $especialidades = Especialidad::orderBy('nombre')->get();
         return Inertia::render('Parametros/Especialidades/Index', [
             'especialidades' => $especialidades
         ]);
@@ -19,10 +19,11 @@ class EspecialidadController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255'
+            'nombre' => 'required|string|max:255',
+            'activo' => 'nullable|boolean',
         ]);
 
-        Especialidad::create($request->only('nombre'));
+        Especialidad::create($request->only('nombre', 'activo'));
 
         return redirect()->route('parametros.especialidades.index')
                          ->with('success', 'Especialidad creada correctamente');
@@ -31,10 +32,11 @@ class EspecialidadController extends Controller
     public function update(Request $request, Especialidad $especialidad)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255'
+            'nombre' => 'required|string|max:255',
+            'activo' => 'nullable|boolean',
         ]);
 
-        $especialidad->update($request->only('nombre'));
+        $especialidad->update($request->only('nombre', 'activo'));
 
         return redirect()->route('parametros.especialidades.index')
                          ->with('success', 'Especialidad actualizada correctamente');

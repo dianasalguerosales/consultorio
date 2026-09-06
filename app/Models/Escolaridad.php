@@ -13,7 +13,8 @@ class Escolaridad extends Model
     protected $table = 'escolaridades';
 
     protected $fillable = [
-        'grado',
+        'nombre',
+        'activo',
     ];
 
     public function expedientes()

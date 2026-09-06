@@ -13,6 +13,7 @@ class Diagnostico extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'activo',
     ];
 
     public function expedientes()

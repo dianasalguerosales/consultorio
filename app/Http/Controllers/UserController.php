@@ -14,25 +14,28 @@ class UserController extends Controller
 {
     public function index()
     {
-        $usuarios = User::with(['terapeuta', 'encargado', 'administrativo'])->get()->map(function ($user) {
-            return [
-                'id'    => $user->id,
-                'email' => $user->email,
-                'roles' => $user->getRoleNames()->toArray(),
-                'terapeuta' => $user->terapeuta ? [
-                    'id' => $user->terapeuta->id,
-                    'nombre_completo' => $user->terapeuta->nombre_completo,
-                ] : null,
-                'encargado' => $user->encargado ? [
-                    'id' => $user->encargado->id,
-                    'nombre_completo' => $user->encargado->nombre_completo,
-                ] : null,
-                'administrativo' => $user->administrativo ? [
-                    'id' => $user->administrativo->id,
-                    'nombre_completo' => $user->administrativo->nombre_completo,
-                ] : null,
-            ];
-        });
+        $usuarios = User::with(['terapeuta', 'encargado', 'administrativo'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id'    => $user->id,
+                    'email' => $user->email,
+                    'roles' => $user->getRoleNames()->toArray(),
+                    'terapeuta' => $user->terapeuta ? [
+                        'id' => $user->terapeuta->id,
+                        'nombre_completo' => $user->terapeuta->nombre_completo,
+                    ] : null,
+                    'encargado' => $user->encargado ? [
+                        'id' => $user->encargado->id,
+                        'nombre_completo' => $user->encargado->nombre_completo,
+                    ] : null,
+                    'administrativo' => $user->administrativo ? [
+                        'id' => $user->administrativo->id,
+                        'nombre_completo' => $user->administrativo->nombre_completo,
+                    ] : null,
+                ];
+            });
 
         $roles = Role::all();
 
@@ -56,7 +59,7 @@ class UserController extends Controller
             'direccion'=> 'nullable|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
             'genero'   => 'nullable|string|max:20',
-            'especialidad' => 'nullable|string|max:255',
+            'especialidad_id' => 'nullable|exists:especialidades,id',
             'numero_colegiado' => 'nullable|string|max:50',
             'experiencia' => 'nullable|string|max:255',
             'formacion' => 'nullable|string|max:255',
@@ -82,7 +85,7 @@ class UserController extends Controller
                     'apellidos' => $validated['apellidos'],
                     'correo' => $validated['email'],
                     'telefono' => $validated['telefono'],
-                    'especialidad' => $validated['especialidad'],
+                    'especialidad_id' => $validated['especialidad_id'],
                     'numero_colegiado' => $validated['numero_colegiado'],
                     'experiencia' => $validated['experiencia'],
                     'formacion' => $validated['formacion'],

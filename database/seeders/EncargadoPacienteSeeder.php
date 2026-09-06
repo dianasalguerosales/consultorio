@@ -4,11 +4,11 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Encargado;
-use App\Models\RelacionPaciente;
 use App\Models\Genero;
+use App\Models\RelacionPaciente;
 use App\Models\EstadoCivil;
 
-class EncargadosSeeder extends Seeder
+class EncargadoPacienteSeeder extends Seeder
 {
     public function run(): void
     {
@@ -22,7 +22,6 @@ class EncargadosSeeder extends Seeder
                 'relacion_paciente_id' => RelacionPaciente::where('nombre', 'Padre')->first()->id,
                 'genero_id' => Genero::where('nombre', 'Masculino')->first()->id,
                 'estado_civil_id' => EstadoCivil::where('nombre', 'Casado')->first()->id,
-
             ]
         );
 

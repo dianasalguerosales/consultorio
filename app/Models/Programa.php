@@ -12,6 +12,9 @@ class Programa extends Model
 
     protected $fillable = [
         'nombre',
+        'descripcion',
+        'sesiones_por_mes',
+        'precio_mensual',
         'activo',
     ];
 

@@ -2,33 +2,39 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Paciente;
+use App\Models\Genero;
+use App\Models\Escolaridad;
+use App\Models\Encargado;
 
 class PacientesSeeder extends Seeder
 {
     public function run(): void
     {
+        $masculino = Genero::where('nombre', 'Masculino')->first();
+        $femenino  = Genero::where('nombre', 'Femenino')->first();
+        $primaria  = Escolaridad::where('nombre', 'Primaria')->first();
+        $secundaria = Escolaridad::where('nombre', 'Secundaria')->first();
+
+        $carlos = Encargado::where('correo', 'carlos@example.com')->first();
+        $ana    = Encargado::where('correo', 'ana@example.com')->first();
+
         Paciente::updateOrCreate(
-            ['nombre' => 'Pedro Ramírez'],
+            ['nombres' => 'Pedro', 'apellidos' => 'Ramírez'],
             [
-                'fecha_nacimiento' => '2010-09-01',
-                'telefono' => '555-1111',
-                'direccion' => 'Zona 10, Guatemala',
-                'genero' => 'masculino',
-                'expediente_id' => 'KID-2026001',
+                'escolaridad_id' => $primaria?->id,
+                'genero_id'      => $masculino?->id,
+                'encargado_id'   => $carlos?->id,
             ]
         );
 
         Paciente::updateOrCreate(
-            ['nombre' => 'Lucía Fernández'],
+            ['nombres' => 'Lucía', 'apellidos' => 'Fernández'],
             [
-                'fecha_nacimiento' => '2012-05-12',
-                'telefono' => '555-2222',
-                'direccion' => 'Zona 15, Guatemala',
-                'genero' => 'femenino',
-                'expediente_id' => 'KID-2026002',
+                'escolaridad_id' => $secundaria?->id,
+                'genero_id'      => $femenino?->id,
+                'encargado_id'   => $ana?->id,
             ]
         );
     }

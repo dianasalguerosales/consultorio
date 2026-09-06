@@ -4,18 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ResultadoEvaluacion extends Model
+class ExpedienteEvaluacion extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $table = 'resultado_evaluaciones';
+    protected $table = 'expediente_evaluacion';
 
     protected $fillable = [
+        'expediente_id',
         'evaluacion_id',
-        'descripcion',
     ];
+
+    public function expediente()
+    {
+        return $this->belongsTo(Expediente::class);
+    }
 
     public function evaluacion()
     {

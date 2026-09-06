@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class UserRolesSeeder extends Seeder
 {
@@ -12,13 +13,22 @@ class UserRolesSeeder extends Seeder
         $roles = ['administrador','terapeuta','coordinador','encargado','pruebas'];
 
         foreach ($roles as $rol) {
-            \Spatie\Permission\Models\Role::firstOrCreate(['name' => $rol, 'guard_name' => 'web']);
+            Role::firstOrCreate(['name' => $rol, 'guard_name' => 'web']);
         }
 
-        User::where('email', 'admin@caine.com')->first()?->assignRole('administrador');
-        User::where('email', 'juan@example.com')->first()?->assignRole('terapeuta');
-        User::where('email', 'maria@example.com')->first()?->assignRole('coordinador');
-        User::where('email', 'carlos@example.com')->first()?->assignRole('encargado');
-        User::where('email', 'test@caine.com')->first()?->assignRole('pruebas');
+        $usuariosRoles = [
+            'admin@caine.com' => 'administrador',
+            'juan@example.com' => 'terapeuta',
+            'maria@example.com' => 'coordinador',
+            'carlos@example.com' => 'encargado',
+            'test@caine.com' => 'pruebas',
+        ];
+
+        foreach ($usuariosRoles as $email => $rol) {
+            $user = User::where('email', $email)->first();
+            if ($user) {
+                $user->assignRole($rol);
+            }
+        }
     }
 }

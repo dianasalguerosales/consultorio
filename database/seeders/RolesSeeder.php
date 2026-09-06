@@ -12,10 +12,7 @@ class RolesSeeder extends Seeder
         $roles = ['administrador', 'coordinador', 'terapeuta', 'encargado', 'pruebas'];
 
         foreach ($roles as $rol) {
-            Role::updateOrCreate(
-                ['name' => $rol, 'guard_name' => 'web'],
-                ['name' => $rol, 'guard_name' => 'web']
-            );
+            Role::firstOrCreate(['name' => $rol, 'guard_name' => 'web']);
         }
     }
 }

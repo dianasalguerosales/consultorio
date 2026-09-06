@@ -2,32 +2,33 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Expediente;
 use App\Models\Paciente;
 
 class ExpedienteSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $pacientes = Paciente::all();
 
         foreach ($pacientes as $paciente) {
-            $codigo = app(\App\Http\Controllers\ExpedienteController::class)
-                ->generarCodigoExpediente($paciente->genero);
+            $codigo = Expediente::generarCodigoExpediente();
 
-            Expediente::create([
-                'id' => $codigo,
-                'paciente_id' => $paciente->id,
-                'fecha_apertura' => now(),
-                'estado' => 'activo',
-                'creado_por_usuario_id' => 1, // admin por defecto
-                'observaciones_administrativas' => 'Expediente inicial',
-            ]);
+            Expediente::updateOrCreate(
+                ['paciente_id' => $paciente->id],
+                [
+                    'codigo' => $codigo,
+                    'nombres' => $paciente->nombres,
+                    'apellidos' => $paciente->apellidos,
+                    'fecha_nacimiento' => $paciente->fecha_nacimiento,
+                    'estado_expediente_id' => 1,
+                    'motivo_consulta' => 'Consulta inicial',
+                    'fecha_inicio' => now(),
+                    'consentimiento' => 1,
+                    'observaciones' => 'Expediente inicial generado automáticamente',
+                ]
+            );
         }
     }
 }

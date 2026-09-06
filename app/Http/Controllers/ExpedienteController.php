@@ -21,15 +21,16 @@ class ExpedienteController extends Controller
             'diagnosticos',
             'servicios',
             'evaluaciones',
-            'escolaridad'
+            'escolaridad',
+            'estado'
         ]);
 
-        if ($request->filled('estado')) {
-            $query->where('estado', $request->estado);
+        if ($request->filled('estado_expediente_id')) {
+            $query->where('estado_expediente_id', $request->estado_expediente_id);
         }
 
         if ($request->filled('codigo')) {
-            $query->where('id', 'like', '%' . $request->codigo . '%');
+            $query->where('codigo', 'like', '%' . $request->codigo . '%');
         }
 
         if ($request->filled('paciente')) {
@@ -40,10 +41,10 @@ class ExpedienteController extends Controller
         }
 
         if ($request->filled('fecha_inicio')) {
-            $query->whereDate('fecha_apertura', $request->fecha_inicio);
+            $query->whereDate('fecha_inicio', $request->fecha_inicio);
         }
 
-        $expedientes = $query->orderBy('fecha_apertura', 'desc')->get();
+        $expedientes = $query->orderBy('fecha_inicio', 'desc')->get();
 
         return Inertia::render('Expedientes/Index', [
             'expedientes' => $expedientes,
@@ -57,32 +58,21 @@ class ExpedienteController extends Controller
         ]);
     }
 
-    public function create(Paciente $paciente)
-    {
-        return Inertia::render('Expedientes/EditModal', [
-            'pacienteId' => $paciente->id,
-            'diagnosticosList' => Diagnostico::all(),
-            'serviciosList' => Servicio::all(),
-            'evaluacionesList' => Evaluacion::all(),
-            'escolaridadesList' => Escolaridad::all(),
-            'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
-            'criteriosModulo2' => Criterio::where('modulo', 'Evaluación Cognitiva')->get(),
-            'criteriosModulo3' => Criterio::where('modulo', 'Evaluación Socioemocional')->get(),
-        ]);
-    }
-
     public function store(Request $request)
     {
-        $codigo = $this->generarCodigoExpediente();
+        $codigo = Expediente::generarCodigoExpediente();
 
         $validated = $request->validate([
             'paciente_id' => 'nullable|integer|exists:pacientes,id',
-            'nombre_pila' => 'nullable|string|max:100',
-            'estado' => 'required|string',
-            'modalidad' => 'nullable|string',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'fecha_nacimiento' => 'required|date',
+            'estado_expediente_id' => 'required|integer|exists:estado_expedientes,id',
+            'modalidad_id' => 'nullable|integer|exists:modalidades,id',
             'escolaridad_id' => 'nullable|integer|exists:escolaridades,id',
             'motivo_consulta' => 'nullable|string',
-            'observaciones_administrativas' => 'nullable|string',
+            'consentimiento' => 'boolean',
+            'observaciones' => 'nullable|string',
             'diagnosticos' => 'array',
             'diagnosticos.*' => 'integer|exists:diagnosticos,id',
             'servicios' => 'array',
@@ -92,9 +82,8 @@ class ExpedienteController extends Controller
         ]);
 
         $expediente = Expediente::create(array_merge($validated, [
-            'id' => $codigo,
-            'fecha_apertura' => now(),
-            'creado_por_usuario_id' => $request->user()->id,
+            'codigo' => $codigo,
+            'fecha_inicio' => now(),
         ]));
 
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
@@ -103,34 +92,24 @@ class ExpedienteController extends Controller
 
         if ($request->filled('paciente_id')) {
             $paciente = Paciente::find($request->paciente_id);
-            $paciente?->update(['expediente_id' => $codigo]);
+            $paciente?->update(['expediente_id' => $expediente->id]);
         }
 
         return redirect()->back()->with('success', 'Expediente creado correctamente');
     }
 
-    public function edit(Expediente $expediente)
-    {
-        return Inertia::render('Expedientes/EditModal', [
-            'expediente' => $expediente->load(['paciente', 'diagnosticos', 'servicios', 'evaluaciones', 'escolaridad']),
-            'diagnosticosList' => Diagnostico::all(),
-            'serviciosList' => Servicio::all(),
-            'evaluacionesList' => Evaluacion::all(),
-            'escolaridadesList' => Escolaridad::all(),
-            'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
-            'criteriosModulo2' => Criterio::where('modulo', 'Evaluación Cognitiva')->get(),
-            'criteriosModulo3' => Criterio::where('modulo', 'Evaluación Socioemocional')->get(),
-        ]);
-    }
-
     public function update(Request $request, Expediente $expediente)
     {
         $validated = $request->validate([
-            'nombre_pila' => 'nullable|string|max:100',
-            'estado' => 'required|string',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'fecha_nacimiento' => 'required|date',
+            'estado_expediente_id' => 'required|integer|exists:estado_expedientes,id',
+            'modalidad_id' => 'nullable|integer|exists:modalidades,id',
             'escolaridad_id' => 'nullable|integer|exists:escolaridades,id',
-            'modalidad' => 'nullable|string',
-            'observaciones_administrativas' => 'nullable|string',
+            'motivo_consulta' => 'nullable|string',
+            'consentimiento' => 'boolean',
+            'observaciones' => 'nullable|string',
             'diagnosticos' => 'array',
             'diagnosticos.*' => 'integer|exists:diagnosticos,id',
             'servicios' => 'array',
@@ -146,30 +125,5 @@ class ExpedienteController extends Controller
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
 
         return redirect()->route('expedientes.index')->with('success', 'Expediente actualizado correctamente');
-    }
-
-    public function destroy(Expediente $expediente)
-    {
-        try {
-            $expediente->delete();
-            return redirect()->route('expedientes.index')
-                ->with('success', 'Expediente eliminado correctamente.');
-        } catch (\Exception $e) {
-            return redirect()->route('expedientes.index')
-                ->with('error', 'No se pudo eliminar el expediente: ' . $e->getMessage());
-        }
-    }
-
-    private function generarCodigoExpediente()
-    {
-        $anio = date('Y');
-
-        $ultimo = Expediente::where('id', 'like', 'KID' . $anio . '%')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $correlativo = $ultimo ? intval(substr($ultimo->id, 7)) + 1 : 1;
-
-        return 'KID' . $anio . str_pad($correlativo, 3, '0', STR_PAD_LEFT);
     }
 }

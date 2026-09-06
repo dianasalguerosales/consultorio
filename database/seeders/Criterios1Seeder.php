@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Criterio;
 
-class CriteriosSeeder extends Seeder
+class Criterios1Seeder extends Seeder
 {
     public function run(): void
     {
@@ -48,7 +48,14 @@ class CriteriosSeeder extends Seeder
         ];
 
         foreach ($criterios as $c) {
-            Criterio::create($c);
+            Criterio::updateOrCreate(
+                [
+                    'modulo' => $c['modulo'],
+                    'area' => $c['area'],
+                    'numero' => $c['numero'],
+                ],
+                ['descripcion' => $c['descripcion']]
+            );
         }
     }
 }

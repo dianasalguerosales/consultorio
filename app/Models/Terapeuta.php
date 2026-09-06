@@ -18,7 +18,7 @@ class Terapeuta extends Model
         'dpi',
         'telefono',
         'correo',
-        'especialidad',
+        'especialidad_id',
         'experiencia',
         'certificaciones',
         'cursos',
@@ -38,5 +38,15 @@ class Terapeuta extends Model
     public function citas()
     {
         return $this->hasMany(Cita::class);
+    }
+
+    public function especialidad()
+    {
+        return $this->belongsTo(Especialidad::class);
+    }
+
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombres} {$this->apellidos}";
     }
 }

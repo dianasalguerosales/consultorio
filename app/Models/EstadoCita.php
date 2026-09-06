@@ -14,6 +14,7 @@ class EstadoCita extends Model
 
     protected $fillable = [
         'nombre',
+        'activo',
     ];
 
     public function citas()

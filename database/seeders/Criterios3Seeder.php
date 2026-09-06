@@ -48,7 +48,14 @@ class Criterios3Seeder extends Seeder
         ];
 
         foreach ($criterios as $c) {
-            Criterio::create($c);
+            Criterio::updateOrCreate(
+                [
+                    'modulo' => $c['modulo'],
+                    'area' => $c['area'],
+                    'numero' => $c['numero'],
+                ],
+                ['descripcion' => $c['descripcion']]
+            );
         }
     }
 }

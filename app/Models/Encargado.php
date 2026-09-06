@@ -14,9 +14,15 @@ class Encargado extends Model
         'user_id',
         'nombres',
         'apellidos',
+        'fecha_nacimiento',
+        'dpi',
         'telefono',
         'correo',
-        'relacion',
+        'direccion',
+        'ocupacion',
+        'relacion_paciente_id',
+        'genero_id',
+        'estado_civil_id',
     ];
 
     public function user()
@@ -33,5 +39,25 @@ class Encargado extends Model
     public function citas()
     {
         return $this->hasMany(Cita::class);
+    }
+
+    public function relacionPaciente()
+    {
+        return $this->belongsTo(RelacionPaciente::class);
+    }
+
+    public function genero()
+    {
+        return $this->belongsTo(Genero::class);
+    }
+
+    public function estadoCivil()
+    {
+        return $this->belongsTo(EstadoCivil::class);
+    }
+
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombres} {$this->apellidos}";
     }
 }

@@ -12,32 +12,32 @@ class UsersSeeder extends Seeder
     {
         User::updateOrCreate(
             ['email' => 'admin@caine.com'],
-            ['password' => Hash::make('admin123')]
+            ['password' => Hash::make('admin123'), 'status' => 'active']
         );
 
         User::updateOrCreate(
             ['email' => 'juan@example.com'],
-            ['password' => Hash::make('terapeuta123')]
+            ['password' => Hash::make('terapeuta123'), 'status' => 'active']
         );
 
         User::updateOrCreate(
             ['email' => 'carlos@example.com'],
-            ['password' => Hash::make('encargado123')]
+            ['password' => Hash::make('encargado123'), 'status' => 'active']
         );
 
         User::updateOrCreate(
             ['email' => 'ana@example.com'],
-            ['password' => Hash::make('encargado456')]
+            ['password' => Hash::make('encargado456'), 'status' => 'active']
         );
 
         User::updateOrCreate(
             ['email' => 'maria@example.com'],
-            ['password' => Hash::make('coordinador123')]
+            ['password' => Hash::make('coordinador123'), 'status' => 'active']
         );
 
         User::updateOrCreate(
             ['email' => 'jose@example.com'],
-            ['password' => Hash::make('auxiliar123')]
+            ['password' => Hash::make('auxiliar123'), 'status' => 'active']
         );
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Terapeuta;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class TerapeutaController extends Controller
 {
@@ -19,7 +19,7 @@ class TerapeutaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
@@ -27,31 +27,31 @@ class TerapeutaController extends Controller
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|email|unique:terapeutas,correo',
             'numero_colegiado' => 'nullable|string|max:50',
-            'especialidad' => 'nullable|string|max:255',
+            'especialidad_id' => 'nullable|exists:especialidades,id',
             'formacion' => 'nullable|string',
             'certificaciones' => 'nullable|string',
         ]);
 
-        Terapeuta::create($request->all());
+        Terapeuta::create($validated);
 
         return redirect()->route('terapeutas.index')->with('success', 'Terapeuta creado correctamente.');
     }
 
     public function update(Request $request, Terapeuta $terapeuta)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|email|unique:terapeutas,correo,' . $terapeuta->id,
             'numero_colegiado' => 'nullable|string|max:50',
-            'especialidad' => 'nullable|string|max:255',
+            'especialidad_id' => 'nullable|exists:especialidades,id',
             'formacion' => 'nullable|string',
             'certificaciones' => 'nullable|string',
         ]);
 
-        $terapeuta->update($request->all());
+        $terapeuta->update($validated);
 
         return redirect()->route('terapeutas.index')->with('success', 'Terapeuta actualizado correctamente.');
     }

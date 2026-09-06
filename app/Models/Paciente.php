@@ -13,10 +13,9 @@ class Paciente extends Model
     protected $fillable = [
         'nombres',
         'apellidos',
-        'fecha_nacimiento',
-        'telefono',
-        'direccion',
-        'genero',
+        'escolaridad_id',
+        'genero_id',
+        'encargado_id',
     ];
 
     public function terapeutas()
@@ -39,5 +38,25 @@ class Paciente extends Model
     public function citas()
     {
         return $this->hasMany(Cita::class);
+    }
+
+    public function escolaridad()
+    {
+        return $this->belongsTo(Escolaridad::class);
+    }
+
+    public function genero()
+    {
+        return $this->belongsTo(Genero::class);
+    }
+
+    public function encargado()
+    {
+        return $this->belongsTo(Encargado::class);
+    }
+
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombres} {$this->apellidos}";
     }
 }

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Servicio;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Servicio;
 
 class ServicioController extends Controller
 {
     public function index()
     {
-        $servicios = Servicio::all();
+        $servicios = Servicio::orderBy('nombre')->paginate(10);
         return Inertia::render('Parametros/Servicios/Index', [
             'servicios' => $servicios
         ]);
@@ -19,10 +19,11 @@ class ServicioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255'
+            'nombre' => 'required|string|max:255',
+            'activo' => 'nullable|boolean',
         ]);
 
-        Servicio::create($request->only('nombre'));
+        Servicio::create($request->only('nombre', 'activo'));
 
         return redirect()->route('parametros.servicios.index')
                          ->with('success', 'Servicio creado correctamente');
@@ -31,10 +32,11 @@ class ServicioController extends Controller
     public function update(Request $request, Servicio $servicio)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255'
+            'nombre' => 'required|string|max:255',
+            'activo' => 'nullable|boolean',
         ]);
 
-        $servicio->update($request->only('nombre'));
+        $servicio->update($request->only('nombre', 'activo'));
 
         return redirect()->route('parametros.servicios.index')
                          ->with('success', 'Servicio actualizado correctamente');

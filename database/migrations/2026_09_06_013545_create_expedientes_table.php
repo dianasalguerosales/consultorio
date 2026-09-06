@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->date('fecha_nacimiento')->nullable();
 
             // Relación con paciente
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
+            $table->foreignId('paciente_id')->nullable()->constrained('pacientes')->onDelete('set null');
             $table->foreignId('anamnesis_id')->nullable()->constrained('anamnesis')->nullOnDelete();
 
             // Relaciones con catálogos

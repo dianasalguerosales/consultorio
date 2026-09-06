@@ -45,4 +45,9 @@ class Administrativo extends Model
         return $this->belongsToMany(Paciente::class, 'administrativo_paciente')
             ->withTimestamps();
     }
+
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombres} {$this->apellidos}";
+    }
 }

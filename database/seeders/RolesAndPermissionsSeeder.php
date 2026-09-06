@@ -22,16 +22,15 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permisos as $permiso) {
-            Permission::firstOrCreate(['name' => $permiso]);
+            Permission::firstOrCreate(['name' => $permiso, 'guard_name' => 'web']);
         }
 
-        // Definir roles// Definir roles correctos
+        // Definir roles
         $administrador = Role::firstOrCreate(['name' => 'administrador', 'guard_name' => 'web']);
         $coordinador   = Role::firstOrCreate(['name' => 'coordinador', 'guard_name' => 'web']);
         $terapeuta     = Role::firstOrCreate(['name' => 'terapeuta', 'guard_name' => 'web']);
         $encargado     = Role::firstOrCreate(['name' => 'encargado', 'guard_name' => 'web']);
         $pruebas       = Role::firstOrCreate(['name' => 'pruebas', 'guard_name' => 'web']);
-
 
         // Asignar permisos a cada rol
         $administrador->givePermissionTo(Permission::all()); // todos los permisos
@@ -50,6 +49,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $encargado->givePermissionTo([
             'acceso portal padres',
+            'ver reportes',
+        ]);
+
+        // Rol pruebas: sin permisos o mínimos
+        $pruebas->givePermissionTo([
             'ver reportes',
         ]);
     }

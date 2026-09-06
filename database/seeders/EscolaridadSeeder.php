@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Escolaridad;
 
@@ -10,18 +9,27 @@ class EscolaridadSeeder extends Seeder
 {
     public function run(): void
     {
-        Escolaridad::updateOrCreate(['grado' => 'Prekinder']);
-        Escolaridad::updateOrCreate(['grado' => 'Kinder']);
-        Escolaridad::updateOrCreate(['grado' => 'Preparatoria']);
-        Escolaridad::updateOrCreate(['grado' => '1ro Primaria']);
-        Escolaridad::updateOrCreate(['grado' => '2do Primaria']);
-        Escolaridad::updateOrCreate(['grado' => '3ro Primaria']);
-        Escolaridad::updateOrCreate(['grado' => '4to Primaria']);
-        Escolaridad::updateOrCreate(['grado' => '5to Primaria']);
-        Escolaridad::updateOrCreate(['grado' => '6to Primaria']);
-        Escolaridad::updateOrCreate(['grado' => '1ro Básico']);
-        Escolaridad::updateOrCreate(['grado' => '2do Básico']);
-        Escolaridad::updateOrCreate(['grado' => '3ro Básico']);
-        Escolaridad::updateOrCreate(['grado' => 'No aplica']);
+        $escolaridades = [
+            'Prekinder',
+            'Kinder',
+            'Preparatoria',
+            '1ro Primaria',
+            '2do Primaria',
+            '3ro Primaria',
+            '4to Primaria',
+            '5to Primaria',
+            '6to Primaria',
+            '1ro Básico',
+            '2do Básico',
+            '3ro Básico',
+            'No aplica',
+        ];
+
+        foreach ($escolaridades as $nombre) {
+            Escolaridad::updateOrCreate(
+                ['nombre' => $nombre],
+                ['activo' => 1]
+            );
+        }
     }
 }
