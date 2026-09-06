@@ -12,7 +12,7 @@ class TerapeutaController extends Controller
     {
         $terapeutas = Terapeuta::withCount('pacientes')->with('user')->get();
 
-        return Inertia::render('Terapeutas/Index', [
+        return Inertia::render('Terapeutas', [
             'terapeutas' => $terapeutas,
         ]);
     }
@@ -34,7 +34,7 @@ class TerapeutaController extends Controller
 
         Terapeuta::create($validated);
 
-        return redirect()->route('terapeutas.index')->with('success', 'Terapeuta creado correctamente.');
+        return redirect()->route('terapeutas')->with('success', 'Terapeuta creado correctamente.');
     }
 
     public function update(Request $request, Terapeuta $terapeuta)
@@ -53,14 +53,14 @@ class TerapeutaController extends Controller
 
         $terapeuta->update($validated);
 
-        return redirect()->route('terapeutas.index')->with('success', 'Terapeuta actualizado correctamente.');
+        return redirect()->route('terapeutas')->with('success', 'Terapeuta actualizado correctamente.');
     }
 
     public function destroy(Terapeuta $terapeuta)
     {
         $terapeuta->delete();
 
-        return redirect()->route('terapeutas.index')->with('success', 'Terapeuta eliminado correctamente.');
+        return redirect()->route('terapeutas')->with('success', 'Terapeuta eliminado correctamente.');
     }
 
     public function perfil(Terapeuta $terapeuta)

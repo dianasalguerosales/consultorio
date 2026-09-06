@@ -24,7 +24,7 @@ class PacientesController extends Controller
 
         $encargados = Encargado::all();
 
-        return Inertia::render('Pacientes/Index', [
+        return Inertia::render('Pacientes', [
             'pacientes' => $pacientes,
             'encargados' => $encargados,
         ]);
@@ -76,7 +76,7 @@ class PacientesController extends Controller
             $paciente->encargados()->attach($request->encargado_id);
         }
 
-        return redirect()->route('pacientes.index')
+        return redirect()->route('pacientes')
                          ->with('success', 'Paciente creado correctamente');
     }
 
@@ -98,7 +98,7 @@ class PacientesController extends Controller
             $paciente->encargados()->sync([$request->encargado_id]);
         }
 
-        return redirect()->route('pacientes.index')
+        return redirect()->route('pacientes')
                          ->with('success', 'Paciente actualizado correctamente');
     }
 
@@ -106,7 +106,7 @@ class PacientesController extends Controller
     {
         $paciente->delete();
 
-        return redirect()->route('pacientes.index')
+        return redirect()->route('pacientes')
                          ->with('success', 'Paciente eliminado correctamente');
     }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\TerapeutaController;
 use App\Http\Controllers\ServicioController;
 use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\ProgramaController;
+use App\Http\Controllers\GeneroController;
 use App\Models\Servicio;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +30,8 @@ Route::middleware('auth')->group(function () {
     // Configuración
     Route::get('/configuracion', [ProfileController::class, 'configuracion'])->name('configuracion');
     Route::put('/configuracion/password', [ProfileController::class, 'updatePassword'])->name('configuracion.password.update');
+
+    Route::get('/generos', [GeneroController::class, 'list'])->name('generos.list');
 
     // Usuarios: solo administrador y coordinador
     Route::middleware(['role:administrador|coordinador'])->group(function () {
@@ -78,6 +81,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/especialidades', [EspecialidadController::class, 'store'])->name('especialidades.store');
         Route::put('/especialidades/{especialidad}', [EspecialidadController::class, 'update'])->name('especialidades.update');
         Route::delete('/especialidades/{especialidad}', [EspecialidadController::class, 'destroy'])->name('especialidades.destroy');
+    
     });
 });
 

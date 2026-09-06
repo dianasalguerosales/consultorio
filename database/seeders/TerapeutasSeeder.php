@@ -21,12 +21,13 @@ class TerapeutasSeeder extends Seeder
                     'nombres' => 'Juan',
                     'apellidos' => 'Pérez',
                     'especialidad_id' => $especialidad->id,
-                    'numero_colegiado' => 'COL-12345',
+                    'dpi' => null,
                     'telefono' => '555-1234',
                     'correo' => 'juan@example.com',
                     'fecha_nacimiento' => '1985-06-15',
-                    'formacion' => 'Licenciatura en Fonoaudiología',
+                    'experiencia' => 'Licenciatura en Fonoaudiología',
                     'certificaciones' => 'Certificado en intervención temprana',
+                    'cursos' => 'Curso de terapia del lenguaje avanzado',
                 ]
             );
         }

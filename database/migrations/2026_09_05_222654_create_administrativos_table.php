@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->integer('dpi')->nullable();
             $table->string('telefono')->nullable();
             $table->string('correo')->nullable();
+            $table->foreignId('genero_id')->nullable()->constrained('generos')->nullOnDelete();
 
             // Información laboral
             $table->foreignId('cargo_id')->nullable()->constrained('cargos')->nullOnDelete();

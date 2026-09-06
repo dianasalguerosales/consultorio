@@ -15,7 +15,7 @@ const roles = props.auth?.user?.roles ?? []
 const menuPorRol = {
   administrador: [
     'usuarios', 'pacientes', 'terapeutas', 'agenda', 'expedientes',
-    'programas', 'indicadores', 'pagos', 'informes'
+    'programas', 'indicadores', 'parametros', 'pagos', 'informes'
   ],
   auxiliar: [
     'terapias-dia', 'pacientes', 'agenda', 'pagos'
@@ -49,6 +49,7 @@ const ordenMenu = [
   'expedientes',
   'programas',
   'indicadores',
+  'parametros',
   'pagos',
   'hijos',
   'estado-cuenta',
@@ -84,6 +85,7 @@ const menuConfig = {
   programas: { icon: 'collections_bookmark', label: 'Programas', href: '/programas' },
   indicadores: { icon: 'insights', label: 'Indicadores', href: '/indicadores' },
   pagos: { icon: 'payments', label: 'Pagos', href: '/pagos' },
+  parametros: { icon: 'tune', label: 'Parametros', href: '/parametros' },
   reportes: { icon: 'bar_chart', label: 'Reportes', href: '/reportes' },
   configuracion: { icon: 'settings', label: 'Configuración', href: '/configuracion' },
   hijos: { icon: 'family_restroom', label: 'Kids', href: '/hijos' },

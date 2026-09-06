@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             EscolaridadSeeder::class,
             RelacionesPacienteSeeder::class,
             EstadoExpedienteSeeder::class,
+            EspecialidadSeeder::class,
 
             // 2. Usuarios y roles
             UsersSeeder::class,

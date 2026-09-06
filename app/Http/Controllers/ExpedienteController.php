@@ -46,7 +46,7 @@ class ExpedienteController extends Controller
 
         $expedientes = $query->orderBy('fecha_inicio', 'desc')->get();
 
-        return Inertia::render('Expedientes/Index', [
+        return Inertia::render('Expedientes', [
             'expedientes' => $expedientes,
             'diagnosticosList' => Diagnostico::all(),
             'serviciosList' => Servicio::all(),
@@ -124,6 +124,6 @@ class ExpedienteController extends Controller
         $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
 
-        return redirect()->route('expedientes.index')->with('success', 'Expediente actualizado correctamente');
+        return redirect()->route('expedientes')->with('success', 'Expediente actualizado correctamente');
     }
 }

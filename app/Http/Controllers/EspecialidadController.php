@@ -11,7 +11,7 @@ class EspecialidadController extends Controller
     public function index()
     {
         $especialidades = Especialidad::orderBy('nombre')->get();
-        return Inertia::render('Parametros/Especialidades/Index', [
+        return Inertia::render('Parametros/Especialidades', [
             'especialidades' => $especialidades
         ]);
     }
@@ -25,7 +25,7 @@ class EspecialidadController extends Controller
 
         Especialidad::create($request->only('nombre', 'activo'));
 
-        return redirect()->route('parametros.especialidades.index')
+        return redirect()->route('parametros.especialidades')
                          ->with('success', 'Especialidad creada correctamente');
     }
 
@@ -38,7 +38,7 @@ class EspecialidadController extends Controller
 
         $especialidad->update($request->only('nombre', 'activo'));
 
-        return redirect()->route('parametros.especialidades.index')
+        return redirect()->route('parametros.especialidades')
                          ->with('success', 'Especialidad actualizada correctamente');
     }
 
@@ -46,7 +46,7 @@ class EspecialidadController extends Controller
     {
         $especialidad->delete();
 
-        return redirect()->route('parametros.especialidades.index')
+        return redirect()->route('parametros.especialidades')
                          ->with('success', 'Especialidad eliminada correctamente');
     }
 }

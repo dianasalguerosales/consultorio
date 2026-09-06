@@ -21,6 +21,7 @@ return new class extends Migration {
 
             // Información profesional
             $table->foreignId('especialidad_id')->nullable()->constrained('especialidades')->nullOnDelete();
+            $table->foreignId('genero_id')->nullable()->constrained('generos')->nullOnDelete();
             $table->text('experiencia')->nullable();
             $table->text('certificaciones')->nullable();
             $table->text('cursos')->nullable();

@@ -15,7 +15,7 @@ class NotificationController extends Controller
             ->take(20)
             ->get();
 
-        return Inertia::render('Notificaciones/Index', [
+        return Inertia::render('Notificaciones', [
             'notificaciones' => $notificaciones,
         ]);
     }

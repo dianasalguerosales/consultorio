@@ -4,7 +4,7 @@ defineProps({
   form: Object,
   roles: Array,
 })
-defineEmits(['close','save'])
+defineEmits(['close', 'save'])
 </script>
 
 <template>
@@ -14,7 +14,6 @@ defineEmits(['close','save'])
         {{ user ? 'Editar Usuario' : 'Nuevo Usuario' }}
       </h2>
 
-      <!-- Email y contraseña solo al crear -->
       <div v-if="!user" class="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label class="block text-sm font-medium text-gray-700">Correo</label>
@@ -23,12 +22,12 @@ defineEmits(['close','save'])
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700">Contraseña</label>
-          <input v-model="form.password" type="password" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <input v-model="form.password" type="password"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
           <div v-if="form.errors.password" class="text-red-500 text-sm">{{ form.errors.password }}</div>
         </div>
       </div>
 
-      <!-- Tipo de usuario -->
       <div v-if="!user" class="mb-6">
         <label class="block text-sm font-medium text-gray-700">Tipo de usuario</label>
         <select v-model="form.tipo_usuario" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
@@ -40,11 +39,14 @@ defineEmits(['close','save'])
         <div v-if="form.errors.tipo_usuario" class="text-red-500 text-sm">{{ form.errors.tipo_usuario }}</div>
       </div>
 
-      <!-- Campos dinámicos -->
       <div v-if="form.tipo_usuario === 'administrativo'" class="grid grid-cols-2 gap-4">
         <div>
-          <label>Nombre</label>
-          <input v-model="form.nombre" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <label>Nombres</label>
+          <input v-model="form.nombres" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+        </div>
+        <div>
+          <label>Apellidos</label>
+          <input v-model="form.apellidos" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label>Teléfono</label>
@@ -56,39 +58,56 @@ defineEmits(['close','save'])
         </div>
         <div>
           <label>Fecha de nacimiento</label>
-          <input v-model="form.fecha_nacimiento" type="date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <input v-model="form.fecha_nacimiento" type="date"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label>Género</label>
-          <input v-model="form.genero" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <select v-model="form.genero_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <option value="">Seleccione...</option>
+            <option v-for="g in $page.props.generos" :key="g.id" :value="g.id">
+              {{ g.nombre }}
+            </option>
+          </select>
         </div>
         <div>
-          <label>Tipo</label>
-          <select v-model="form.tipo" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+          <label>Cargo</label>
+          <select v-model="form.cargo_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
             <option value="">Seleccione...</option>
-            <option value="administrador">Administrador</option>
-            <option value="auxiliar">Auxiliar</option>
-            <option value="coordinador">Coordinador</option>
+            <option v-for="c in $page.props.cargos" :key="c.id" :value="c.id">
+              {{ c.nombre }}
+            </option>
           </select>
         </div>
       </div>
 
       <div v-if="form.tipo_usuario === 'terapeuta'" class="grid grid-cols-2 gap-4">
         <div>
-          <label>Nombre</label>
-          <input v-model="form.nombre" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <label>Nombres</label>
+          <input v-model="form.nombres" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+        </div>
+        <div>
+          <label>Apellidos</label>
+          <input v-model="form.apellidos" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label>Especialidad</label>
-          <input v-model="form.especialidad" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <select v-model="form.especialidad_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <option value="">Seleccione...</option>
+            <option v-for="e in $page.props.especialidades" :key="e.id" :value="e.id">
+              {{ e.nombre }}
+            </option>
+          </select>
         </div>
         <div>
           <label>Número colegiado</label>
-          <input v-model="form.numero_colegiado" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <input v-model="form.numero_colegiado" type="text"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label>Experiencia</label>
-          <input v-model="form.experiencia" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <input v-model="form.experiencia" type="text"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label>Formación</label>
@@ -96,14 +115,19 @@ defineEmits(['close','save'])
         </div>
         <div>
           <label>Certificaciones</label>
-          <input v-model="form.certificaciones" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <input v-model="form.certificaciones" type="text"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
       </div>
 
       <div v-if="form.tipo_usuario === 'encargado'" class="grid grid-cols-2 gap-4">
         <div>
-          <label>Nombre</label>
-          <input v-model="form.nombre" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+          <label>Nombres</label>
+          <input v-model="form.nombres" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+        </div>
+        <div>
+          <label>Apellidos</label>
+          <input v-model="form.apellidos" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
         </div>
         <div>
           <label>Teléfono</label>
@@ -115,7 +139,6 @@ defineEmits(['close','save'])
         </div>
       </div>
 
-      <!-- Roles -->
       <div class="mt-6">
         <h3 class="text-sm font-medium text-gray-700 mb-2">Roles</h3>
         <div class="grid grid-cols-2 gap-2">
@@ -126,7 +149,6 @@ defineEmits(['close','save'])
         </div>
       </div>
 
-      <!-- Botones -->
       <div class="flex justify-end space-x-3 mt-6">
         <button class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300" @click="$emit('close')">
           Cancelar

@@ -6,6 +6,9 @@ use App\Models\User;
 use App\Models\Terapeuta;
 use App\Models\Encargado;
 use App\Models\Administrativo;
+use App\Models\Genero;
+use App\Models\Especialidad;
+use App\Models\Cargo;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Inertia\Inertia;
@@ -19,7 +22,7 @@ class UserController extends Controller
             ->get()
             ->map(function ($user) {
                 return [
-                    'id'    => $user->id,
+                    'id' => $user->id,
                     'email' => $user->email,
                     'roles' => $user->getRoleNames()->toArray(),
                     'terapeuta' => $user->terapeuta ? [
@@ -39,37 +42,40 @@ class UserController extends Controller
 
         $roles = Role::all();
 
-        return Inertia::render('Usuarios/Index', [
+        return Inertia::render('Usuarios', [
             'usuarios' => $usuarios,
-            'roles'    => $roles,
+            'roles' => $roles,
+            'generos' => Genero::where('activo', 1)->orderBy('nombre')->get(),
+            'especialidades' => Especialidad::orderBy('nombre')->get(),
+            'cargos' => Cargo::orderBy('nombre')->get(),
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'email'    => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'roles'    => 'array',
-            'roles.*'  => 'exists:roles,name',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,name',
             'tipo_usuario' => 'required|string|in:administrativo,terapeuta,encargado',
-            'nombres'  => 'required|string|max:255',
-            'apellidos'=> 'required|string|max:255',
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
             'telefono' => 'nullable|string|max:20',
-            'direccion'=> 'nullable|string|max:255',
+            'direccion' => 'nullable|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
-            'genero'   => 'nullable|string|max:20',
+            'genero_id' => 'nullable|exists:generos,id',
             'especialidad_id' => 'nullable|exists:especialidades,id',
             'numero_colegiado' => 'nullable|string|max:50',
             'experiencia' => 'nullable|string|max:255',
             'formacion' => 'nullable|string|max:255',
             'certificaciones' => 'nullable|string|max:255',
             'relacion' => 'nullable|string|max:255',
-            'tipo' => 'nullable|string|max:255',
+            'cargo_id' => 'nullable|exists:cargos,id',
         ]);
 
         $user = User::create([
-            'email'    => $validated['email'],
+            'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
         ]);
 
@@ -113,20 +119,20 @@ class UserController extends Controller
                     'telefono' => $validated['telefono'],
                     'direccion' => $validated['direccion'],
                     'fecha_nacimiento' => $validated['fecha_nacimiento'],
-                    'genero' => $validated['genero'],
-                    'tipo' => $validated['tipo'],
+                    'genero_id' => $validated['genero_id'],
+                    'cargo_id' => $validated['cargo_id'],
                 ]);
                 break;
         }
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente');
+        return redirect()->route('usuarios')->with('success', 'Usuario creado correctamente');
     }
 
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'roles'    => 'array',
-            'roles.*'  => 'exists:roles,name',
+            'roles' => 'array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
         if (!empty($validated['roles'])) {

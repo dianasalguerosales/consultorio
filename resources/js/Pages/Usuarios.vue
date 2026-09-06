@@ -15,18 +15,19 @@ const form = useForm({
   password: '',
   roles: [],
   tipo_usuario: '',
-  nombre: '',
+  nombres: '',
+  apellidos: '',
   telefono: '',
   direccion: '',
   fecha_nacimiento: '',
-  genero: '',
-  especialidad: '',
+  genero_id: '',
+  especialidad_id: '',
   numero_colegiado: '',
   experiencia: '',
   formacion: '',
   certificaciones: '',
   relacion: '',
-  tipo: '',
+  cargo_id: '',
 })
 
 function openModal(user) {
@@ -90,7 +91,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
   <div class="p-8 max-w-7xl mx-auto">
     <h2 class="text-2xl font-bold text-caine-azul mb-6">Gestión de Usuarios</h2>
 
-    <!-- Botón para crear nuevo usuario -->
     <div class="mb-6 flex justify-end" v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')">
       <button class="bg-caine-celeste text-white px-6 py-3 rounded-lg font-semibold shadow hover:scale-105"
         @click="newUser">
@@ -98,39 +98,38 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
       </button>
     </div>
 
-    <!-- Grid de usuarios -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="usuario in usuarios" :key="usuario.id"
         class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
         
-        <!-- Avatar -->
-                <div class="mt-6">
-                    <img
-                        :src="
-                            usuario.roles.includes('terapeuta')
-                                ? '/images/Terapeuta.webp'
-                                : usuario.roles.includes('administrador')
-                                ? '/images/Admin.webp'
-                                : usuario.roles.includes('coordinador')
-                                ? '/images/Coordinador.webp'
-                                : usuario.roles.includes('encargado')
-                                ? '/images/Madre.webp'
-                                : '/images/avatar.webp'
-                        "
-                        alt="Avatar"
-                        class="h-20 w-20 rounded-full mx-auto"
-                    />
-                </div>
+        <div class="mt-6">
+          <img
+            :src="
+              usuario.roles.includes('terapeuta')
+                ? '/images/Terapeuta.webp'
+                : usuario.roles.includes('administrador')
+                ? '/images/Admin.webp'
+                : usuario.roles.includes('coordinador')
+                ? '/images/Coordinador.webp'
+                : usuario.roles.includes('encargado')
+                ? '/images/Madre.webp'
+                : '/images/avatar.webp'
+            "
+            alt="Avatar"
+            class="h-20 w-20 rounded-full mx-auto"
+          />
+        </div>
 
-        <!-- Nombre y correo -->
         <div class="mt-4">
           <h3 class="text-lg font-semibold text-gray-900">
-            {{ usuario.terapeuta?.nombre || usuario.encargado?.nombre || usuario.administrativo?.nombre || '---' }}
+            {{ usuario.terapeuta?.nombre_completo 
+               || usuario.encargado?.nombre_completo 
+               || usuario.administrativo?.nombre_completo 
+               || '---' }}
           </h3>
           <p class="text-sm text-gray-500">{{ usuario.email }}</p>
         </div>
 
-        <!-- Roles -->
         <div class="mt-4 flex flex-wrap justify-center gap-2 px-4">
           <span v-for="role in usuario.roles" :key="role"
             :class="['px-3 py-1 rounded-md text-sm font-semibold', roleColors[role] || 'bg-gray-200 text-gray-700']">
@@ -142,7 +141,6 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
           </span>
         </div>
 
-        <!-- Acciones -->
         <div class="mt-6 grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200 w-full">
           <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
             class="py-3 text-sm font-medium text-caine-celeste hover:bg-gray-50" @click="openModal(usuario)">

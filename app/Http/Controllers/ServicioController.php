@@ -11,7 +11,7 @@ class ServicioController extends Controller
     public function index()
     {
         $servicios = Servicio::orderBy('nombre')->paginate(10);
-        return Inertia::render('Parametros/Servicios/Index', [
+        return Inertia::render('Parametros/Servicios', [
             'servicios' => $servicios
         ]);
     }
@@ -25,7 +25,7 @@ class ServicioController extends Controller
 
         Servicio::create($request->only('nombre', 'activo'));
 
-        return redirect()->route('parametros.servicios.index')
+        return redirect()->route('parametros.servicios')
                          ->with('success', 'Servicio creado correctamente');
     }
 
@@ -38,7 +38,7 @@ class ServicioController extends Controller
 
         $servicio->update($request->only('nombre', 'activo'));
 
-        return redirect()->route('parametros.servicios.index')
+        return redirect()->route('parametros.servicios')
                          ->with('success', 'Servicio actualizado correctamente');
     }
 
@@ -46,7 +46,7 @@ class ServicioController extends Controller
     {
         $servicio->delete();
 
-        return redirect()->route('parametros.servicios.index')
+        return redirect()->route('parametros.servicios')
                          ->with('success', 'Servicio eliminado correctamente');
     }
 }

@@ -44,7 +44,7 @@ class CitaController extends Controller
 
         Cita::create($validated);
 
-        return redirect()->route('citas.index')
+        return redirect()->route('citas')
                          ->with('success', 'Cita creada correctamente');
     }
 }

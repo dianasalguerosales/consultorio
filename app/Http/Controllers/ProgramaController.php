@@ -14,7 +14,7 @@ class ProgramaController extends Controller
             ->orderBy('nombre')
             ->paginate(10);
 
-        return Inertia::render('Programas/Index', [
+        return Inertia::render('Programas', [
             'programas' => $programas,
         ]);
     }
@@ -34,7 +34,7 @@ class ProgramaController extends Controller
         $programa->servicios()->sync($request->servicios ?? []);
         $programa->especialidades()->sync($request->especialidades ?? []);
 
-        return redirect()->route('programas.index')
+        return redirect()->route('programas')
                          ->with('success', 'Programa creado correctamente');
     }
 
@@ -53,7 +53,7 @@ class ProgramaController extends Controller
         $programa->servicios()->sync($request->servicios ?? []);
         $programa->especialidades()->sync($request->especialidades ?? []);
 
-        return redirect()->route('programas.index')
+        return redirect()->route('programas')
                          ->with('success', 'Programa actualizado correctamente');
     }
 
@@ -61,7 +61,7 @@ class ProgramaController extends Controller
     {
         $programa->delete();
 
-        return redirect()->route('programas.index')
+        return redirect()->route('programas')
                          ->with('success', 'Programa eliminado correctamente');
     }
 }
