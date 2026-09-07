@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Expediente;
-use App\Models\Paciente;
-use App\Models\Diagnostico;
-use App\Models\Servicio;
-use App\Models\Evaluacion;
 use App\Models\Escolaridad;
 use App\Models\Criterio;
+use App\Models\Diagnostico;
+use App\Models\Servicio;
+use App\Models\Modalidad;
+use App\Models\EstadoExpediente;
+use App\Models\Evaluacion;
 
 class ExpedienteController extends Controller
 {
@@ -18,11 +19,12 @@ class ExpedienteController extends Controller
     {
         $query = Expediente::with([
             'paciente',
+            'estado',
+            'modalidad',
+            'anamnesis',
             'diagnosticos',
             'servicios',
-            'evaluaciones',
-            'escolaridad',
-            'estado'
+            'evaluaciones'
         ]);
 
         if ($request->filled('estado_expediente_id')) {
@@ -36,7 +38,7 @@ class ExpedienteController extends Controller
         if ($request->filled('paciente')) {
             $query->whereHas('paciente', function ($q) use ($request) {
                 $q->where('nombres', 'like', '%' . $request->paciente . '%')
-                  ->orWhere('apellidos', 'like', '%' . $request->paciente . '%');
+                    ->orWhere('apellidos', 'like', '%' . $request->paciente . '%');
             });
         }
 
@@ -48,10 +50,12 @@ class ExpedienteController extends Controller
 
         return Inertia::render('Expedientes', [
             'expedientes' => $expedientes,
+            'escolaridadesList' => Escolaridad::all(),
             'diagnosticosList' => Diagnostico::all(),
             'serviciosList' => Servicio::all(),
+            'modalidadesList' => Modalidad::where('activo', true)->get(),
+            'estadoExpedientes' => EstadoExpediente::all(),
             'evaluacionesList' => Evaluacion::all(),
-            'escolaridadesList' => Escolaridad::all(),
             'criteriosModulo1' => Criterio::where('modulo', 'Evaluación del Desarrollo Infantil')->get(),
             'criteriosModulo2' => Criterio::where('modulo', 'Evaluación Cognitiva')->get(),
             'criteriosModulo3' => Criterio::where('modulo', 'Evaluación Socioemocional')->get(),
@@ -63,22 +67,22 @@ class ExpedienteController extends Controller
         $codigo = Expediente::generarCodigoExpediente();
 
         $validated = $request->validate([
-            'paciente_id' => 'nullable|integer|exists:pacientes,id',
+            'paciente_id' => 'required|integer|exists:pacientes,id',
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
             'estado_expediente_id' => 'required|integer|exists:estado_expedientes,id',
             'modalidad_id' => 'nullable|integer|exists:modalidades,id',
-            'escolaridad_id' => 'nullable|integer|exists:escolaridades,id',
+            'anamnesis_id' => 'nullable|integer|exists:anamnesis,id',
+            'diagnosticos' => 'nullable|array',
+            'diagnosticos.*' => 'integer|exists:diagnosticos,id',
+            'servicios' => 'nullable|array',
+            'servicios.*' => 'integer|exists:servicios,id',
+            'evaluaciones' => 'nullable|array',
+            'evaluaciones.*' => 'integer|exists:evaluaciones,id',
             'motivo_consulta' => 'nullable|string',
             'consentimiento' => 'boolean',
             'observaciones' => 'nullable|string',
-            'diagnosticos' => 'array',
-            'diagnosticos.*' => 'integer|exists:diagnosticos,id',
-            'servicios' => 'array',
-            'servicios.*' => 'integer|exists:servicios,id',
-            'evaluaciones' => 'array',
-            'evaluaciones.*' => 'integer|exists:evaluaciones,id',
         ]);
 
         $expediente = Expediente::create(array_merge($validated, [
@@ -89,11 +93,6 @@ class ExpedienteController extends Controller
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
         $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
-
-        if ($request->filled('paciente_id')) {
-            $paciente = Paciente::find($request->paciente_id);
-            $paciente?->update(['expediente_id' => $expediente->id]);
-        }
 
         return redirect()->back()->with('success', 'Expediente creado correctamente');
     }
@@ -106,20 +105,19 @@ class ExpedienteController extends Controller
             'fecha_nacimiento' => 'required|date',
             'estado_expediente_id' => 'required|integer|exists:estado_expedientes,id',
             'modalidad_id' => 'nullable|integer|exists:modalidades,id',
-            'escolaridad_id' => 'nullable|integer|exists:escolaridades,id',
+            'anamnesis_id' => 'nullable|integer|exists:anamnesis,id',
+            'diagnosticos' => 'nullable|array',
+            'diagnosticos.*' => 'integer|exists:diagnosticos,id',
+            'servicios' => 'nullable|array',
+            'servicios.*' => 'integer|exists:servicios,id',
+            'evaluaciones' => 'nullable|array',
+            'evaluaciones.*' => 'integer|exists:evaluaciones,id',
             'motivo_consulta' => 'nullable|string',
             'consentimiento' => 'boolean',
             'observaciones' => 'nullable|string',
-            'diagnosticos' => 'array',
-            'diagnosticos.*' => 'integer|exists:diagnosticos,id',
-            'servicios' => 'array',
-            'servicios.*' => 'integer|exists:servicios,id',
-            'evaluaciones' => 'array',
-            'evaluaciones.*' => 'integer|exists:evaluaciones,id',
         ]);
 
         $expediente->update($validated);
-
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
         $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);

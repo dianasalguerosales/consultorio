@@ -20,10 +20,10 @@ const emit = defineEmits(['prev','save'])
       </label>
     </div>
 
-    <!-- Observaciones -->
+    <!-- Observaciones específicas del módulo -->
     <div class="mb-6">
-      <label class="block text-sm font-medium text-[#2D2B5B]">Observaciones</label>
-      <textarea v-model="form.observaciones" rows="3"
+      <label class="block text-sm font-medium text-[#2D2B5B]">Observaciones de evaluaciones</label>
+      <textarea v-model="form.observaciones_evaluaciones" rows="3"
         class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
     </div>
 

@@ -1,7 +1,11 @@
 <script setup>
 const props = defineProps({
   form: Object,
-  escolaridadesList: Array
+  escolaridadesList: Array,
+  diagnosticosList: Array,
+  modalidadesList: Array,
+  estadoExpedientes: Array,
+  serviciosList: Array
 })
 const emit = defineEmits(['next'])
 </script>
@@ -16,51 +20,89 @@ const emit = defineEmits(['next'])
       <!-- Estado -->
       <div>
         <label class="block text-sm font-medium text-[#2D2B5B]">Estado</label>
-        <select v-model="form.estado" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]">
-          <option value="activo">Activo</option>
-          <option value="archivado">Archivado</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="inactivo">Inactivo</option>
-        </select>
-      </div>
-
-      <!-- Fecha apertura -->
-      <div>
-        <label class="block text-sm font-medium text-[#2D2B5B]">Fecha inicio</label>
-        <input v-model="form.fecha_apertura" type="date" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
-      </div>
-
-      <!-- Nombre -->
-      <div class="col-span-2">
-        <label class="block text-sm font-medium text-[#2D2B5B]">Nombre pila</label>
-        <input v-model="form.nombre_pila" type="text" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
-      </div>
-
-      <!-- Motivo consulta -->
-      <div class="col-span-2">
-        <label class="block text-sm font-medium text-[#2D2B5B]">Motivo de consulta</label>
-        <textarea v-model="form.motivo_consulta" rows="2" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
-      </div>
-
-      <!-- Escolaridad -->
-      <div>
-        <label class="block text-sm font-medium text-[#2D2B5B]">Escolaridad</label>
-        <select v-model="form.escolaridad_id" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]">
-          <option :value="null">N/D</option>
-          <option v-for="esc in escolaridadesList" :key="esc.id" :value="esc.id">
-            {{ esc.grado }}
+        <select v-model="form.estado_expediente_id"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]">
+          <option value="">Seleccione...</option>
+          <option v-for="estado in estadoExpedientes" :key="estado.id" :value="estado.id">
+            {{ estado.nombre }}
           </option>
         </select>
+      </div>
+
+      <!-- Fecha inicio -->
+      <div>
+        <label class="block text-sm font-medium text-[#2D2B5B]">Fecha inicio</label>
+        <input v-model="form.fecha_inicio" type="date"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+      </div>
+
+      <!-- Nombres -->
+      <div>
+        <label class="block text-sm font-medium text-[#2D2B5B]">Nombres</label>
+        <input v-model="form.nombres" type="text"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+      </div>
+
+      <!-- Apellidos -->
+      <div>
+        <label class="block text-sm font-medium text-[#2D2B5B]">Apellidos</label>
+        <input v-model="form.apellidos" type="text"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+      </div>
+
+      <!-- Fecha nacimiento -->
+      <div>
+        <label class="block text-sm font-medium text-[#2D2B5B]">Fecha nacimiento</label>
+        <input v-model="form.fecha_nacimiento" type="date"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
       </div>
 
       <!-- Modalidad -->
       <div>
         <label class="block text-sm font-medium text-[#2D2B5B]">Modalidad</label>
-        <select v-model="form.modalidad" class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]">
-          <option value="presencial">Presencial</option>
-          <option value="virtual">Virtual</option>
+        <select v-model="form.modalidad_id"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]">
+          <option value="">Seleccione una modalidad</option>
+          <option v-for="mod in modalidadesList" :key="mod.id" :value="mod.id">
+            {{ mod.nombre }}
+          </option>
         </select>
       </div>
+
+      <!-- Escolaridad -->
+      <div>
+        <label class="block text-sm font-medium text-[#2D2B5B]">Escolaridad</label>
+        <select v-model="form.escolaridad_id"
+          class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]">
+          <option :value="null">N/D</option>
+          <option v-for="esc in escolaridadesList" :key="esc.id" :value="esc.id">
+            {{ esc.nombre }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Motivo consulta -->
+    <div class="mt-6">
+      <label class="block text-sm font-medium text-[#2D2B5B]">Motivo de consulta</label>
+      <textarea v-model="form.motivo_consulta" rows="2"
+        class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="mt-6">
+      <label class="block text-sm font-medium text-[#2D2B5B]">Observaciones</label>
+      <textarea v-model="form.observaciones" rows="2"
+        class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
+    </div>
+
+    <!-- Consentimiento -->
+    <div class="mt-6">
+      <label class="inline-flex items-center">
+        <input type="checkbox" v-model="form.consentimiento"
+          class="rounded border-gray-300 text-[#53C6D3] focus:ring-[#53C6D3]" />
+        <span class="ml-2 text-sm text-[#2D2B5B]">Consentimiento informado</span>
+      </label>
     </div>
 
     <!-- Botón siguiente -->

@@ -14,31 +14,36 @@ import Evaluaciones from './expedientes/Evaluaciones.vue'
 const props = defineProps({
   expediente: { type: Object, required: false, default: null },
   pacienteId: { type: Number, required: false, default: null },
+  modalidadesList: { type: Array, default: () => [] },
   diagnosticosList: { type: Array, default: () => [] },
-  terapiasList: { type: Array, default: () => [] },
-  evaluacionesList: { type: Array, default: () => [] },
   escolaridadesList: { type: Array, default: () => [] },
   criteriosModulo1: { type: Array, default: () => [] },
   criteriosModulo2: { type: Array, default: () => [] },
-  criteriosModulo3: { type: Array, default: () => [] }
+  criteriosModulo3: { type: Array, default: () => [] },
+  serviciosList: { type: Array, default: () => [] },
+  evaluacionesList: { type: Array, default: () => [] },
+  estadoExpedientes: { type: Array, default: () => [] }
 })
 
 const emit = defineEmits(['close'])
 const step = ref(1)
 
 const form = useForm({
-  paciente_id: props.pacienteId || null,
-  nombre_pila: props.expediente?.nombre_pila || '',
-  estado: props.expediente?.estado || 'activo',
-  motivo_consulta: props.expediente?.motivo_consulta || '',
-  fecha_apertura: props.expediente?.fecha_apertura || '',
-  modalidad: props.expediente?.modalidad || '',
-  escolaridad_id: props.expediente?.escolaridad_id || null,
-  observaciones_administrativas: props.expediente?.observaciones_administrativas || '',
+  paciente_id: props.pacienteId || props.expediente?.paciente_id || null,
+  nombres: props.expediente?.nombres || '',
+  apellidos: props.expediente?.apellidos || '',
+  fecha_nacimiento: props.expediente?.fecha_nacimiento || '',
+  estado_expediente_id: props.expediente?.estado_expediente_id || null,
+  modalidad_id: props.expediente?.modalidad_id || null,
+  anamnesis_id: props.expediente?.anamnesis_id || null,
   diagnosticos: props.expediente?.diagnosticos?.map(d => d.id) || [],
   terapias: props.expediente?.terapias?.map(t => t.id) || [],
   evaluaciones: props.expediente?.evaluaciones?.map(e => e.id) || [],
-  observaciones: '',
+  escolaridad_id: props.expediente?.escolaridad_id || null,
+  motivo_consulta: props.expediente?.motivo_consulta || '',
+  fecha_inicio: props.expediente?.fecha_inicio || '',
+  consentimiento: props.expediente?.consentimiento || false,
+  observaciones: props.expediente?.observaciones || '',
   itemsModulo1: [],
   itemsModulo2: [],
   itemsModulo3: []
@@ -95,28 +100,19 @@ props.criteriosModulo3.forEach(c => form.itemsModulo3.push({ criterio_id: c.id, 
 
       <!-- Body dinámico -->
       <div class="p-6 flex-1 overflow-y-auto">
-        <component
-          :is="{
-            1: DatosGenerales,
-            2: Modulo1,
-            3: Modulo2,
-            4: Modulo3,
-            5: HistoriaClinica,
-            6: Terapias,
-            7: Evaluaciones
-          }[step]"
-          :form="form"
-          :criteriosModulo1="criteriosModulo1"
-          :criteriosModulo2="criteriosModulo2"
-          :criteriosModulo3="criteriosModulo3"
-          :escolaridadesList="escolaridadesList"
-          :diagnosticosList="diagnosticosList"
-          :terapiasList="terapiasList"
-          :evaluacionesList="evaluacionesList"
-          @next="nextStep"
-          @prev="prevStep"
-          @save="saveChanges"
-        />
+        <component :is="{
+          1: DatosGenerales,
+          2: Modulo1,
+          3: Modulo2,
+          4: Modulo3,
+          5: HistoriaClinica,
+          6: Terapias,
+          7: Evaluaciones
+        }[step]" :form="form" :criteriosModulo1="criteriosModulo1" :criteriosModulo2="criteriosModulo2"
+          :criteriosModulo3="criteriosModulo3" :escolaridadesList="escolaridadesList"
+          :diagnosticosList="diagnosticosList" :serviciosList="serviciosList" :evaluacionesList="evaluacionesList"
+          :modalidadesList="modalidadesList" :estadoExpedientes="estadoExpedientes" @next="nextStep" @prev="prevStep"
+          @save="saveChanges" />
       </div>
     </div>
   </div>

@@ -19,6 +19,7 @@ class Terapeuta extends Model
         'telefono',
         'correo',
         'especialidad_id',
+        'genero_id',
         'experiencia',
         'certificaciones',
         'cursos',
@@ -43,6 +44,11 @@ class Terapeuta extends Model
     public function especialidad()
     {
         return $this->belongsTo(Especialidad::class);
+    }
+
+    public function genero()
+    {
+        return $this->belongsTo(Genero::class);
     }
 
     public function getNombreCompletoAttribute()

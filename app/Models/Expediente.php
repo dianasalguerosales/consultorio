@@ -16,7 +16,6 @@ class Expediente extends Model
         'fecha_nacimiento',
         'paciente_id',
         'anamnesis_id',
-        'diagnostico_id',
         'modalidad_id',
         'estado_expediente_id',
         'codigo',
@@ -36,14 +35,21 @@ class Expediente extends Model
         return $this->belongsTo(Anamnesis::class);
     }
 
-    public function diagnostico()
-    {
-        return $this->belongsTo(Diagnostico::class);
-    }
-
     public function diagnosticos()
     {
         return $this->belongsToMany(Diagnostico::class, 'expediente_diagnostico')
+            ->withTimestamps();
+    }
+
+    public function servicios()
+    {
+        return $this->belongsToMany(Servicio::class, 'expediente_servicios')
+            ->withTimestamps();
+    }
+
+    public function evaluaciones()
+    {
+        return $this->belongsToMany(Evaluacion::class, 'expediente_evaluacion')
             ->withTimestamps();
     }
 
@@ -55,18 +61,6 @@ class Expediente extends Model
     public function estado()
     {
         return $this->belongsTo(EstadoExpediente::class, 'estado_expediente_id');
-    }
-
-    public function evaluaciones()
-    {
-        return $this->belongsToMany(Evaluacion::class, 'expediente_evaluacion')
-            ->withTimestamps();
-    }
-
-    public function servicios()
-    {
-        return $this->belongsToMany(Servicio::class, 'expediente_servicio')
-            ->withTimestamps();
     }
 
     public function getNombreExpedienteAttribute()

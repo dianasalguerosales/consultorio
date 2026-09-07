@@ -7,12 +7,14 @@ import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
 const props = defineProps({
   expedientes: Array,
   diagnosticosList: Array,
-  terapiasList: Array,
-  evaluacionesList: Array,
   escolaridadesList: Array,
   criteriosModulo1: { type: Array, default: () => [] },
   criteriosModulo2: { type: Array, default: () => [] },
-  criteriosModulo3: { type: Array, default: () => [] }
+  criteriosModulo3: { type: Array, default: () => [] },
+  modalidadesList: { type: Array, default: () => [] },
+  estadoExpedientes: { type: Array, default: () => [] },
+  serviciosList: { type: Array, default: () => [] },
+  evaluacionesList: { type: Array, default: () => [] }
 })
 
 const search = ref('')
@@ -24,7 +26,7 @@ const expedienteEditData = ref(null)
 
 const expedientesFiltrados = computed(() => {
   return props.expedientes.filter(exp => {
-    const texto = `${exp.id} ${exp.paciente?.nombre ?? exp.nombre_pila} ${exp.fecha_apertura} ${exp.estado}`.toLowerCase()
+    const texto = `${exp.codigo} ${exp.paciente?.nombres ?? exp.nombres} ${exp.apellidos} ${exp.fecha_inicio} ${exp.estado?.nombre}`.toLowerCase()
     return texto.includes(search.value.toLowerCase())
   })
 })
@@ -53,7 +55,7 @@ function closeEditModal() {
 }
 
 function deleteExpediente(exp) {
-  if (confirm(`¿Seguro que deseas eliminar el expediente #${exp.id}?`)) {
+  if (confirm(`¿Seguro que deseas eliminar el expediente #${exp.codigo}?`)) {
     router.delete(route('expedientes.destroy', exp.id), {
       onSuccess: () => {
         console.log('Expediente eliminado correctamente')
@@ -67,6 +69,7 @@ function deleteExpediente(exp) {
 </script>
 
 <template>
+
   <Head title="Expedientes" />
   <div class="bg-white rounded-lg shadow-md p-8 w-full">
     <!-- Encabezado -->
@@ -102,7 +105,7 @@ function deleteExpediente(exp) {
         </thead>
         <tbody>
           <tr v-for="exp in expedientesFiltrados" :key="exp.id" class="border-t hover:bg-[#FAF9F7] transition">
-            <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ exp.id }}</td>
+            <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ exp.codigo }}</td>
             <td class="px-2 py-2 text-center">
               <img :src="exp.paciente?.genero === 'femenino'
                 ? '/images/Femenino.webp'
@@ -111,17 +114,18 @@ function deleteExpediente(exp) {
                   : '/images/avatar.webp'" alt="avatar" class="w-8 h-8 rounded-full border inline-block" />
             </td>
             <td class="px-4 py-2">
-              {{ exp.paciente ? exp.paciente.nombre : exp.nombre_pila }}
+              {{ exp.paciente ? exp.paciente.nombres + ' ' + exp.paciente.apellidos : exp.nombres + ' ' + exp.apellidos
+              }}
             </td>
-            <td class="px-4 py-2">{{ exp.fecha_apertura }}</td>
+            <td class="px-4 py-2">{{ exp.fecha_inicio }}</td>
             <td class="px-4 py-2">
               <span :class="{
-                'text-green-600 font-semibold': exp.estado === 'activo',
-                'text-blue-600 font-semibold': exp.estado === 'archivado',
-                'text-orange-600 font-semibold': exp.estado === 'pendiente',
-                'text-gray-600 font-semibold': exp.estado === 'inactivo'
+                'text-green-600 font-semibold': exp.estado?.nombre === 'activo',
+                'text-blue-600 font-semibold': exp.estado?.nombre === 'archivado',
+                'text-orange-600 font-semibold': exp.estado?.nombre === 'pendiente',
+                'text-gray-600 font-semibold': exp.estado?.nombre === 'inactivo'
               }">
-                {{ capitalizeEstado(exp.estado) }}
+                {{ capitalizeEstado(exp.estado?.nombre) }}
               </span>
             </td>
             <td class="px-4 py-2 text-center">
@@ -136,7 +140,6 @@ function deleteExpediente(exp) {
                   <span class="material-icons text-base">edit</span>
                   <span class="ml-1">Editar</span>
                 </button>
-                <!-- Botón eliminar -->
                 <button @click="deleteExpediente(exp)"
                   class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                   <span class="material-icons text-base">delete</span>
@@ -154,9 +157,10 @@ function deleteExpediente(exp) {
 
     <!-- Modal crear/editar -->
     <ExpedienteEditModal v-if="showEditModal" :expediente="expedienteEditData" :diagnosticos-list="diagnosticosList"
-      :terapias-list="terapiasList" :evaluaciones-list="evaluacionesList" :escolaridades-list="escolaridadesList"
-      :criterios-modulo1="props.criteriosModulo1" :criterios-modulo2="props.criteriosModulo2"
-      :criterios-modulo3="props.criteriosModulo3" @close="closeEditModal" />
+      :escolaridades-list="escolaridadesList" :criterios-modulo1="criteriosModulo1"
+      :criterios-modulo2="criteriosModulo2" :criterios-modulo3="criteriosModulo3" :modalidades-list="modalidadesList"
+      :estado-expedientes="estadoExpedientes" :servicios-list="serviciosList" :evaluaciones-list="evaluacionesList"
+      @close="closeEditModal" />
   </div>
 </template>
 
@@ -164,6 +168,6 @@ function deleteExpediente(exp) {
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 
 export default {
-    layout: AuthenticatedLayout
+  layout: AuthenticatedLayout
 }
 </script>

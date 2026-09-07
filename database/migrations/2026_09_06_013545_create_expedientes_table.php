@@ -20,7 +20,6 @@ return new class extends Migration {
             $table->foreignId('anamnesis_id')->nullable()->constrained('anamnesis')->nullOnDelete();
 
             // Relaciones con catálogos
-            $table->foreignId('diagnostico_id')->nullable()->constrained('diagnosticos')->nullOnDelete();
             $table->foreignId('modalidad_id')->nullable()->constrained('modalidades')->nullOnDelete();
             $table->foreignId('estado_expediente_id')->nullable()->constrained('estado_expedientes')->nullOnDelete();
 

@@ -19,17 +19,6 @@ const emit = defineEmits(['next','prev'])
         class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
     </div>
 
-    <!-- Antecedentes -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium text-[#2D2B5B]">Antecedentes</label>
-      <ul class="list-disc pl-6 text-gray-700">
-        <li v-for="(item, idx) in form.antecedentes || []" :key="idx">
-          {{ item.descripcion }}
-        </li>
-      </ul>
-      <!-- Si quieres permitir edición, podrías agregar un input dinámico aquí -->
-    </div>
-
     <!-- Diagnósticos -->
     <div class="mb-6">
       <label class="block text-sm font-medium text-[#2D2B5B]">Diagnósticos</label>

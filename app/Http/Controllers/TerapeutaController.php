@@ -28,6 +28,7 @@ class TerapeutaController extends Controller
             'correo' => 'required|email|unique:terapeutas,correo',
             'numero_colegiado' => 'nullable|string|max:50',
             'especialidad_id' => 'nullable|exists:especialidades,id',
+            'genero_id' => 'nullable|exists:generos,id',
             'formacion' => 'nullable|string',
             'certificaciones' => 'nullable|string',
         ]);
@@ -47,6 +48,7 @@ class TerapeutaController extends Controller
             'correo' => 'required|email|unique:terapeutas,correo,' . $terapeuta->id,
             'numero_colegiado' => 'nullable|string|max:50',
             'especialidad_id' => 'nullable|exists:especialidades,id',
+            'genero_id' => 'nullable|exists:generos,id',
             'formacion' => 'nullable|string',
             'certificaciones' => 'nullable|string',
         ]);

@@ -18,6 +18,7 @@ class Administrativo extends Model
         'dpi',
         'telefono',
         'correo',
+        'genero_id',
         'cargo_id',
         'especialidad_id',
         'experiencia',
@@ -40,11 +41,11 @@ class Administrativo extends Model
         return $this->belongsTo(Especialidad::class);
     }
 
-    public function pacientes()
+    public function genero()
     {
-        return $this->belongsToMany(Paciente::class, 'administrativo_paciente')
-            ->withTimestamps();
+        return $this->belongsTo(Genero::class);
     }
+
 
     public function getNombreCompletoAttribute()
     {

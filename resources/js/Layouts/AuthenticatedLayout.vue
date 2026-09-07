@@ -14,14 +14,14 @@ const roles = props.auth?.user?.roles ?? []
 // Menús por rol
 const menuPorRol = {
   administrador: [
-    'usuarios', 'pacientes', 'terapeutas', 'agenda', 'expedientes',
+    'usuarios', 'pacientes', 'personas', 'agenda', 'expedientes',
     'programas', 'indicadores', 'parametros', 'pagos', 'informes'
   ],
   auxiliar: [
     'terapias-dia', 'pacientes', 'agenda', 'pagos'
   ],
   coordinador: [
-    'pacientes', 'usuarios', 'agenda', 'terapeutas',
+    'pacientes', 'usuarios', 'agenda', 'personas',
     'programas', 'terapias-dia', 'pagos', 'informes'
   ],
   encargado: [
@@ -44,7 +44,7 @@ const ordenMenu = [
   'dashboard',
   'usuarios',
   'pacientes',
-  'terapeutas',
+  'personas',
   'agenda',
   'expedientes',
   'programas',
@@ -59,7 +59,6 @@ const ordenMenu = [
   'informes',
   'configuracion'
 ]
-
 
 // Calcular menú final
 const menuFinal = computed(() => {
@@ -79,7 +78,7 @@ const menuConfig = {
   dashboard: { icon: 'home', label: 'Inicio', href: '/dashboard' },
   usuarios: { icon: 'people', label: 'Usuarios', href: '/usuarios' },
   pacientes: { icon: 'family_restroom', label: 'Pacientes', href: '/pacientes' },
-  terapeutas: { icon: 'psychology', label: 'Terapeutas', href: '/terapeutas' },
+  personas: { icon: 'groups', label: 'Personas', href: '/personas' },
   agenda: { icon: 'today', label: 'Agenda', href: '/agenda' },
   expedientes: { icon: 'folder_shared', label: 'Expedientes', href: '/expedientes' },
   programas: { icon: 'collections_bookmark', label: 'Programas', href: '/programas' },

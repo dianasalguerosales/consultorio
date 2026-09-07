@@ -43,22 +43,22 @@ const emit = defineEmits(['next', 'prev'])
             </label>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- Observaciones -->
+    <!-- Observaciones específicas del módulo -->
     <div class="mt-6">
-      <label class="block text-sm font-medium text-gray-700">Observaciones</label>
-      <textarea v-model="form.observaciones" rows="3"
+      <label class="block text-sm font-medium text-gray-700">Observaciones del módulo</label>
+      <textarea v-model="form.observaciones_modulo1" rows="3"
         class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
     </div>
 
     <!-- Navegación -->
     <div class="mt-8 flex justify-between">
       <button @click="emit('prev')" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">← Anterior</button>
-      <button @click="emit('next')" class="px-4 py-2 bg-[#2D2B5B] text-white rounded hover:bg-[#53C6D3]">Siguiente
-        →</button>
+      <button @click="emit('next')" class="px-4 py-2 bg-[#2D2B5B] text-white rounded hover:bg-[#53C6D3]">
+        Siguiente →
+      </button>
     </div>
   </div>
 </template>

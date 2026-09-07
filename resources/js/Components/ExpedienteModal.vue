@@ -14,12 +14,14 @@ const props = defineProps({
 defineEmits(['close'])
 
 const edad = computed(() => {
-  if (!props.expediente?.paciente?.fecha_nacimiento) return null
-  const nacimiento = new Date(props.expediente.paciente.fecha_nacimiento)
+  const nacimiento = props.expediente?.fecha_nacimiento
+  if (!nacimiento) return null
+
+  const fechaNac = new Date(nacimiento)
   const hoy = new Date()
 
-  let years = hoy.getFullYear() - nacimiento.getFullYear()
-  let months = hoy.getMonth() - nacimiento.getMonth()
+  let years = hoy.getFullYear() - fechaNac.getFullYear()
+  let months = hoy.getMonth() - fechaNac.getMonth()
 
   if (months < 0) {
     years--
@@ -56,7 +58,10 @@ const getComponent = (tab) => {
       <!-- Header -->
       <div class="flex justify-between items-center border-b p-4">
         <h2 class="text-xl font-bold text-caine-azul">
-          Expediente de {{ expediente?.paciente?.nombre ?? expediente?.nombre_pila }}
+          Expediente de 
+          {{ expediente?.paciente 
+            ? expediente.paciente.nombres + ' ' + expediente.paciente.apellidos 
+            : expediente.nombres + ' ' + expediente.apellidos }}
         </h2>
         <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
       </div>
@@ -75,7 +80,7 @@ const getComponent = (tab) => {
 
       <!-- Contenedor unido a la pestaña -->
       <div class="flex-1 overflow-y-auto px-4 bg-gray-50">
-        <div class="bg-white border-l border-r border-b  l rounded-b-md  shadow-sm p-4">
+        <div class="bg-white border-l border-r border-b rounded-b-md shadow-sm p-4">
           <component :is="getComponent(activeTab)" :expediente="expediente" />
         </div>
       </div>

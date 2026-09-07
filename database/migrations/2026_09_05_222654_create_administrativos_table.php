@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('nombres');
             $table->string('apellidos');
             $table->date('fecha_nacimiento')->nullable();
-            $table->integer('dpi')->nullable();
+            $table->bigInteger('dpi')->nullable();
             $table->string('telefono')->nullable();
             $table->string('correo')->nullable();
             $table->foreignId('genero_id')->nullable()->constrained('generos')->nullOnDelete();
