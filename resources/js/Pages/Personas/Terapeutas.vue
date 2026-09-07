@@ -7,7 +7,8 @@ import TerapeutaModalEditar from '@/Components/personas/TerapeutaModalEditar.vue
 defineProps({
   terapeutas: Array,
   especialidades: Array,
-  generos: Array
+  generos: Array,
+  usuariosDisponibles: Array
 })
 
 const showViewModal = ref(false)
@@ -123,6 +124,7 @@ function closeEditModal() {
       :terapeuta="selectedTerapeuta"
       :especialidades="especialidades"
       :generos="generos"
+      :usuariosDisponibles="usuariosDisponibles"
       @close="closeEditModal"
     />
   </div>

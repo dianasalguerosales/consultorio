@@ -14,7 +14,8 @@ defineProps({
     especialidades: Array,
     generos: Array,
     estadosCiviles: Array,
-    relacionesPaciente: Array
+    relacionesPaciente: Array,
+    usuariosDisponibles: Array
 })
 
 const tab = ref('administrativos')
@@ -63,17 +64,19 @@ function closeNuevoModal() {
         </div>
 
         <AdministrativosIndex v-if="tab === 'administrativos'" :administrativos="administrativos" :cargos="cargos"
-            :especialidades="especialidades" :generos="generos" />
+            :especialidades="especialidades" :generos="generos" :usuariosDisponibles="usuariosDisponibles" />
         <TerapeutasIndex v-if="tab === 'terapeutas'" :terapeutas="terapeutas" :especialidades="especialidades"
-            :generos="generos" />
+            :generos="generos" :usuariosDisponibles="usuariosDisponibles" />
         <EncargadosIndex v-if="tab === 'encargados'" :encargados="encargados" :estados-civiles="estadosCiviles"
-            :generos="generos" :relaciones-paciente="relacionesPaciente" />
+            :generos="generos" :relaciones-paciente="relacionesPaciente" :usuariosDisponibles="usuariosDisponibles" />
         <PersonaModalNuevo v-if="showNuevoModal" :cargos="cargos" :especialidades="especialidades" :generos="generos"
-            :estadosCiviles="estadosCiviles" :relacionesPaciente="relacionesPaciente" @close="closeNuevoModal" />
+            :estadosCiviles="estadosCiviles" :relacionesPaciente="relacionesPaciente"
+            :usuariosDisponibles="usuariosDisponibles" @close="closeNuevoModal" />
     </div>
 </template>
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import Usuarios from '../Usuarios.vue'
 export default { layout: AuthenticatedLayout }
 </script>

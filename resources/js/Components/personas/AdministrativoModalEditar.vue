@@ -8,12 +8,18 @@ const props = defineProps({
   administrativo: { type: Object, required: true },
   cargos: { type: Array, default: () => [] },
   especialidades: { type: Array, default: () => [] },
-  generos: { type: Array, default: () => [] }
+  generos: { type: Array, default: () => [] },
+  usuariosDisponibles: { type: Array, default: () => [] }
 })
+
+// 👇 aquí puedes inspeccionar lo que llega
+console.log('Administrativo recibido:', props.administrativo)
+console.log('Usuarios disponibles:', props.usuariosDisponibles)
 
 const form = useForm({
   nombres: props.administrativo?.nombres || '',
   apellidos: props.administrativo?.apellidos || '',
+  user_id: String(props.administrativo?.user_id || ''),
   fecha_nacimiento: props.administrativo?.fecha_nacimiento || '',
   dpi: props.administrativo?.dpi || '',
   telefono: props.administrativo?.telefono || '',
@@ -58,6 +64,24 @@ function submit() {
         <label class="block text-sm font-medium">Apellidos</label>
         <input v-model="form.apellidos" type="text"
           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Usuario del sistema</label>
+        <select v-model="form.user_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm 
+         focus:ring-[#53C6D3] focus:border-[#53C6D3]">
+          <option value="">Seleccione...</option>
+
+          <!-- 👇 opción fija con el usuario actual -->
+          <option v-if="props.usuarioActual" :value="String(props.usuarioActual.id)">
+            {{ props.usuarioActual.email }}
+          </option>
+
+          <!-- 👇 resto de usuarios disponibles -->
+          <option v-for="u in usuariosDisponibles" :key="u.id" :value="String(u.id)">
+            {{ u.email }}
+          </option>
+        </select>
       </div>
 
       <!-- Fecha nacimiento -->

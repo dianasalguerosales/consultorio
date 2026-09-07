@@ -19,6 +19,15 @@ class PersonasController extends Controller
 {
     public function index()
     {
+        $usados = collect()
+            ->merge(Encargado::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Terapeuta::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Administrativo::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->unique()
+            ->values();
+
+        $usuariosDisponibles = User::whereNotIn('id', $usados)->get();
+
         return Inertia::render('Personas/Index', [
             'administrativos' => Administrativo::with(['cargo', 'especialidad', 'genero'])->get(),
             'terapeutas' => Terapeuta::with(['especialidad', 'genero'])->get(),
@@ -28,6 +37,7 @@ class PersonasController extends Controller
             'generos' => Genero::all(),
             'estadosCiviles' => EstadoCivil::all(),
             'relacionesPaciente' => RelacionPaciente::all(),
+            'usuariosDisponibles' => $usuariosDisponibles,
         ]);
     }
 
@@ -233,14 +243,90 @@ class PersonasController extends Controller
             ->with('success', 'Encargado creado correctamente.');
     }
 
-    public function usuariosDisponibles()
+    public function editAdministrativo($id)
     {
-        $usados = Encargado::pluck('user_id')
-            ->merge(Terapeuta::pluck('user_id'))
-            ->merge(Administrativo::pluck('user_id'))
-            ->filter();
+        // Cargar administrativo con su relación user
+        $administrativo = Administrativo::with('user')->findOrFail($id);
 
-        return User::whereNotIn('id', $usados)->get();
+        // IDs ya usados
+        $usados = Encargado::withTrashed()->whereNotNull('user_id')->pluck('user_id')
+            ->merge(Terapeuta::withTrashed()->whereNotNull('user_id')->pluck('user_id'))
+            ->merge(Administrativo::withTrashed()->whereNotNull('user_id')->pluck('user_id'))
+            ->unique()
+            ->values();
+
+        // Usuarios libres
+        $usuariosLibres = User::whereNotIn('id', $usados)->get();
+
+        // Usuario actual
+        if ($administrativo->user) {
+            $usuariosLibres->push($administrativo->user);
+            $usuariosLibres = $usuariosLibres->unique('id')->values();
+        }
+
+        return Inertia::render('Personas/AdministrativoEditar', [
+            'administrativo' => $administrativo,
+            'usuariosDisponibles' => $usuariosLibres,
+            'cargos' => Cargo::all(),
+            'especialidades' => Especialidad::all(),
+            'generos' => Genero::all(),
+        ]);
     }
 
+
+    public function editEncargado($id)
+    {
+        $encargado = Encargado::with('user')->findOrFail($id);
+
+        $usados = collect()
+            ->merge(Encargado::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Terapeuta::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Administrativo::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->unique()
+            ->values();
+
+        $usuariosDisponibles = User::whereNotIn('id', $usados)->get();
+
+        if ($encargado->user) {
+            $usuariosDisponibles->push($encargado->user);
+            $usuariosDisponibles = $usuariosDisponibles->unique('id');
+        }
+
+        return Inertia::render('Personas/EncargadoEditar', [
+            'encargado' => $encargado,
+            'generos' => Genero::all(),
+            'estadosCiviles' => EstadoCivil::all(),
+            'relacionesPaciente' => RelacionPaciente::all(),
+            'usuariosDisponibles' => $usuariosDisponibles,
+        ]);
+    }
+
+    public function editTerapeuta($id)
+    {
+        $terapeuta = Terapeuta::with('user')->findOrFail($id);
+
+        $usados = collect()
+            ->merge(Encargado::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Terapeuta::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Administrativo::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->unique()
+            ->values();
+
+        $usuariosDisponibles = User::whereNotIn('id', $usados)->get();
+
+        if ($terapeuta->user) {
+            $usuariosDisponibles->push($terapeuta->user);
+            $usuariosDisponibles = $usuariosDisponibles->unique('id');
+        }
+
+        dd($usuariosDisponibles->toArray());
+
+
+        return Inertia::render('Personas/TerapeutaEditar', [
+            'terapeuta' => $terapeuta,
+            'especialidades' => Especialidad::all(),
+            'generos' => Genero::all(),
+            'usuariosDisponibles' => $usuariosDisponibles,
+        ]);
+    }
 }

@@ -6,7 +6,6 @@ import PersonaFormShared from './PersonaFormShared.vue'
 import PersonaFormAdministrativo from './PersonaFormAdministrativo.vue'
 import PersonaFormTerapeuta from './PersonaFormTerapeuta.vue'
 import PersonaFormEncargado from './PersonaFormEncargado.vue'
-
 const emit = defineEmits(['close'])
 
 const props = defineProps({
@@ -14,7 +13,8 @@ const props = defineProps({
   especialidades: Array,
   generos: Array,
   estadosCiviles: Array,
-  relacionesPaciente: Array
+  relacionesPaciente: Array,
+  usuariosDisponibles: Array
 })
 
 const tipo = ref('administrativo')
@@ -24,7 +24,8 @@ const form = useForm({
   telefono: '', correo: '', direccion: '', ocupacion: '',
   genero_id: '', cargo_id: '', especialidad_id: '',
   estado_civil_id: '', relacion_paciente_id: '',
-  experiencia: '', certificaciones: '', cursos: ''
+  experiencia: '', certificaciones: '', cursos: '',
+  usuarios:''
 })
 
 function submit() {
@@ -55,12 +56,12 @@ function submit() {
     </div>
 
     <!-- Formulario compartido -->
-    <PersonaFormShared :form="form" :generos="props.generos" />
+    <PersonaFormShared :form="form" :generos="props.generos" :usuariosDisponibles="props.usuariosDisponibles" />
 
     <!-- Formulario variable -->
-    <PersonaFormAdministrativo v-if="tipo==='administrativo'" :form="form" :cargos="props.cargos" :especialidades="props.especialidades" />
-    <PersonaFormTerapeuta v-if="tipo==='terapeuta'" :form="form" :especialidades="props.especialidades" />
-    <PersonaFormEncargado v-if="tipo==='encargado'" :form="form" :estadosCiviles="props.estadosCiviles" :relacionesPaciente="props.relacionesPaciente" />
+    <PersonaFormAdministrativo v-if="tipo==='administrativo'" :form="form" :cargos="props.cargos" :especialidades="props.especialidades" :usuarios="props.usuarios" />
+    <PersonaFormTerapeuta v-if="tipo==='terapeuta'" :form="form" :especialidades="props.especialidades" :usuarios="props.usuarios" />
+    <PersonaFormEncargado v-if="tipo==='encargado'" :form="form" :estadosCiviles="props.estadosCiviles" :relacionesPaciente="props.relacionesPaciente" :usuarios="props.usuarios"/>
 
     <!-- Footer -->
     <template #footer>

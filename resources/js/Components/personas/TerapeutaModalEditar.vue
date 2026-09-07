@@ -7,12 +7,14 @@ const emit = defineEmits(['close'])
 const props = defineProps({
   terapeuta: { type: Object, required: true },
   especialidades: { type: Array, default: () => [] },
-  generos: { type: Array, default: () => [] }
+  generos: { type: Array, default: () => [] },
+  usuariosDisponibles: { type: Array, default: () => [] }
 })
 
 const form = useForm({
   nombres: props.terapeuta?.nombres || '',
   apellidos: props.terapeuta?.apellidos || '',
+  user_id: props.administrativo?.user_id || '', 
   fecha_nacimiento: props.terapeuta?.fecha_nacimiento || '',
   dpi: props.terapeuta?.dpi || '',
   telefono: props.terapeuta?.telefono || '',
@@ -51,6 +53,17 @@ function submit() {
         <label class="block text-sm font-medium">Apellidos</label>
         <input v-model="form.apellidos" type="text"
           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Usuario del sistema</label>
+        <select v-model="form.user_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm 
+           focus:ring-[#53C6D3] focus:border-[#53C6D3]">
+          <option value="">Seleccione...</option>
+          <option v-for="u in usuariosDisponibles" :key="u.id" :value="u.id">
+            {{ u.email }}
+          </option>
+        </select>
       </div>
 
       <!-- Fecha nacimiento -->
