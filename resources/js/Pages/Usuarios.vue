@@ -2,6 +2,7 @@
 import { Head, usePage, useForm, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import UsuarioForm from '@/Components/UsuarioForm.vue'
+import InfoModal from '@/Components/InfoModal.vue'
 
 const { props } = usePage()
 const usuarios = props.usuarios
@@ -9,30 +10,20 @@ const roles = props.roles
 
 const isOpen = ref(false)
 const selectedUser = ref(null)
+const infoModalVisible = ref(false) // información modal generico 
 
 const form = useForm({
   email: '',
   password: '',
+  status: 'active',
   roles: [],
-  tipo_usuario: '',
-  nombres: '',
-  apellidos: '',
-  telefono: '',
-  direccion: '',
-  fecha_nacimiento: '',
-  genero_id: '',
-  especialidad_id: '',
-  numero_colegiado: '',
-  experiencia: '',
-  formacion: '',
-  certificaciones: '',
-  relacion: '',
-  cargo_id: '',
 })
 
 function openModal(user) {
   selectedUser.value = user
-  form.roles = user.roles
+  form.email = user.email
+  form.status = user.status
+  form.roles = user.roles || []
   isOpen.value = true
 }
 
@@ -74,6 +65,12 @@ function newUser() {
   isOpen.value = true
 }
 
+//función para abrir el modal de información
+function openInfoModal(user) {
+  selectedUser.value = user
+  infoModalVisible.value = true
+}
+
 const roleColors = {
   administrador: 'bg-caine-azul text-white',
   coordinador: 'bg-caine-verde text-white',
@@ -103,21 +100,20 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
         class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
         
         <div class="mt-6">
-          <img
-            :src="
-              usuario.roles.includes('terapeuta')
-                ? '/images/Terapeuta.webp'
-                : usuario.roles.includes('administrador')
+          <img :src="usuario.roles.includes('terapeuta')
+              ? '/images/Terapeuta.webp'
+              : usuario.roles.includes('administrador')
                 ? '/images/Admin.webp'
                 : usuario.roles.includes('coordinador')
-                ? '/images/Coordinador.webp'
-                : usuario.roles.includes('encargado')
-                ? '/images/Madre.webp'
-                : '/images/avatar.webp'
-            "
-            alt="Avatar"
-            class="h-20 w-20 rounded-full mx-auto"
-          />
+                  ? '/images/Coordinador.webp'
+                  : usuario.roles.includes('encargado')
+                    ? usuario.genero === 'femenino'
+                      ? '/images/Madre.webp'
+                      : usuario.genero === 'masculino'
+                        ? '/images/Padre.webp'
+                        : '/images/avatar.webp'
+                    : '/images/avatar.webp'
+            " alt="Avatar" class="h-20 w-20 rounded-full mx-auto" />
         </div>
 
         <div class="mt-4">
@@ -139,24 +135,46 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
             class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm font-semibold">
             Sin rol
           </span>
-        </div>
+        </div> 
 
         <div class="mt-6 grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200 w-full">
+
+          <!-- Botón Ver (nuevo modal de información) -->
           <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
-            class="py-3 text-sm font-medium text-caine-celeste hover:bg-gray-50" @click="openModal(usuario)">
-            Editar
+            class="py-3 text-sm font-medium text-caine-celeste hover:bg-gray-50" @click="openInfoModal(usuario)">
+            Ver
           </button>
+          
+          <!-- Botón Eliminar -->
           <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
             class="py-3 text-sm font-medium text-caine-error hover:bg-gray-50" @click="deleteUser(usuario)">
             Eliminar
           </button>
+
         </div>
+
+        <div class="border-t border-gray-200 w-full">
+          <!-- Botón Gestionar permisos ocupa toda la parte inferior -->
+          <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
+            class="py-3 w-full text-sm font-medium text-white bg-caine-verde hover:bg-caine-celeste/80 rounded-b-md"
+            @click="openModal(usuario)">
+            Editar
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
 
   <!-- Modal -->
   <UsuarioForm v-if="isOpen" :user="selectedUser" :form="form" :roles="roles" @close="closeModal" @save="saveChanges" />
+
+  <!-- Modal genérico de información -->
+  <InfoModal v-if="infoModalVisible" :visible="infoModalVisible" title="Información del Usuario" :data="{
+    'Email': selectedUser.email,
+    'Estado': selectedUser.status,
+    'Última vez': selectedUser.last_login_at
+  }" @close="infoModalVisible = false" />
 </template>
 
 <script>
