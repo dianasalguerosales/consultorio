@@ -42,7 +42,6 @@ const comunes = ['dashboard', 'configuracion']
 
 const ordenMenu = [
   'dashboard',
-  'usuarios',
   'pacientes',
   'personas',
   'agenda',
@@ -57,6 +56,7 @@ const ordenMenu = [
   'objetivos',
   'evaluaciones',
   'informes',
+  'usuarios',
   'configuracion'
 ]
 
@@ -76,7 +76,6 @@ const menuFinal = computed(() => {
 // Diccionario de rutas
 const menuConfig = {
   dashboard: { icon: 'home', label: 'Inicio', href: '/dashboard' },
-  usuarios: { icon: 'people', label: 'Usuarios', href: '/usuarios' },
   pacientes: { icon: 'family_restroom', label: 'Pacientes', href: '/pacientes' },
   personas: { icon: 'groups', label: 'Personas', href: '/personas' },
   agenda: { icon: 'today', label: 'Agenda', href: '/agenda' },
@@ -89,6 +88,7 @@ const menuConfig = {
   configuracion: { icon: 'settings', label: 'Configuración', href: '/configuracion' },
   hijos: { icon: 'family_restroom', label: 'Kids', href: '/hijos' },
   'estado-cuenta': { icon: 'account_balance_wallet', label: 'Estado de Cuenta', href: '/estado-cuenta' },
+  usuarios: { icon: 'people', label: 'Usuarios', href: '/usuarios' },
   informes: { icon: 'description', label: 'Informes', href: '/informes' },
   'terapias-dia': { icon: 'pending_actions', label: 'Terapias del día', href: '/terapias-dia' },
   objetivos: { icon: 'flag', label: 'Objetivos terapéuticos', href: '/objetivos' },
