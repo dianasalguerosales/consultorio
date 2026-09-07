@@ -8,6 +8,8 @@ use App\Models\Paciente;
 use App\Models\Expediente;
 use App\Models\Cita;
 use App\Models\Encargado;
+use App\Models\Genero;
+use App\Models\Escolaridad;
 
 class PacientesController extends Controller
 {
@@ -15,7 +17,9 @@ class PacientesController extends Controller
     {
         $pacientes = Paciente::with([
             'expediente',
-            'encargados',
+            'encargado',
+            'genero',
+            'escolaridad',
             'citas.servicio',
             'citas.programa',
             'citas.estadoCita',
@@ -26,7 +30,9 @@ class PacientesController extends Controller
 
         return Inertia::render('Pacientes', [
             'pacientes' => $pacientes,
-            'encargados' => $encargados,
+            'encargados' => Encargado::all(),
+            'generos' => Genero::orderBy('nombre')->get(),
+            'escolaridades' => Escolaridad::orderBy('nombre')->get(),
         ]);
     }
 
@@ -63,21 +69,15 @@ class PacientesController extends Controller
         $validated = $request->validate([
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'fecha_nacimiento' => 'nullable|date',
-            'telefono' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:255',
-            'genero' => 'nullable|string|max:20',
+            'escolaridad_id' => 'nullable|exists:escolaridades,id',
+            'genero_id' => 'nullable|exists:generos,id',
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 
-        $paciente = Paciente::create($validated);
+        Paciente::create($validated);
 
-        if ($request->filled('encargado_id')) {
-            $paciente->encargados()->attach($request->encargado_id);
-        }
-
-        return redirect()->route('pacientes')
-                         ->with('success', 'Paciente creado correctamente');
+        return redirect()->route('pacientes.index')
+            ->with('success', 'Paciente creado correctamente');
     }
 
     public function update(Request $request, Paciente $paciente)
@@ -85,28 +85,22 @@ class PacientesController extends Controller
         $validated = $request->validate([
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'fecha_nacimiento' => 'nullable|date',
-            'telefono' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:255',
-            'genero' => 'nullable|string|max:20',
+            'escolaridad_id' => 'nullable|exists:escolaridades,id',
+            'genero_id' => 'nullable|exists:generos,id',
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 
         $paciente->update($validated);
 
-        if ($request->filled('encargado_id')) {
-            $paciente->encargados()->sync([$request->encargado_id]);
-        }
-
-        return redirect()->route('pacientes')
-                         ->with('success', 'Paciente actualizado correctamente');
+        return redirect()->route('pacientes.index')
+            ->with('success', 'Paciente actualizado correctamente');
     }
 
     public function destroy(Paciente $paciente)
     {
         $paciente->delete();
 
-        return redirect()->route('pacientes')
-                         ->with('success', 'Paciente eliminado correctamente');
+        return redirect()->route('pacientes.index')
+            ->with('success', 'Paciente actualizado correctamente');
     }
 }

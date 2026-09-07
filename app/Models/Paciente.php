@@ -24,12 +24,6 @@ class Paciente extends Model
                     ->withTimestamps();
     }
 
-    public function encargados()
-    {
-        return $this->belongsToMany(Encargado::class, 'encargado_paciente')
-                    ->withTimestamps();
-    }
-
     public function expediente()
     {
         return $this->hasOne(Expediente::class);

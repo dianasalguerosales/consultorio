@@ -1,8 +1,16 @@
 <script setup>
+import { EscClose } from '@/Components/EscClose'
+
 defineProps({
   paciente: Object,
 })
-defineEmits(['close'])
+
+const emit = defineEmits(['close', 'save'])
+
+EscClose(() => {
+  emit('close')
+})
+
 </script>
 
 <template>

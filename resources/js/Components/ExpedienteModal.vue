@@ -4,6 +4,7 @@ import DatosGenerales from './tabs/DatosGenerales.vue'
 import HistoriaClinica from './tabs/HistoriaClinica.vue'
 import AtencionTerapeutica from './tabs/AtencionTerapeutica.vue'
 import Evaluaciones from './tabs/Evaluaciones.vue'
+import { EscClose } from '@/Components/EscClose'
 
 const props = defineProps({
   expediente: {
@@ -11,7 +12,12 @@ const props = defineProps({
     required: true
   }
 })
-defineEmits(['close'])
+
+const emit = defineEmits(['close', 'save'])
+
+EscClose(() => {
+  emit('close')
+})
 
 const edad = computed(() => {
   const nacimiento = props.expediente?.fecha_nacimiento
