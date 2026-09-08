@@ -28,7 +28,7 @@ class EscolaridadSeeder extends Seeder
         foreach ($escolaridades as $nombre) {
             Escolaridad::updateOrCreate(
                 ['nombre' => $nombre],
-                ['activo' => 1]
+                ['nombre' => $nombre]
             );
         }
     }

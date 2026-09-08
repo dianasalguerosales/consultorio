@@ -4,6 +4,7 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\IndicadoresController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PersonasController;
+use App\Http\Controllers\ParametroController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\NotificationController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\AnamnesisController;
 use App\Http\Controllers\ServicioController;
 use App\Http\Controllers\EspecialidadController;
+use App\Http\Controllers\EscolaridadController;
 use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\GeneroController;
 
@@ -82,7 +84,7 @@ Route::middleware('auth')->group(function () {
 
         // Personas: administrador y coordinador
         Route::middleware(['role:administrador|coordinador'])->group(function () {
-            Route::get('/personas', [PersonasController::class, 'index'])->name('personas.index');    
+            Route::get('/personas', [PersonasController::class, 'index'])->name('personas.index');
             // Administrativos
             Route::get('/personas/administrativos', [PersonasController::class, 'administrativos'])->name('personas.administrativos');
             Route::get('/personas/administrativos/create', [PersonasController::class, 'createAdministrativo'])->name('personas.administrativos.create');
@@ -123,15 +125,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/programas', [ProgramaController::class, 'index'])->name('programas.index');
 
 
-        Route::get('/servicios', [ServicioController::class, 'index'])->name('servicios.index');
-        Route::post('/servicios', [ServicioController::class, 'store'])->name('servicios.store');
-        Route::put('/servicios/{servicio}', [ServicioController::class, 'update'])->name('servicios.update');
-        Route::delete('/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('servicios.destroy');
 
         Route::get('/especialidades', [EspecialidadController::class, 'index'])->name('especialidades.index');
         Route::post('/especialidades', [EspecialidadController::class, 'store'])->name('especialidades.store');
         Route::put('/especialidades/{especialidad}', [EspecialidadController::class, 'update'])->name('especialidades.update');
         Route::delete('/especialidades/{especialidad}', [EspecialidadController::class, 'destroy'])->name('especialidades.destroy');
+
+        Route::get('/parametros', [ParametroController::class, 'index'])->name('parametros.index');
+
+        Route::resource('servicios', ServicioController::class)->only(['index','store','update','destroy']);
+        Route::resource('especialidades', EspecialidadController::class)->only(['store','update','destroy']);
+        Route::resource('escolaridades', EscolaridadController::class)->only(['store','update','destroy']);
 
     });
 });

@@ -2,51 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Models\Servicio;
+use Illuminate\Http\Request;
 
 class ServicioController extends Controller
 {
-    public function index()
-    {
-        $servicios = Servicio::orderBy('nombre')->paginate(10);
-        return Inertia::render('Parametros/Servicios', [
-            'servicios' => $servicios
-        ]);
-    }
-
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'activo' => 'nullable|boolean',
+            'nombre' => 'required|string|unique:servicios,nombre',
+            'descripcion' => 'nullable|string',
+            'activo' => 'boolean'
         ]);
 
-        Servicio::create($request->only('nombre', 'activo'));
-
-        return redirect()->route('parametros.servicios')
-                         ->with('success', 'Servicio creado correctamente');
+        Servicio::create($request->all());
+        return redirect()->back()->with('success', 'Servicio creado correctamente');
     }
 
     public function update(Request $request, Servicio $servicio)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'activo' => 'nullable|boolean',
+            'nombre' => 'required|string|unique:servicios,nombre,' . $servicio->id,
+            'descripcion' => 'nullable|string',
+            'activo' => 'boolean'
         ]);
 
-        $servicio->update($request->only('nombre', 'activo'));
-
-        return redirect()->route('parametros.servicios')
-                         ->with('success', 'Servicio actualizado correctamente');
+        $servicio->update($request->all());
+        return redirect()->back()->with('success', 'Servicio actualizado correctamente');
     }
 
     public function destroy(Servicio $servicio)
     {
         $servicio->delete();
-
-        return redirect()->route('parametros.servicios')
-                         ->with('success', 'Servicio eliminado correctamente');
+        return redirect()->back()->with('success', 'Servicio eliminado correctamente');
     }
 }

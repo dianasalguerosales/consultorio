@@ -8,12 +8,14 @@ const props = defineProps({
   encargado: { type: Object, required: true },
   generos: { type: Array, default: () => [] },
   estadosCiviles: { type: Array, default: () => [] },
-  relacionesPaciente: { type: Array, default: () => [] }
+  relacionesPaciente: { type: Array, default: () => [] },
+  usuariosDisponibles: { type: Array, default: () => [] }
 })
 
 const form = useForm({
   nombres: props.encargado?.nombres || '',
   apellidos: props.encargado?.apellidos || '',
+  user_id: props.administrativo?.user_id || '',
   fecha_nacimiento: props.encargado?.fecha_nacimiento || '',
   dpi: props.encargado?.dpi || '',
   telefono: props.encargado?.telefono || '',
@@ -53,6 +55,17 @@ function submit() {
         <label class="block text-sm font-medium">Apellidos</label>
         <input v-model="form.apellidos" type="text"
           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Usuario del sistema</label>
+        <select v-model="form.user_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm 
+           focus:ring-[#53C6D3] focus:border-[#53C6D3]">
+          <option value="">Seleccione...</option>
+          <option v-for="u in usuariosDisponibles" :key="u.id" :value="u.id">
+            {{ u.email }}
+          </option>
+        </select>
       </div>
 
       <!-- Fecha nacimiento -->
@@ -130,11 +143,8 @@ function submit() {
 
     <!-- Footer fijo -->
     <template #footer>
-      <button
-        type="submit"
-        class="px-6 py-2 bg-[#53C6D3] text-white rounded-md hover:bg-[#2D2B5B] transition"
-        @click="submit"
-      >
+      <button type="submit" class="px-6 py-2 bg-[#53C6D3] text-white rounded-md hover:bg-[#2D2B5B] transition"
+        @click="submit">
         Guardar cambios
       </button>
     </template>

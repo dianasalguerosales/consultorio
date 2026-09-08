@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             EstadoExpedienteSeeder::class,
             EspecialidadSeeder::class,
             ModalidadesSeeder::class,
+            EstadoSesionSeeder::class,
 
             // 2. Usuarios y roles
             UsersSeeder::class,

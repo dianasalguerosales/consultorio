@@ -8,7 +8,8 @@ defineProps({
   administrativos: Array,
   cargos: Array,
   especialidades: Array,
-  generos: Array
+  generos: Array,
+  usuariosDisponibles: Array
 })
 
 const showVerModal = ref(false)
@@ -125,6 +126,7 @@ function closeEditarModal() {
       :cargos="cargos"
       :especialidades="especialidades"
       :generos="generos"
+      :usuariosDisponibles="usuariosDisponibles"
       @close="closeEditarModal"
     />
   </div>

@@ -8,7 +8,8 @@ defineProps({
   encargados: Array,
   generos: Array,
   estadosCiviles: Array,
-  relacionesPaciente: Array
+  relacionesPaciente: Array,
+  usuariosDisponibles: Array
 })
 
 const showViewModal = ref(false)
@@ -115,7 +116,12 @@ function closeEditModal() {
     <EncargadoModalVer v-if="showViewModal" :encargado="selectedEncargado" @close="closeViewModal" />
 
     <!-- Modal de edición -->
-    <EncargadoModalEditar v-if="showEditModal" :encargado="selectedEncargado" :generos="generos"
-      :estadosCiviles="estadosCiviles" :relacionesPaciente="relacionesPaciente" @close="closeEditModal" />
+    <EncargadoModalEditar v-if="showEditModal" 
+    :encargado="selectedEncargado" 
+    :generos="generos"
+    :estadosCiviles="estadosCiviles" 
+    :relacionesPaciente="relacionesPaciente"
+    :usuariosDisponibles="usuariosDisponibles" 
+  @close="closeEditModal" />
   </div>
 </template>
