@@ -53,7 +53,7 @@ const capitalize = (str) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : 
         <div class="col-span-1 bg-white shadow rounded-lg p-6 flex flex-col items-center justify-center">
           <img :src="user.avatar || avatarUrl"
                :alt="`Avatar de ${nombreMostrado}`"
-               class="w-32 h-32 rounded-full object-cover" />
+               class="w-34 h-34 rounded-full object-cover" />
           <span class="mt-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
             {{ etiquetaRol }}
           </span>

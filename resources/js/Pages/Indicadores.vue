@@ -9,17 +9,9 @@ const props = defineProps({
   resumen: { type: Object, default: () => ({}) },
 })
 
-/* ---------- Colores ----------
-   Los nodos son de dos tipos y eso sí es identidad, así que van dos hues
-   categóricos: el azul de marca y el naranja caine bajado a la banda de
-   luminosidad. Validados en todos los pares: ΔE 27.4 bajo protanopia y
-   contraste ≥ 3:1 sobre la superficie.                                       */
-
 const COLOR = {
   diagnostico: '#48468a',
   area: '#c17924',
-  // Las aristas son el dato aquí, no decoración de fondo: van a un gris que
-  // deja distinguir los grosores entre sí.
   arista: '#aab4c2',
   aristaActiva: '#48468a',
   texto: '#374151',
