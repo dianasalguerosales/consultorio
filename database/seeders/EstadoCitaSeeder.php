@@ -9,14 +9,17 @@ class EstadoCitaSeeder extends Seeder
 {
     public function run(): void
     {
-        // La agenda distingue estos cinco estados en su leyenda y en el
-        // resumen del día.
+        // La agenda los usa en su leyenda y en el resumen del día. 'Atendida'
+        // la pone SesionController y 'Vencida' el comando citas:marcar-vencidas;
+        // ninguna de las dos se elige a mano.
         $estados = [
             'Pendiente',
             'Programada',
             'Confirmada',
             'Reprogramada',
             'Cancelada',
+            'Atendida',
+            'Vencida',
         ];
 
         foreach ($estados as $nombre) {

@@ -189,7 +189,10 @@ function eliminar() {
             <select v-model="form.estado_cita_id" required
               class="w-full rounded-md border-gray-300 focus:border-caine-azul focus:ring-caine-azul">
               <option value="">Seleccione…</option>
-              <option v-for="e in catalogos?.estados ?? []" :key="e.id" :value="e.id">
+              <!-- Las del sistema se muestran para que la cita que ya esté así
+                   no aparezca en blanco, pero no se pueden asignar a mano. -->
+              <option v-for="e in catalogos?.estados ?? []" :key="e.id" :value="e.id"
+                :disabled="e.delSistema && e.id !== cita?.extendedProps?.estadoId">
                 {{ e.nombre }}
               </option>
             </select>

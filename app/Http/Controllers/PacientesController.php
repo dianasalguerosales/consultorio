@@ -17,6 +17,15 @@ class PacientesController extends Controller
     {
         $pacientes = Paciente::with([
             'expediente',
+            // El modal de Expediente se abre también desde aquí, así que necesita las
+            // mismas relaciones que carga ExpedienteController::index.
+            'expediente.estado',
+            'expediente.modalidad',
+            'expediente.anamnesis.items.criterio',
+            'expediente.diagnosticos',
+            'expediente.servicios',
+            'expediente.evaluaciones',
+            'expediente.paciente.escolaridad',
             'encargado',
             'genero',
             'escolaridad',
@@ -29,6 +38,7 @@ class PacientesController extends Controller
             'citas.sesion',
             'citas.atendidoPor',
         ])->orderBy('apellidos')->get();
+
 
         $encargados = Encargado::all();
 

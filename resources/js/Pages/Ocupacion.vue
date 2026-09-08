@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Head, router, Link } from '@inertiajs/vue3'
 import { Chart, Tooltip, CategoryScale } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
+import { RAMPA, SUPERFICIE, cortesDe, pasoEn } from '@/Utils/paleta'
 
 Chart.register(MatrixController, MatrixElement, Tooltip, CategoryScale)
 
@@ -12,21 +13,7 @@ const props = defineProps({
   personal: { type: Array, default: () => [] },
 })
 
-/* ---------- Escala secuencial ----------
-   Un solo hue derivado del azul de marca (#2D2B5B), escalonado en OKLCH y
-   validado: luminosidad monótona, saltos >= 0.06 y el paso más claro a 2.06:1
-   contra la superficie. El color codifica magnitud, no identidad, así que es
-   secuencial de un hue y nunca una paleta categórica.                        */
-
-const RAMPA = [
-  { fondo: '#acaee6', texto: '#1f2937' },
-  { fondo: '#8788d2', texto: '#1f2937' },
-  { fondo: '#6665b4', texto: '#ffffff' },
-  { fondo: '#48468a', texto: '#ffffff' },
-  { fondo: '#2d2b5a', texto: '#ffffff' },
-]
-
-const VACIO = { fondo: '#fbfbfa', borde: '#ececea', texto: '#b6b6b0' }
+/* ---------- Escala secuencial ---------- */
 
 // El máximo real de la semana define los cortes, así la escala usa todo su
 // rango en vez de desperdiciar pasos.
@@ -35,40 +22,19 @@ const maximo = computed(() => {
   return Math.max(1, ...valores)
 })
 
-// Bins repartidos sobre [1, máximo]: tantos como pasos haya, o menos si el
-// máximo es chico. Reparte por posición y no por ancho fijo, así ningún bin
-// queda vacío ni se pasa del máximo (con máximo 6 da 1 · 2 · 3 · 4 · 5-6, no
-// 1-2 · 3-4 · 5-6 · 7-8 · 9-6).
-const cortes = computed(() => {
-  const max = maximo.value
-  const pasos = Math.min(RAMPA.length, max)
+const cortes = computed(() => cortesDe(maximo.value))
 
-  return Array.from({ length: pasos }, (_, i) => ({
-    min: Math.floor((i * max) / pasos) + 1,
-    max: Math.floor(((i + 1) * max) / pasos),
-  }))
-})
-
-function nivelDe(citas) {
-  if (!citas) return -1
-  return cortes.value.findIndex((c) => citas >= c.min && citas <= c.max)
-}
-
-const pasoDe = (citas) => {
-  const nivel = nivelDe(citas)
-  return nivel < 0 ? null : RAMPA[Math.min(nivel, RAMPA.length - 1)]
-}
+// Envoltorio para no repetir los cortes en los cinco puntos que lo usan.
+const pasoDe = (citas) => pasoEn(citas, cortes.value)
 
 function estiloCelda(citas) {
   const paso = pasoDe(citas)
 
-  // Sin citas: la superficie con un filete, no el paso más claro del hue. Así
-  // "libre" no se confunde con "poca carga".
   if (!paso) {
     return {
-      backgroundColor: VACIO.fondo,
-      color: VACIO.texto,
-      boxShadow: `inset 0 0 0 1px ${VACIO.borde}`,
+      backgroundColor: SUPERFICIE.fondo,
+      color: SUPERFICIE.texto,
+      boxShadow: `inset 0 0 0 1px ${SUPERFICIE.borde}`,
     }
   }
 
@@ -220,11 +186,11 @@ function opcionesGrafica() {
 
         backgroundColor: (ctx) => {
           const paso = pasoDe(ctx.raw?.v)
-          return paso ? paso.fondo : VACIO.fondo
+          return paso ? paso.fondo : SUPERFICIE.fondo
         },
         // Sin citas la celda lleva un filete; con citas, ninguno: la separación
         // la hace el hueco entre celdas, no un borde dibujado sobre la marca.
-        borderColor: (ctx) => (ctx.raw?.v ? 'transparent' : VACIO.borde),
+        borderColor: (ctx) => (ctx.raw?.v ? 'transparent' : SUPERFICIE.borde),
         borderWidth: (ctx) => (ctx.raw?.v ? 0 : 1),
         borderRadius: 6,
 
@@ -234,9 +200,10 @@ function opcionesGrafica() {
 
         hoverBackgroundColor: (ctx) => {
           const paso = pasoDe(ctx.raw?.v)
-          return paso ? paso.fondo : VACIO.fondo
+          return paso ? paso.fondo : SUPERFICIE.fondo
         },
-        hoverBorderColor: '#2d2b5a',
+        // El paso más oscuro de la rampa: contrasta contra cualquier celda.
+        hoverBorderColor: RAMPA[RAMPA.length - 1].fondo,
         hoverBorderWidth: 2,
       }],
     },
@@ -413,7 +380,7 @@ const masLargas = computed(() => {
             <span class="text-xs text-gray-400">menos</span>
             <div class="flex gap-[2px]">
               <span class="w-5 h-4 rounded-sm"
-                :style="{ backgroundColor: VACIO.fondo, boxShadow: `inset 0 0 0 1px ${VACIO.borde}` }"
+                :style="{ backgroundColor: SUPERFICIE.fondo, boxShadow: `inset 0 0 0 1px ${SUPERFICIE.borde}` }"
                 title="sin citas"></span>
               <span v-for="(corte, i) in cortes" :key="i" class="w-5 h-4 rounded-sm"
                 :style="{ backgroundColor: RAMPA[Math.min(i, RAMPA.length - 1)].fondo }"

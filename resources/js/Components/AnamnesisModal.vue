@@ -1,6 +1,14 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { EscClose } from '@/Utils/EscClose'
+import {
+  NIVELES,
+  OBSERVACION,
+  VALORES,
+  contarObservacion,
+  esDeficiente,
+  nivelDe,
+} from '@/Utils/anamnesis'
 
 const props = defineProps({
   expediente: { type: Object, required: true },
@@ -10,17 +18,8 @@ const emit = defineEmits(['close'])
 
 EscClose(() => emit('close'))
 
-/* ---------- Escala ----------
-   3 = Adecuado · 2 = En desarrollo · 1 = Observación (el punto deficiente).
-   Ojo con la dirección: el número más bajo es el peor.                       */
-
-const NIVELES = {
-  1: { etiqueta: 'Observación', clase: 'bg-caine-naranja/15 text-[#7a4e15]', punto: '#c17924' },
-  2: { etiqueta: 'En desarrollo', clase: 'bg-gray-100 text-gray-600', punto: '#c9b79a' },
-  3: { etiqueta: 'Adecuado', clase: 'bg-caine-verde/15 text-[#2f5b28]', punto: '#74be69' },
-}
-
-const nivelDe = (respuesta) => NIVELES[respuesta] ?? NIVELES[3]
+// La escala vive en @/Utils/anamnesis, compartida con Historia Clínica e
+// /indicadores.
 
 const items = computed(() => props.expediente?.anamnesis?.items ?? [])
 
@@ -35,7 +34,7 @@ const soloDeficientes = ref(false)
 
 const itemsVisibles = computed(() =>
   soloDeficientes.value
-    ? items.value.filter((i) => Number(i.respuesta) <= 2)
+    ? items.value.filter(esDeficiente)
     : items.value
 )
 
@@ -61,7 +60,7 @@ const modulos = computed(() => {
       nombre: area,
       items: [...lista].sort((a, b) => (a.criterio?.numero ?? 0) - (b.criterio?.numero ?? 0)),
       // Cuántos de esta área requieren atención.
-      deficientes: lista.filter((i) => Number(i.respuesta) === 1).length,
+      deficientes: contarObservacion(lista),
     })),
   }))
 })
@@ -69,8 +68,11 @@ const modulos = computed(() => {
 /* ---------- Conteos ---------- */
 
 const conteo = computed(() => {
-  const c = { 1: 0, 2: 0, 3: 0 }
-  for (const item of items.value) c[Number(item.respuesta)] = (c[Number(item.respuesta)] ?? 0) + 1
+  const c = Object.fromEntries(VALORES.map((valor) => [valor, 0]))
+  for (const item of items.value) {
+    const valor = nivelDe(item.respuesta).valor
+    c[valor] = (c[valor] ?? 0) + 1
+  }
   return c
 })
 
@@ -157,7 +159,7 @@ function imprimir() {
           <!-- Resumen y filtro -->
           <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span v-for="valor in [1, 2, 3]" :key="valor"
+              <span v-for="valor in VALORES" :key="valor"
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium"
                 :class="nivelDe(valor).clase">
                 <span class="inline-block w-2 h-2 rounded-full"
@@ -190,7 +192,8 @@ function imprimir() {
                 <h5 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   {{ area.nombre }}
                 </h5>
-                <span v-if="area.deficientes" class="text-xs text-[#7a4e15] shrink-0">
+                <span v-if="area.deficientes" class="text-xs shrink-0"
+                  :style="{ color: NIVELES[OBSERVACION].texto }">
                   {{ area.deficientes }} en observación
                 </span>
               </div>

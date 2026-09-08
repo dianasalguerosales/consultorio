@@ -8,6 +8,9 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
         './resources/js/**/*.vue',
+        // Los módulos de Utils/ también declaran clases. Sin este glob no se
+        // generan y se pierden en silencio, sin error de build.
+        './resources/js/**/*.js',
     ],
 
     theme: {

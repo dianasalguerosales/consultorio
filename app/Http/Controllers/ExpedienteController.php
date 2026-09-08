@@ -22,12 +22,12 @@ class ExpedienteController extends Controller
             'estado',
             'modalidad',
             'anamnesis',
-            // El modal de anamnesis muestra cada criterio con su respuesta, así
-            // que hacen falta los items y su criterio, no solo la cabecera.
             'anamnesis.items.criterio',
             'diagnosticos',
             'servicios',
-            'evaluaciones'
+            'evaluaciones',
+            'paciente.genero',
+            'paciente.escolaridad'
         ]);
 
         if ($request->filled('estado_expediente_id')) {

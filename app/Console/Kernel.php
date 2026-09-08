@@ -12,12 +12,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // De madrugada, para que la agenda abra con los estados al día.
+        $schedule->command('citas:marcar-vencidas')->dailyAt('01:00');
     }
 
-    /**
-     * Register the commands for the application.
-     */
     protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');

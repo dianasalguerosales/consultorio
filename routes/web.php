@@ -15,6 +15,8 @@ use App\Http\Controllers\EspecialidadController;
 use App\Http\Controllers\EscolaridadController;
 use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\GeneroController;
+use App\Http\Controllers\SesionController;
+use App\Http\Controllers\SubalternosController;
 
 use App\Models\Servicio;
 use Illuminate\Support\Facades\Route;
@@ -60,6 +62,11 @@ Route::middleware('auth')->group(function () {
             Route::put('/agenda/{cita}', [AgendaController::class, 'update'])->name('agenda.update');
             Route::delete('/agenda/{cita}', [AgendaController::class, 'destroy'])->name('agenda.destroy');
         });
+
+        // El controlador verifica además que sea quien atiende la cita.
+        Route::post('/agenda/{cita}/sesion', [SesionController::class, 'store'])
+            ->middleware('role:terapeuta')
+            ->name('agenda.sesion.store');
     });
 
     // Pacientes: terapeuta y coordinador
@@ -93,6 +100,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/personas/administrativos/{id}/edit', [PersonasController::class, 'editAdministrativo'])->name('personas.administrativos.edit');
             Route::put('/personas/administrativos/{id}', [PersonasController::class, 'updateAdministrativo'])->name('personas.administrativos.update');
             Route::delete('/personas/administrativos/{id}', [PersonasController::class, 'destroyAdministrativo'])->name('personas.administrativos.destroy');
+
+            // Organigrama: los subalternos salen del cargo, no de una tabla.
+            Route::get('/personas/administrativo/{administrativo}/subalternos', [SubalternosController::class, 'show'])->name('personas.subalternos');
 
             // Terapeutas
             Route::get('/personas/terapeutas', [PersonasController::class, 'terapeutas'])->name('personas.terapeutas');

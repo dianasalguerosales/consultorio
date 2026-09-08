@@ -21,7 +21,7 @@ use Inertia\Inertia;
 
 class AgendaController extends Controller
 {
-    /**
+    /*
      * Tipos que pueden atender una cita. Se valida contra esta lista en vez de
      * aceptar cualquier clase que llegue del formulario.
      */
@@ -46,6 +46,7 @@ class AgendaController extends Controller
                 'servicio',
                 'modalidad',
                 'tipoCita',
+                'sesion',
             ]),
             $user
         )
@@ -70,6 +71,7 @@ class AgendaController extends Controller
                 // de "Atiende" le queda fijo.
                 'soloParaSiMismo' => $this->soloAgendaParaSiMismo($user),
                 'yoAtiendo' => $this->comoAtiende($user),
+                'atender' => $user->hasRole('terapeuta'),
             ],
 
             // Catálogos solo para quien realmente puede crear citas.
@@ -94,6 +96,8 @@ class AgendaController extends Controller
 
     public function update(Request $request, Cita $cita)
     {
+        $this->verificarPuedeGestionar($request->user(), $cita);
+
         $datos = $this->validar($request);
 
         $this->verificarSolapamiento($datos, $cita->id);
@@ -105,15 +109,16 @@ class AgendaController extends Controller
             ->with('success', 'Cita actualizada.');
     }
 
-    public function destroy(Cita $cita)
+    public function destroy(Request $request, Cita $cita)
     {
+        $this->verificarPuedeGestionar($request->user(), $cita);
+
         $cita->delete();
 
         return redirect()
             ->route('agenda.index')
             ->with('success', 'Cita eliminada.');
     }
-
     /**
      * Ocupación semanal del personal que atiende: cuántas citas tiene cada
      * terapeuta o auxiliar en cada día de la semana, más una comparación de
@@ -271,15 +276,24 @@ class AgendaController extends Controller
 
     /**
      * Limita las citas visibles según el rol:
-     * - administrador, coordinador y auxiliar ven todas
-     * - la terapeuta ve solo las que atiende
-     * - el encargado ve solo las de sus pacientes
+     * - Administrador, coordinador 
+     * - El auxiliar ve solo las que el atiende
+     * - La terapeuta ve solo las que atiende
+     * - El encargado ve solo las de sus pacientes
      * Cualquier otro rol no ve nada, en vez de verlo todo por omisión.
      */
     private function conAlcanceDe(Builder $query, User $user): Builder
     {
-        if ($user->hasAnyRole(['administrador', 'coordinador', 'auxiliar'])) {
+        if ($user->hasAnyRole(['administrador', 'coordinador'])) {
             return $query;
+        }
+
+        // Va después del bloque de arriba a propósito: si además fuera
+        // coordinador, gana el alcance amplio.
+        if ($user->hasRole('auxiliar')) {
+            return $user->administrativo
+                ? $query->atendidasPor($user->administrativo)
+                : $query->whereRaw('1 = 0');
         }
 
         if ($user->hasRole('terapeuta')) {
@@ -311,6 +325,26 @@ class AgendaController extends Controller
     {
         return $user->hasRole('auxiliar')
             && ! $user->hasAnyRole(['administrador', 'coordinador']);
+    }
+
+    // El auxiliar gestiona solo las citas que él atiende. validar() revisa a
+    // quién se le agenda; esto, que la cita que toca sea suya — sin ello podía
+    // editar o borrar una ajena mandando su id.
+    private function verificarPuedeGestionar(User $user, Cita $cita): void
+    {
+        if (! $this->soloAgendaParaSiMismo($user)) {
+            return;
+        }
+
+        $propio = $this->comoAtiende($user);
+
+        abort_unless(
+            $propio
+                && $cita->atendido_por_type === self::TIPOS_ATIENDEN[$propio['tipo']]
+                && (int) $cita->atendido_por_id === $propio['id'],
+            403,
+            'Solo puede modificar las citas que usted mismo atiende.'
+        );
     }
 
     /**
@@ -455,6 +489,14 @@ class AgendaController extends Controller
                 'precio' => $cita->precio_aplicado,
                 'horaInicio' => substr($cita->hora_inicio, 0, 5),
                 'horaFin' => $cita->hora_fin ? substr($cita->hora_fin, 0, 5) : null,
+
+                // null = aún sin atender. Sirve para abrir el modal con lo escrito.
+                'sesion' => $cita->sesion ? [
+                    'evolucion' => $cita->sesion->evolucion,
+                    'observacionesClinicas' => $cita->sesion->observaciones_clinicas,
+                    'observacionesGenerales' => $cita->sesion->observaciones_generales,
+                    'duracionMinutos' => $cita->sesion->duracion_minutos,
+                ] : null,
             ],
         ];
     }
@@ -514,7 +556,17 @@ class AgendaController extends Controller
             // el par (tipo, id) para armar la relación polimórfica.
             'atienden' => $atienden->values(),
 
-            'estados' => EstadoCita::where('activo', 1)->orderBy('id')->get(['id', 'nombre']),
+            // Se marcan las que pone el sistema para que el formulario las
+            // muestre deshabilitadas. Sacarlas dejaría el selector en blanco al
+            // editar una cita que ya esté en uno de esos estados.
+            'estados' => EstadoCita::where('activo', 1)
+                ->orderBy('id')
+                ->get(['id', 'nombre'])
+                ->map(fn(EstadoCita $estado) => [
+                    'id' => $estado->id,
+                    'nombre' => $estado->nombre,
+                    'delSistema' => in_array($estado->nombre, ['Atendida', 'Vencida'], true),
+                ]),
             'modalidades' => Modalidad::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre']),
             'tiposCita' => TipoCita::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre']),
             'servicios' => Servicio::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre']),

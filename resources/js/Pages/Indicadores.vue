@@ -2,6 +2,8 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import cytoscape from 'cytoscape'
+import { NIVELES, OBSERVACION, EN_DESARROLLO, nivelDe } from '@/Utils/anamnesis'
+import { CATEGORICO, NEUTRO, SUPERFICIE } from '@/Utils/paleta'
 
 const props = defineProps({
   grafo: { type: Object, default: () => ({ nodos: [], aristas: [] }) },
@@ -9,13 +11,15 @@ const props = defineProps({
   resumen: { type: Object, default: () => ({}) },
 })
 
+// El área usa el naranja de Observación: mismo significado que en la anamnesis,
+// por eso se toma de ahí.
 const COLOR = {
-  diagnostico: '#48468a',
-  area: '#c17924',
-  arista: '#aab4c2',
-  aristaActiva: '#48468a',
-  texto: '#374151',
-  textoSuave: '#6b7280',
+  diagnostico: CATEGORICO.azul,
+  area: NIVELES[OBSERVACION].punto,
+  arista: NEUTRO.linea,
+  aristaActiva: CATEGORICO.azul,
+  texto: NEUTRO.texto,
+  textoSuave: NEUTRO.textoSuave,
 }
 
 /* ---------- Filtro de nivel ---------- */
@@ -343,8 +347,8 @@ const filas = computed(() =>
 
 const etiquetaNivel = computed(() =>
   props.nivel === 'ambos'
-    ? 'Observación y En desarrollo'
-    : 'solo Observación'
+    ? `${NIVELES[OBSERVACION].etiqueta} y ${NIVELES[EN_DESARROLLO].etiqueta}`
+    : `solo ${NIVELES[OBSERVACION].etiqueta}`
 )
 </script>
 
@@ -360,12 +364,12 @@ const etiquetaNivel = computed(() =>
         <button type="button" @click="cambiarNivel('observacion')"
           :class="nivel === 'observacion' ? 'bg-caine-azul text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
           class="px-4 py-2 transition">
-          Solo Observación
+          Solo {{ NIVELES[OBSERVACION].etiqueta }}
         </button>
         <button type="button" @click="cambiarNivel('ambos')"
           :class="nivel === 'ambos' ? 'bg-caine-azul text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
           class="px-4 py-2 border-l border-gray-200 transition">
-          Incluir En desarrollo
+          Incluir {{ NIVELES[EN_DESARROLLO].etiqueta }}
         </button>
       </div>
 
@@ -426,7 +430,7 @@ const etiquetaNivel = computed(() =>
         <div v-show="vista === 'grafo'">
           <div class="relative">
             <div ref="contenedor" class="w-full rounded-md border border-gray-100"
-              :style="{ height: altoLienzo + 'px', background: '#fcfcfb' }"></div>
+              :style="{ height: altoLienzo + 'px', background: SUPERFICIE.fondo }"></div>
 
             <button type="button" @click="reencuadrar"
               class="absolute top-3 right-3 px-2.5 py-1.5 rounded-md bg-white/90 border border-gray-200
@@ -546,10 +550,10 @@ const etiquetaNivel = computed(() =>
                 <li v-for="p in criterio.pacientes" :key="p.nombre + p.respuesta"
                   class="text-xs text-gray-500 flex items-center gap-1.5">
                   <span class="inline-block w-1.5 h-1.5 rounded-full"
-                    :style="{ backgroundColor: p.respuesta === 1 ? '#c17924' : '#d6b48a' }"></span>
+                    :style="{ backgroundColor: nivelDe(p.respuesta).punto }"></span>
                   {{ p.nombre }}
                   <span class="text-gray-400">
-                    ({{ p.respuesta === 1 ? 'Observación' : 'En desarrollo' }})
+                    ({{ nivelDe(p.respuesta).etiqueta }})
                   </span>
                 </li>
               </ul>

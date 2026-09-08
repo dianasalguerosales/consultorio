@@ -1,6 +1,13 @@
 <script setup>
 import { computed, ref } from 'vue'
 import AnamnesisModal from '@/Components/AnamnesisModal.vue'
+import {
+  NIVELES,
+  OBSERVACION,
+  agruparPorArea,
+  contarObservacion,
+  esObservacion,
+} from '@/Utils/anamnesis'
 
 const props = defineProps({
   expediente: {
@@ -13,10 +20,13 @@ const verAnamnesis = ref(false)
 
 const items = computed(() => props.expediente?.anamnesis?.items ?? [])
 
-// Cuántos criterios quedaron en Observación (respuesta 1): es el dato que
-// resume la anamnesis sin abrirla.
-const enObservacion = computed(() =>
-  items.value.filter((i) => Number(i.respuesta) === 1).length
+// Resume la anamnesis sin abrirla.
+const enObservacion = computed(() => contarObservacion(items.value))
+
+// No hay tabla de antecedentes: son los criterios que la anamnesis dejó en
+// Observación.
+const antecedentes = computed(() =>
+  agruparPorArea(items.value.filter(esObservacion))
 )
 </script>
 
@@ -42,7 +52,7 @@ const enObservacion = computed(() =>
 
             <span class="text-sm text-gray-500">
               {{ items.length }} criterios evaluados<template v-if="enObservacion">,
-              <span class="text-[#7a4e15] font-medium">{{ enObservacion }} en observación</span>
+              <span class="font-medium" :style="{ color: NIVELES[OBSERVACION].texto }">{{ enObservacion }} en observación</span>
               </template>
             </span>
           </div>
@@ -56,8 +66,11 @@ const enObservacion = computed(() =>
         <td class="p-2 border font-semibold bg-gray-100">Antecedentes</td>
         <td class="p-2 border">
           <ul class="list-disc pl-6 text-gray-800">
-            <li v-for="item in expediente?.antecedentes || []" :key="item.id">
-              {{ item.descripcion }}
+            <li v-for="area in antecedentes" :key="area.nombre">
+              <span class="font-medium text-caine-azul">{{ area.nombre }}</span>
+              <ul class="list-[circle] pl-5">
+                <li v-for="item in area.items" :key="item.id">{{ item.criterio.descripcion }}</li>
+              </ul>
             </li>
           </ul>
         </td>

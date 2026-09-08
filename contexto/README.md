@@ -21,6 +21,7 @@ asistente — sin tener que reconstruir el razonamiento desde cero.
 | [No aplicar cambios sin autorización](no-aplicar-cambios-sin-autorizacion.md) | Regla fundamental: proponer el cambio y esperar el OK antes de editar |
 | [No modificar el esquema sin consultar](no-modificar-base-de-datos-sin-consultar.md) | Cambios de columnas o tablas requieren OK, porque la base real es MySQL; datos de prueba sí están bien |
 | [No romper lo existente](no-romper-lo-existente.md) | Buscar todos los usos **antes** de renombrar o eliminar algo, y adaptarlos en el mismo cambio |
+| [Comentarios breves y directos](comentarios-breves-y-directos.md) | Una o dos líneas que expliquen el por qué; el detalle largo va a una nota de `contexto/` |
 
 ## Convenciones técnicas
 

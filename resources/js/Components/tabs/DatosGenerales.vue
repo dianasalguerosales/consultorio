@@ -1,9 +1,17 @@
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   expediente: {
     type: Object,
     required: true
   }
+})
+const nombrePaciente = computed(() => {
+  const p = props.expediente?.paciente
+  const nombres = p?.nombres ?? props.expediente?.nombres
+  const apellidos = p?.apellidos ?? props.expediente?.apellidos
+  return [nombres, apellidos].filter(Boolean).join(' ') || 'N/D'
 })
 
 function imprimirPDF(url) {
@@ -23,36 +31,36 @@ function imprimirPDF(url) {
     <tbody>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100 w-1/5">Código Expediente</td>
-        <td class="p-2 border w-4/5">{{ expediente?.id || 'N/D' }}</td>
+        <td class="p-2 border w-4/5">{{ expediente?.codigo || 'N/D' }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Nombre</td>
-        <td class="p-2 border">{{ expediente?.paciente?.nombre || expediente?.nombre_pila }}</td>
+        <td class="p-2 border">{{ nombrePaciente }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Fecha inicio</td>
-        <td class="p-2 border">{{ expediente?.fecha_apertura || 'N/D' }}</td>
+        <td class="p-2 border">{{ expediente?.fecha_inicio || 'N/D' }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Estado</td>
-        <td class="p-2 border">{{ expediente?.estado || 'N/D' }}</td>
+        <td class="p-2 border">{{ expediente?.estado?.nombre || 'N/D' }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Modalidad</td>
-        <td class="p-2 border">{{ expediente?.modalidad || 'N/D' }}</td>
+        <td class="p-2 border">{{ expediente?.modalidad?.nombre || 'N/D' }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Escolaridad</td>
-        <td class="p-2 border">{{ expediente?.escolaridad?.grado || 'N/D' }}</td>
+        <td class="p-2 border">{{ expediente?.paciente?.escolaridad?.nombre || 'N/D' }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Observaciones del paciente</td>
-        <td class="p-2 border">{{ expediente?.observaciones_administrativas || 'Ninguna' }}</td>
+        <td class="p-2 border">{{ expediente?.observaciones || 'Ninguna' }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Consentimiento Informado</td>
         <td class="p-2 border">
-          <button @click="imprimirPDF('storage/consentimiento/Consentimiento.pdf')"
+          <button @click="imprimirPDF('/storage/consentimiento/Consentimiento.pdf')"
             class="bg-caine-azul text-white px-4 py-2 rounded-md hover:bg-caine-morado">
             Imprimir
           </button>

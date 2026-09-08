@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
 import CitaModal from '@/Components/CitaModal.vue'
+import SesionModal from '@/Components/SesionModal.vue'
 
 const props = defineProps({
   citas: { type: Array, default: () => [] },
@@ -20,10 +21,14 @@ const props = defineProps({
 // Paleta caine. El borde va más saturado que el fondo para que el texto se lea.
 const COLOR_ESTADO = {
   Confirmada: { fondo: '#E3F5E0', borde: '#74BE69', texto: '#2F5B28' },
+  // Verde más oscuro que Confirmada, para que se distingan entre sí.
+  Atendida: { fondo: '#D2EBCC', borde: '#3F7A34', texto: '#24501C' },
   Programada: { fondo: '#E1F4F7', borde: '#53C6D3', texto: '#1F5A62' },
   Pendiente: { fondo: '#FDEEDA', borde: '#F4A654', texto: '#7A4E15' },
   Reprogramada: { fondo: '#EDE7FA', borde: '#8B70CD', texto: '#3F2E66' },
   Cancelada: { fondo: '#FBE3E5', borde: '#D64550', texto: '#7A1F26' },
+  // Gris: se quedó sin desenlace, no es un error como Cancelada.
+  Vencida: { fondo: '#E8E6E1', borde: '#8A8578', texto: '#4A463D' },
 }
 
 const COLOR_POR_OMISION = { fondo: '#EEF0F4', borde: '#9CA3AF', texto: '#374151' }
@@ -140,6 +145,28 @@ const proximasCitas = computed(() =>
     .slice(0, 5)
 )
 
+/* ---------- Atender una cita ---------- */
+
+const citaAtendiendo = ref(null)
+
+// Un terapeuta no escribe las observaciones de la sesión de otro.
+const puedeAtender = (cita) => {
+  const yo = props.permisos.yoAtiendo
+
+  return Boolean(props.permisos.atender)
+    && yo?.tipo === 'terapeuta'
+    && cita.extendedProps?.atiendeTipo === 'terapeuta'
+    && Number(cita.extendedProps?.atiendeId) === Number(yo.id)
+}
+
+function atender(cita) {
+  citaAtendiendo.value = cita
+}
+
+function cerrarSesionModal() {
+  citaAtendiendo.value = null
+}
+
 const fechaCorta = (iso) => {
   const [, mes, dia] = iso.slice(0, 10).split('-')
   return `${dia}/${mes}`
@@ -238,10 +265,32 @@ const opcionesCalendario = computed(() => ({
                 <li v-for="cita in proximasCitas" :key="cita.id"
                   class="text-sm border-l-2 pl-3"
                   :style="{ borderColor: colorDe(cita.extendedProps?.estado).borde }">
-                  <p class="text-gray-500">
-                    {{ fechaCorta(cita.start) }} · {{ cita.extendedProps?.horaInicio }}
+                  <!-- Fecha y botón en la misma línea  -->
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-gray-500">
+                      {{ fechaCorta(cita.start) }} · {{ cita.extendedProps?.horaInicio }}
+                    </p>
+
+                    <button v-if="puedeAtender(cita)" type="button" @click="atender(cita)"
+                      class="inline-flex shrink-0 items-center gap-1 rounded-md border
+                             border-caine-azul px-2 py-1 text-xs font-medium text-caine-azul
+                             transition hover:bg-caine-azul hover:text-white">
+                      <span class="material-icons text-sm">edit_note</span>
+                      {{ cita.extendedProps?.sesion ? 'Ver observaciones' : 'Atender' }}
+                    </button>
+                  </div>
+
+                  <p class="text-[#2D2B5B] font-medium">
+                    {{ cita.title }}
+
+                    <!-- Atendida = ya tiene sesión registrada. -->
+                    <span v-if="cita.extendedProps?.sesion"
+                      class="ml-1 align-middle inline-flex items-center gap-0.5 rounded
+                             bg-caine-verde/15 px-1.5 py-0.5 text-xs font-medium text-[#2F5B28]">
+                      <span class="material-icons text-xs">check</span>
+                      Atendida
+                    </span>
                   </p>
-                  <p class="text-[#2D2B5B] font-medium">{{ cita.title }}</p>
                   <p class="text-gray-500">{{ cita.extendedProps?.paciente }}</p>
                   <p class="text-xs text-gray-400">{{ cita.extendedProps?.atiende }}</p>
                 </li>
@@ -255,6 +304,9 @@ const opcionesCalendario = computed(() => ({
     <CitaModal v-if="permisos.agendar" :show="modalAbierto" :catalogos="catalogos"
       :cita="citaSeleccionada" :hueco="slotSeleccionado" :permisos="permisos"
       @close="cerrarModal" />
+
+    <SesionModal v-if="citaAtendiendo" :cita="citaAtendiendo"
+      @close="cerrarSesionModal" />
   </div>
 </template>
 
