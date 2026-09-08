@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\IndicadoresController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PersonasController;
 use App\Http\Controllers\UserController;
@@ -33,6 +35,30 @@ Route::middleware('auth')->group(function () {
     Route::put('/configuracion/password', [ProfileController::class, 'updatePassword'])->name('configuracion.password.update');
 
     Route::get('/generos', [GeneroController::class, 'list'])->name('generos.list');
+
+    // Indicadores: analítica de la población de pacientes. Administrador y
+    // coordinador, igual que la ocupación de personal.
+    Route::get('/indicadores', [IndicadoresController::class, 'index'])
+        ->middleware('permission:ver indicadores')
+        ->name('indicadores.index');
+
+    // Agenda: todos los roles con 'ver agenda' entran al calendario, pero el
+    // controlador limita qué citas ve cada uno. Crear y editar exige además
+    // 'agendar citas' (administrador, coordinador y auxiliar).
+    Route::middleware(['permission:ver agenda'])->group(function () {
+        Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda.index');
+
+        // Ocupación del personal: solo administrador y coordinador.
+        Route::get('/agenda/ocupacion', [AgendaController::class, 'ocupacion'])
+            ->middleware('permission:ver ocupacion personal')
+            ->name('agenda.ocupacion');
+
+        Route::middleware(['permission:agendar citas'])->group(function () {
+            Route::post('/agenda', [AgendaController::class, 'store'])->name('agenda.store');
+            Route::put('/agenda/{cita}', [AgendaController::class, 'update'])->name('agenda.update');
+            Route::delete('/agenda/{cita}', [AgendaController::class, 'destroy'])->name('agenda.destroy');
+        });
+    });
 
     // Pacientes: terapeuta y coordinador
     Route::middleware(['permission:gestionar pacientes'])->group(function () {

@@ -1,5 +1,5 @@
 <script setup>
-import { EscClose } from '@/Components/EscClose'
+import { EscClose } from '@/Utils/EscClose'
 
 defineProps({
   paciente: Object,

@@ -13,7 +13,7 @@ class ProfileController extends Controller
     {
         $user = $request->user()->load([
             'terapeuta' => fn($q) => $q->withCount('pacientes'),
-            'encargado' => fn($q) => $q->withCount('pacientes'),
+            'encargado' => fn($q) => $q->withCount('pacientes')->with('genero'),
             'administrativo',
         ]);
 
@@ -42,11 +42,10 @@ class ProfileController extends Controller
                 'fecha_nacimiento' => $user->administrativo->fecha_nacimiento,
                 'telefono' => $user->administrativo->telefono,
                 'correo' => $user->administrativo->correo,
-                'direccion' => $user->administrativo->direccion,
-                'tipo' => $user->administrativo->tipo,
             ] : null,
             'encargado' => $user->encargado ? [
                 'nombre_completo' => $user->encargado->nombre_completo,
+                'genero' => $user->encargado->genero?->nombre,
                 'telefono' => $user->encargado->telefono,
                 'correo' => $user->encargado->correo,
                 'relacion' => $user->encargado->relacion,

@@ -36,9 +36,13 @@ class Encargado extends Model
                     ->withTimestamps();
     }
 
+    /**
+     * Las citas del encargado son las de sus pacientes: la tabla citas no tiene
+     * encargado_id, se llega por pacientes.encargado_id.
+     */
     public function citas()
     {
-        return $this->hasMany(Cita::class);
+        return $this->hasManyThrough(Cita::class, Paciente::class, 'encargado_id', 'paciente_id');
     }
 
     public function relacionPaciente()

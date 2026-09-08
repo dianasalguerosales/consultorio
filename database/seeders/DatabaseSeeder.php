@@ -46,6 +46,14 @@ class DatabaseSeeder extends Seeder
             Criterios1Seeder::class,
             Criterios2Seeder::class,
             Criterios3Seeder::class,
+
+            // 5. Datos de prueba. Van al final y en este orden porque cada uno
+            // se apoya en lo que dejó el anterior: primero pacientes con su
+            // expediente, luego sus citas, y al final la anamnesis con los
+            // diagnósticos que alimentan el grafo de indicadores.
+            PacientesPruebaSeeder::class,
+            CitasPruebaSeeder::class,
+            AnamnesisPruebaSeeder::class,
         ]);
     }
 }

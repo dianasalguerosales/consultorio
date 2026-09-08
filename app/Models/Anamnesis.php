@@ -10,6 +10,12 @@ class Anamnesis extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Sin esto Eloquent pluraliza "Anamnesis" como "anamneses" y toda escritura
+     * falla: la tabla real es "anamnesis".
+     */
+    protected $table = 'anamnesis';
+
     protected $fillable = [
         'observaciones',
     ];

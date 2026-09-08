@@ -17,7 +17,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $usuarios = User::with(['terapeuta', 'encargado', 'administrativo'])
+        $usuarios = User::with(['terapeuta', 'encargado.genero', 'administrativo'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($user) {
@@ -34,6 +34,7 @@ class UserController extends Controller
                 'encargado' => $user->encargado ? [
                     'id' => $user->encargado->id,
                     'nombre_completo' => $user->encargado->nombre_completo,
+                    'genero' => $user->encargado->genero?->nombre,
                 ] : null,
                 'administrativo' => $user->administrativo ? [
                     'id' => $user->administrativo->id,

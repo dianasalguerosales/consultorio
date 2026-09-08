@@ -3,6 +3,7 @@ import { Head, usePage, useForm, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import UsuarioForm from '@/Components/UsuarioForm.vue'
 import InfoModal from '@/Components/InfoModal.vue'
+import { avatarUsuario } from '@/Utils/avatares'
 
 const { props } = usePage()
 const usuarios = props.usuarios
@@ -100,20 +101,8 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
         class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
         
         <div class="mt-6">
-          <img :src="usuario.roles.includes('terapeuta')
-              ? '/images/Terapeuta.webp'
-              : usuario.roles.includes('administrador')
-                ? '/images/Admin.webp'
-                : usuario.roles.includes('coordinador')
-                  ? '/images/Coordinador.webp'
-                  : usuario.roles.includes('encargado')
-                    ? usuario.genero === 'femenino'
-                      ? '/images/Madre.webp'
-                      : usuario.genero === 'masculino'
-                        ? '/images/Padre.webp'
-                        : '/images/avatar.webp'
-                    : '/images/avatar.webp'
-            " alt="Avatar" class="h-20 w-20 rounded-full mx-auto" />
+          <img :src="avatarUsuario(usuario.roles, usuario.encargado?.genero)" alt="Avatar"
+            class="h-20 w-20 rounded-full mx-auto" />
         </div>
 
         <div class="mt-4">

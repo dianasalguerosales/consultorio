@@ -25,6 +25,13 @@ class Terapeuta extends Model
         'cursos',
     ];
 
+    /**
+     * nombre_completo viaja en el JSON para que las vistas que reciben esta
+     * relación sin pasar por un mapeo del controlador (por ejemplo
+     * cita.atendido_por) puedan mostrar el nombre directamente.
+     */
+    protected $appends = ['nombre_completo'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -38,7 +45,7 @@ class Terapeuta extends Model
 
     public function citas()
     {
-        return $this->hasMany(Cita::class);
+        return $this->morphMany(Cita::class, 'atendido_por');
     }
 
     public function especialidad()

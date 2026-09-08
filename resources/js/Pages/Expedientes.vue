@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import ExpedienteModal from '@/Components/ExpedienteModal.vue'
 import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
+import { avatarPaciente } from '@/Utils/avatares'
 
 const props = defineProps({
   expedientes: Array,
@@ -95,8 +96,8 @@ function deleteExpediente(exp) {
       <table class="w-full border border-gray-200 text-md rounded-lg">
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
-            <th class="px-4 py-2 text-left">Código</th>
             <th class="px-2 py-2 text-center w-12"></th>
+            <th class="px-4 py-2 text-left">Código</th>
             <th class="px-4 py-2 text-left">Paciente</th>
             <th class="px-4 py-2 text-left">Fecha inicio</th>
             <th class="px-4 py-2 text-left">Estado</th>
@@ -105,14 +106,11 @@ function deleteExpediente(exp) {
         </thead>
         <tbody>
           <tr v-for="exp in expedientesFiltrados" :key="exp.id" class="border-t hover:bg-[#FAF9F7] transition">
-            <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ exp.codigo }}</td>
             <td class="px-2 py-2 text-center">
-              <img :src="exp.paciente?.genero === 'femenino'
-                ? '/images/Femenino.webp'
-                : exp.paciente?.genero === 'masculino'
-                  ? '/images/Masculino.webp'
-                  : '/images/avatar.webp'" alt="avatar" class="w-8 h-8 rounded-full border inline-block" />
+              <img :src="avatarPaciente(exp.paciente?.genero)" alt="avatar"
+                class="w-8 h-8 rounded-full border inline-block" />
             </td>
+            <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ exp.codigo }}</td>
             <td class="px-4 py-2">
               {{ exp.paciente ? exp.paciente.nombres + ' ' + exp.paciente.apellidos : exp.nombres + ' ' + exp.apellidos
               }}

@@ -1,6 +1,6 @@
 <script setup>
 import { defineEmits } from 'vue'
-import { EscClose } from '@/Components/EscClose'
+import { EscClose } from '@/Utils/EscClose'
 
 const emit = defineEmits(['close', 'save'])
 

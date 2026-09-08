@@ -20,10 +20,14 @@ class PacientesController extends Controller
             'encargado',
             'genero',
             'escolaridad',
+            // El modal de Historial lista las citas en orden cronológico.
+            'citas' => fn($q) => $q->orderBy('fecha')->orderBy('hora_inicio'),
             'citas.servicio',
             'citas.programa',
             'citas.estadoCita',
-            'citas.terapeuta',
+            'citas.modalidad',
+            'citas.sesion',
+            'citas.atendidoPor',
         ])->orderBy('apellidos')->get();
 
         $encargados = Encargado::all();
@@ -52,7 +56,7 @@ class PacientesController extends Controller
 
     public function historial(Paciente $paciente)
     {
-        $citas = Cita::with(['terapeuta', 'servicio', 'programa', 'estadoCita'])
+        $citas = Cita::with(['atendidoPor', 'servicio', 'programa', 'estadoCita', 'modalidad', 'sesion'])
             ->where('paciente_id', $paciente->id)
             ->orderBy('fecha', 'desc')
             ->orderBy('hora_inicio', 'desc')

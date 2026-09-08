@@ -70,14 +70,22 @@ class Expediente extends Model
 
     public static function generarCodigoExpediente()
     {
-        $anio = date('Y');
+        $prefijo = 'KID-' . date('Y');
 
-        $ultimo = self::where('codigo', 'like', 'KID-' . $anio . '%')
-            ->orderBy('codigo', 'desc')
-            ->first();
+        // El corte se hace con el largo del prefijo, no con un 7 fijo:
+        // 'KID-2026' son 8 caracteres, y cortar en 7 dejaba dentro un dígito
+        // del año, así que cada expediente nuevo le agregaba un 6 al código
+        // (KID-2026001 -> KID-20266002 -> KID-202666003...).
+        //
+        // Se calcula el máximo en PHP en lugar de ordenar por 'codigo' desc,
+        // porque ese orden es alfabético y un código más largo se colaba como
+        // si fuera el mayor.
+        $correlativo = self::withTrashed()
+            ->where('codigo', 'like', $prefijo . '%')
+            ->pluck('codigo')
+            ->map(fn($codigo) => (int) substr($codigo, strlen($prefijo)))
+            ->max();
 
-        $correlativo = $ultimo ? intval(substr($ultimo->codigo, 7)) + 1 : 1;
-
-        return 'KID-' . $anio . str_pad($correlativo, 3, '0', STR_PAD_LEFT);
+        return $prefijo . str_pad(($correlativo ?? 0) + 1, 3, '0', STR_PAD_LEFT);
     }
 }

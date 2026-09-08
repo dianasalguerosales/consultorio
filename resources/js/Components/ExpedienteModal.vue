@@ -4,7 +4,7 @@ import DatosGenerales from './tabs/DatosGenerales.vue'
 import HistoriaClinica from './tabs/HistoriaClinica.vue'
 import AtencionTerapeutica from './tabs/AtencionTerapeutica.vue'
 import Evaluaciones from './tabs/Evaluaciones.vue'
-import { EscClose } from '@/Components/EscClose'
+import { EscClose } from '@/Utils/EscClose'
 
 const props = defineProps({
   expediente: {

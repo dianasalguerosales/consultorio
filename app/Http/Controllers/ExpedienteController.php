@@ -18,10 +18,13 @@ class ExpedienteController extends Controller
     public function index(Request $request)
     {
         $query = Expediente::with([
-            'paciente',
+            'paciente.genero',
             'estado',
             'modalidad',
             'anamnesis',
+            // El modal de anamnesis muestra cada criterio con su respuesta, así
+            // que hacen falta los items y su criterio, no solo la cabecera.
+            'anamnesis.items.criterio',
             'diagnosticos',
             'servicios',
             'evaluaciones'

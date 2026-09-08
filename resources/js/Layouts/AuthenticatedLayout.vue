@@ -22,13 +22,15 @@ const menuPorRol = {
   ],
   coordinador: [
     'pacientes', 'usuarios', 'agenda', 'personas',
-    'programas', 'terapias-dia', 'pagos', 'informes'
+    'programas', 'terapias-dia', 'pagos', 'informes', 'indicadores'
   ],
   encargado: [
     'hijos', 'agenda', 'estado-cuenta', 'informes'
   ],
+  // 'indicadores' no va aquí: el rol pruebas no tiene el permiso
+  // 'ver indicadores', así que el enlace le daría 403.
   pruebas: [
-    'usuarios', 'pacientes', 'indicadores', 'informes',
+    'usuarios', 'pacientes', 'informes',
     'pagos', 'expedientes'
   ],
   terapeuta: [

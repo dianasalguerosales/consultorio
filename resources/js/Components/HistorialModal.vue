@@ -1,5 +1,5 @@
 <script setup>
-import { EscClose } from '@/Components/EscClose'
+import { EscClose } from '@/Utils/EscClose'
 
 defineProps({
   paciente: Object,
@@ -33,7 +33,7 @@ EscClose(() => {
             <tr class="bg-gray-100">
               <th class="p-2 border">Fecha</th>
               <th class="p-2 border">Hora</th>
-              <th class="p-2 border">Terapeuta</th>
+              <th class="p-2 border">Atiende</th>
               <th class="p-2 border">Servicio</th>
               <th class="p-2 border">Estado</th>
               <th class="p-2 border">Modalidad</th>
@@ -47,10 +47,10 @@ EscClose(() => {
             <tr v-for="cita in paciente?.citas || []" :key="cita.id" class="hover:bg-gray-50">
               <td class="p-2 border">{{ cita.fecha }}</td>
               <td class="p-2 border">{{ cita.hora_inicio }} - {{ cita.hora_fin }}</td>
-              <td class="p-2 border">{{ cita.terapeuta?.nombre }}</td>
+              <td class="p-2 border">{{ cita.atendido_por?.nombre_completo }}</td>
               <td class="p-2 border">{{ cita.servicio?.nombre }}</td>
               <td class="p-2 border">{{ cita.estado_cita?.nombre }}</td>
-              <td class="p-2 border">{{ cita.modalidad }}</td>
+              <td class="p-2 border">{{ cita.modalidad?.nombre }}</td>
               <td class="p-2 border">{{ cita.observaciones }}</td>
               <td class="p-2 border">{{ cita.sesion?.evolucion || 'Pendiente' }}</td>
               <td class="p-2 border">{{ cita.sesion?.observaciones_clinicas }}</td>

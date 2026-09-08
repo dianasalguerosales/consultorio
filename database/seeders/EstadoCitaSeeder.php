@@ -9,9 +9,13 @@ class EstadoCitaSeeder extends Seeder
 {
     public function run(): void
     {
+        // La agenda distingue estos cinco estados en su leyenda y en el
+        // resumen del día.
         $estados = [
             'Pendiente',
+            'Programada',
             'Confirmada',
+            'Reprogramada',
             'Cancelada',
         ];
 

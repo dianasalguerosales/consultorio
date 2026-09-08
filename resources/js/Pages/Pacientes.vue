@@ -4,6 +4,7 @@ import { ref } from "vue";
 import PacienteForm from "@/Components/PacienteForm.vue";
 import ExpedienteModal from "@/Components/ExpedienteModal.vue";
 import HistorialModal from "@/Components/HistorialModal.vue";
+import { avatarPaciente } from "@/Utils/avatares";
 
 const { props } = usePage();
 const pacientes = props.pacientes;
@@ -117,12 +118,8 @@ function closeHistorial() {
                 class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
                 <!-- Avatar -->
                 <div class="mt-6">
-                    <img :src="paciente.genero?.nombre?.toLowerCase() === 'femenino'
-                        ? '/images/Femenino.webp'
-                        : paciente.genero?.nombre?.toLowerCase() === 'masculino'
-                            ? '/images/Masculino.webp'
-                            : '/images/avatar.webp'
-                        " alt="Avatar" class="h-20 w-20 rounded-full mx-auto" />
+                    <img :src="avatarPaciente(paciente.genero)" alt="Avatar"
+                        class="h-20 w-20 rounded-full mx-auto" />
                 </div>
 
                 <!-- Nombre y expediente -->
