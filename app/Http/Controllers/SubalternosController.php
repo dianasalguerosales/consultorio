@@ -7,49 +7,44 @@ use Inertia\Inertia;
 
 class SubalternosController extends Controller
 {
-    // La jerarquía sale de administrativos.cargo_id: no hay tabla de jefaturas
-    // ni la necesita. Cada cargo cuelga del que tiene encima.
-    private const BAJO = [
-        'Administrador' => ['Coordinador'],
-        'Coordinador' => ['Auxiliar'],
-    ];
-
     public function show(Administrativo $administrativo)
     {
+        $administrativo->load([
+            'subordinados.subordinados',
+            'subordinados.terapeutas',
+            'terapeutas',
+        ]);
+
         return Inertia::render('Personas/Subalternos', [
             'organigrama' => $this->nodo($administrativo),
         ]);
     }
 
-    // Arma el subárbol de una persona. Recursivo porque el organigrama crece
-    // hacia abajo y cada nivel se resuelve igual que el anterior.
+
     private function nodo(Administrativo $persona): array
     {
-        $cargo = $persona->cargo?->nombre;
+        $subordinados = $persona->subordinados->map(fn($sub) => $this->nodo($sub));
+
+        $terapeutas = $persona->terapeutas->map(fn($t) => [
+            'id' => $t->id,
+            'nombre' => $t->nombre_completo,
+            'cargo' => 'Terapeuta',
+            'correo' => $t->correo,
+            'rol' => 'terapeuta',
+            'subalternos' => [],
+        ]);
 
         return [
             'id' => $persona->id,
             'nombre' => $persona->nombre_completo,
-            'cargo' => $cargo,
+            'cargo' => $persona->cargo?->nombre,
             'correo' => $persona->correo,
-            'rol' => strtolower($cargo ?? ''),
-            'subalternos' => $this->subalternosDe($cargo),
+            'rol' => strtolower($persona->cargo?->nombre ?? ''),
+            'subalternos' => collect()
+                ->merge($subordinados)
+                ->merge($terapeutas)
+                ->values()
+                ->toArray(),
         ];
-    }
-
-    private function subalternosDe(?string $cargo): array
-    {
-        $cargos = self::BAJO[$cargo] ?? [];
-
-        if (! $cargos) {
-            return [];
-        }
-
-        return Administrativo::with('cargo')
-            ->whereHas('cargo', fn($q) => $q->whereIn('nombre', $cargos))
-            ->orderBy('apellidos')
-            ->get()
-            ->map(fn(Administrativo $a) => $this->nodo($a))
-            ->all();
     }
 }

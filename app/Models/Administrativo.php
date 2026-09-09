@@ -26,11 +26,6 @@ class Administrativo extends Model
         'cursos',
     ];
 
-    /**
-     * nombre_completo viaja en el JSON para que las vistas que reciben esta
-     * relación sin pasar por un mapeo del controlador (por ejemplo
-     * cita.atendido_por) puedan mostrar el nombre directamente.
-     */
     protected $appends = ['nombre_completo'];
 
     public function user()
@@ -53,12 +48,25 @@ class Administrativo extends Model
         return $this->belongsTo(Genero::class);
     }
 
-    /** Un auxiliar atiende sus propias citas cuando está solo en sucursal. */
     public function citas()
     {
         return $this->morphMany(Cita::class, 'atendido_por');
     }
 
+    public function superior()
+    {
+        return $this->belongsTo(Administrativo::class, 'superior_id');
+    }
+
+    public function subordinados()
+    {
+        return $this->hasMany(Administrativo::class, 'superior_id');
+    }
+
+    public function terapeutas()
+    {
+        return $this->hasMany(Terapeuta::class, 'superior_id');
+    }
 
     public function getNombreCompletoAttribute()
     {

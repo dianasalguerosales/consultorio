@@ -1,25 +1,27 @@
-Subalternos:
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 import NodoOrganigrama from '@/Components/personas/NodoOrganigrama.vue'
 
 defineProps({
-  organigrama: { type: Object, required: true },
+  organigrama: { type: Object, required: true }
 })
 </script>
 
 <template>
-  <Head title="Subalternos" />
+  <Head title="Pacientes del Encargado" />
 
   <div class="p-8 max-w-7xl mx-auto">
-    <h2 class="text-2xl font-bold text-caine-azul mb-6">Organigrama</h2>
+    <h2 class="text-2xl font-bold text-caine-azul mb-6">
+      Pacientes de {{ organigrama.nombre }}
+    </h2>
 
+    <!-- Botón Volver -->
     <div class="mb-6 flex justify-end">
-      <Link href="/personas"
+      <Link :href="`/personas?tab=encargados`"
         class="inline-flex items-center gap-1 px-4 py-3 rounded-lg border border-caine-azul
                text-caine-azul font-semibold hover:bg-caine-azul hover:text-white transition">
         <span class="material-icons text-base">arrow_back</span>
-        Volver
+        Volver a encargados
       </Link>
     </div>
 
@@ -31,7 +33,7 @@ defineProps({
       </div>
 
       <p v-if="!organigrama.subalternos?.length" class="mt-6 text-center text-sm text-gray-400">
-        {{ organigrama.nombre }} no tiene personal a su cargo.
+        {{ organigrama.nombre }} no tiene pacientes asignados.
       </p>
     </div>
   </div>

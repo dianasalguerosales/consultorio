@@ -17,6 +17,8 @@ use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\GeneroController;
 use App\Http\Controllers\SesionController;
 use App\Http\Controllers\SubalternosController;
+use App\Http\Controllers\TerapeutaController;
+use App\Http\Controllers\EncargadoController;
 
 use App\Models\Servicio;
 use Illuminate\Support\Facades\Route;
@@ -134,19 +136,27 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/programas', [ProgramaController::class, 'index'])->name('programas.index');
 
-
+        Route::get('/parametros', [ParametroController::class, 'index'])->name('parametros.index');
 
         Route::get('/especialidades', [EspecialidadController::class, 'index'])->name('especialidades.index');
         Route::post('/especialidades', [EspecialidadController::class, 'store'])->name('especialidades.store');
         Route::put('/especialidades/{especialidad}', [EspecialidadController::class, 'update'])->name('especialidades.update');
         Route::delete('/especialidades/{especialidad}', [EspecialidadController::class, 'destroy'])->name('especialidades.destroy');
 
-        Route::get('/parametros', [ParametroController::class, 'index'])->name('parametros.index');
+        Route::get('/escolaridades', [EscolaridadController::class, 'index'])->name('escolaridades.index');
+        Route::post('/escolaridades', [EscolaridadController::class, 'store'])->name('escolaridades.store');
+        Route::put('/escolaridades/{escolaridad}', [EscolaridadController::class, 'update'])->name('escolaridades.update');
+        Route::delete('/escolaridades/{escolaridad}', [EscolaridadController::class, 'destroy'])->name('escolaridades.destroy');
 
-        Route::resource('servicios', ServicioController::class)->only(['index','store','update','destroy']);
-        Route::resource('especialidades', EspecialidadController::class)->only(['store','update','destroy']);
-        Route::resource('escolaridades', EscolaridadController::class)->only(['store','update','destroy']);
+        // Servicios
+        Route::get('/servicios', [ServicioController::class, 'index'])->name('servicios.index');
+        Route::post('/servicios', [ServicioController::class, 'store'])->name('servicios.store');
+        Route::put('/servicios/{servicio}', [ServicioController::class, 'update'])->name('servicios.update');
+        Route::delete('/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('servicios.destroy');
 
+
+        Route::get('/personas/terapeuta/{id}/pacientes', [TerapeutaController::class, 'pacientes'])->name('terapeuta.pacientes');
+        Route::get('/personas/encargado/{id}/pacientes', [EncargadoController::class, 'pacientes'])->name('encargado.pacientes');
     });
 });
 

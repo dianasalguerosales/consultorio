@@ -58,6 +58,11 @@ class Terapeuta extends Model
         return $this->belongsTo(Genero::class);
     }
 
+     public function superior()
+    {
+        return $this->belongsTo(Administrativo::class, 'superior_id');
+    }
+
     public function getNombreCompletoAttribute()
     {
         return "{$this->nombres} {$this->apellidos}";

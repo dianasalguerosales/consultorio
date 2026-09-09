@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import AdministrativosIndex from './Administrativos.vue'
 import TerapeutasIndex from './Terapeutas.vue'
@@ -18,7 +18,14 @@ defineProps({
     usuariosDisponibles: Array
 })
 
-const tab = ref('administrativos')
+
+const tab = ref(localStorage.getItem('personas_tab') || 'administrativos')
+
+watch(tab, (newVal) => {
+  localStorage.setItem('personas_tab', newVal)
+})
+
+
 const showNuevoModal = ref(false)
 
 function openNuevoModal() {
@@ -77,6 +84,5 @@ function closeNuevoModal() {
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import Usuarios from '../Usuarios.vue'
 export default { layout: AuthenticatedLayout }
 </script>

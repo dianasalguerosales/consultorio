@@ -88,6 +88,7 @@ class PacientesPruebaSeeder extends Seeder
 
             $jose->administrativo?->update([
                 'cargo_id' => \App\Models\Cargo::where('nombre', 'Auxiliar')->value('id'),
+                'superior_id' => 1,
             ]);
         }
 
@@ -105,8 +106,14 @@ class PacientesPruebaSeeder extends Seeder
                     'cargo_id' => \App\Models\Cargo::where('nombre', $cargo)->value('id'),
                 ]);
             }
-        }
-    }
+
+            if ($cargo === 'Coordinador') {
+                $user->administrativo->update([
+                    'superior_id' => 1,
+                ]);
+            }
+                }
+            }
 
     /**
      * El generador de códigos tenía un desfase que iba metiendo un 6 por
@@ -145,6 +152,7 @@ class PacientesPruebaSeeder extends Seeder
                 'experiencia' => 'Licenciatura en Fonoaudiología, 9 años en terapia infantil',
                 'certificaciones' => 'Certificación PROMPT nivel 1',
                 'cursos' => 'Intervención en trastornos del habla',
+                'superior_id' => 2,
             ],
             [
                 'email' => 'diego.aguilar@caine.com',
@@ -157,6 +165,7 @@ class PacientesPruebaSeeder extends Seeder
                 'experiencia' => 'Terapeuta ocupacional pediátrico, 7 años',
                 'certificaciones' => 'Integración sensorial Ayres',
                 'cursos' => 'Motricidad fina y grafomotricidad',
+                'superior_id' => 2,
             ],
             [
                 'email' => 'gabriela.morales@caine.com',
@@ -169,6 +178,7 @@ class PacientesPruebaSeeder extends Seeder
                 'experiencia' => 'Psicóloga infantil, 12 años de práctica clínica',
                 'certificaciones' => 'Evaluación WISC-V',
                 'cursos' => 'Manejo conductual en el aula',
+                'superior_id' => 2,
             ],
         ];
 
@@ -197,6 +207,7 @@ class PacientesPruebaSeeder extends Seeder
                     'experiencia' => $d['experiencia'],
                     'certificaciones' => $d['certificaciones'],
                     'cursos' => $d['cursos'],
+                    'superior_id' => $d['superior_id'],
                 ]
             );
         }

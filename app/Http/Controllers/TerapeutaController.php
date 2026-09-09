@@ -72,10 +72,36 @@ class TerapeutaController extends Controller
         ]);
     }
 
-    public function pacientes(Terapeuta $terapeuta)
+    public function paciente(Terapeuta $terapeuta)
     {
         return Inertia::render('Terapeutas/Pacientes', [
             'pacientes' => $terapeuta->pacientes,
         ]);
     }
+
+    public function pacientes($id)
+{
+    $terapeuta = Terapeuta::with('pacientes')->findOrFail($id);
+
+    return inertia('Personas/TerapeutaPacientes', [
+        'organigrama' => [
+            'id' => $terapeuta->id,
+            'nombre' => $terapeuta->nombres . ' ' . $terapeuta->apellidos,
+            'cargo' => 'Terapeuta',
+            'correo' => $terapeuta->correo,
+            'rol' => 'terapeuta',
+            'avatar' => $terapeuta->avatar_url ?? '/images/avatar.webp',
+            'subalternos' => $terapeuta->pacientes->map(fn($p) => [
+                'id' => $p->id,
+                'nombre' => $p->nombres . ' ' . $p->apellidos,
+                'cargo' => 'Paciente',
+                'correo' => null,
+                'rol' => 'paciente',
+                'avatar' => '/images/avatar.webp',
+                'subalternos' => [],
+            ]),
+        ]
+    ]);
+}
+
 }

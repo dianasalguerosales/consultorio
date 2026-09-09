@@ -24,6 +24,7 @@ class TerapeutasSeeder extends Seeder
                     'dpi' => null,
                     'telefono' => '555-1234',
                     'correo' => 'juan@example.com',
+                    'superior_id' => 2,
                     'fecha_nacimiento' => '1985-06-15',
                     'experiencia' => 'Licenciatura en Fonoaudiología',
                     'certificaciones' => 'Certificado en intervención temprana',

@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->text('experiencia')->nullable();
             $table->text('certificaciones')->nullable();
             $table->text('cursos')->nullable();
+            $table->foreignId('superior_id')->nullable()->constrained('administrativos')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();
