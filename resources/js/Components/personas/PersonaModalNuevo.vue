@@ -25,7 +25,7 @@ const form = useForm({
   genero_id: '', cargo_id: '', especialidad_id: '',
   estado_civil_id: '', relacion_paciente_id: '',
   experiencia: '', certificaciones: '', cursos: '',
-  usuarios:''
+  user_id:''
 })
 
 function submit() {

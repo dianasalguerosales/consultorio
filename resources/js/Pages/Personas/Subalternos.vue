@@ -1,4 +1,3 @@
-Subalternos:
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 import NodoOrganigrama from '@/Components/personas/NodoOrganigrama.vue'

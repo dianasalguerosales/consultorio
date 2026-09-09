@@ -21,6 +21,16 @@ const colorLinea = computed(() => coloresRol[props.nodo.rol] || '#ccc')
 /* ---------- Hijos ---------- */
 const hijos = computed(() => Array.isArray(props.nodo.subalternos) ? props.nodo.subalternos : [])
 
+/* ---------- Travesaño ---------- */
+
+// Con n tarjetas repartidas por igual, el centro de la primera cae a la mitad
+// de su ancho, o sea 50%/n del total. Recortar eso por lado deja la línea justo
+// entre los centros en vez de sobresalir hasta los bordes exteriores.
+function recorteTravesano(n) {
+  const recorte = `calc(50% / ${n})`
+  return { left: recorte, right: recorte }
+}
+
 /* ---------- Agrupar en pares ---------- */
 function agruparEnPares(arr) {
   const chunks = []
@@ -55,8 +65,8 @@ function agruparEnPares(arr) {
       <!-- Renderizar hijos en pares -->
       <div v-for="(par, idx) in agruparEnPares(hijos)" :key="idx" class="flex flex-col items-center">
         <ul class="flex justify-center gap-8 relative">
-          <!-- Travesaño horizontal -->
-          <div v-if="par.length > 1" class="absolute top-0 left-0 right-0 border-t border-gray-300"></div>
+          <div v-if="par.length > 1" :style="recorteTravesano(par.length)"
+            class="absolute top-0 border-t border-gray-300"></div>
 
           <li v-for="hijo in par" :key="hijo.id" class="flex flex-col items-center">
             <div class="w-px h-6 bg-gray-300"></div>

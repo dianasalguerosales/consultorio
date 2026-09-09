@@ -49,6 +49,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $coordinador->syncPermissions([
             'gestionar citas',
+            'ver reportes',
             'gestionar pacientes',
             'ver agenda',
             'agendar citas',
@@ -73,10 +74,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'agendar citas',
         ]);
 
-        // El encargado solo ve la agenda de sus hijos.
+        // El encargado solo ve la agenda de sus hijos. Sin 'ver reportes': los
+        // informes cruzan a todos los pacientes del consultorio.
         $encargado->syncPermissions([
             'acceso portal padres',
-            'ver reportes',
             'ver agenda',
         ]);
 

@@ -75,7 +75,7 @@ const props = defineProps({
                focus:ring-[#53C6D3] focus:border-[#53C6D3]">
         <option value="">Seleccione...</option>
         <option v-for="u in usuariosDisponibles" :key="u.id" :value="u.id">
-          {{ u.name }} ({{ u.email }})
+          {{ u.email }}
         </option>
       </select>
     </div>

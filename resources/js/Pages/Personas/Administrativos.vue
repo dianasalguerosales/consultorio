@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import AdministrativosModalVer from '@/Components/personas/AdministrativoModalVer.vue'
 import AdministrativoModalEditar from '@/Components/personas/AdministrativoModalEditar.vue'
+import { avatarUsuario } from '@/Utils/avatares'
 
 defineProps({
   administrativos: Array,
@@ -54,7 +55,7 @@ function closeEditarModal() {
         <tr v-for="a in administrativos" :key="a.id" class="border-t hover:bg-[#FAF9F7] transition">
           <!-- Avatar -->
           <td class="px-4 py-2 text-center">
-            <img :src="a.avatar_url || '/images/avatar.webp'" alt="avatar"
+            <img :src="avatarUsuario([a.cargo?.nombre?.toLowerCase()])" :alt="a.cargo?.nombre ?? 'Administrativo'"
               class="w-10 h-10 rounded-full border inline-block" />
           </td>
 

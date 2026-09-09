@@ -10,7 +10,12 @@ const props = defineProps({
   expediente: {
     type: Object,
     required: true
-  }
+  },
+  // Qué pestañas se muestran. Al encargado se le ocultan las Evaluaciones.
+  tabs: {
+    type: Array,
+    default: () => ['Datos generales', 'Historia Clínica', 'Atención terapéutica', 'Evaluaciones'],
+  },
 })
 
 const emit = defineEmits(['close', 'save'])
@@ -37,15 +42,7 @@ const edad = computed(() => {
   return `${years} años ${months} meses`
 })
 
-// Tabs reducidos
-const tabs = [
-  'Datos generales',
-  'Historia Clínica',
-  'Atención terapéutica',
-  'Evaluaciones'
-]
-
-const activeTab = ref(tabs[0])
+const activeTab = ref(props.tabs[0])
 
 const getComponent = (tab) => {
   switch (tab) {

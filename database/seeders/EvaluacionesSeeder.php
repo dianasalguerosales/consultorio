@@ -20,6 +20,7 @@ class EvaluacionesSeeder extends Seeder
             ['nombre' => 'WISC-IV', 'descripcion' => 'Escala de Inteligencia de Wechsler para niños.', 'activo' => 1],
             ['nombre' => 'BASC-3', 'descripcion' => 'Sistema de evaluación de conducta infantil.', 'activo' => 1],
             ['nombre' => 'Conners 3', 'descripcion' => 'Evaluación de TDAH y problemas asociados.', 'activo' => 1],
+            ['nombre' => 'Evolución anual', 'descripcion' => 'Resumen anual del avance del paciente.', 'activo' => 1],
         ];
 
         foreach ($evaluaciones as $e) {

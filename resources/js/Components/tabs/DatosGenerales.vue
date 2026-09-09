@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { fecha } from '@/Utils/fechas'
 
 const props = defineProps({
   expediente: {
@@ -39,7 +40,7 @@ function imprimirPDF(url) {
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Fecha inicio</td>
-        <td class="p-2 border">{{ expediente?.fecha_inicio || 'N/D' }}</td>
+        <td class="p-2 border">{{ fecha(expediente?.fecha_inicio) }}</td>
       </tr>
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Estado</td>

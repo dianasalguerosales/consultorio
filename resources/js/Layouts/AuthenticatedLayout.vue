@@ -6,6 +6,7 @@ import DropdownLink from '@/Components/DropdownLink.vue'
 import NavLink from '@/Components/NavLink.vue'
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
+import { fecha } from '@/Utils/fechas'
 
 const mostrandoDropdown = ref(false)
 const { props } = usePage()
@@ -18,14 +19,14 @@ const menuPorRol = {
     'programas', 'indicadores', 'parametros', 'pagos', 'informes'
   ],
   auxiliar: [
-    'terapias-dia', 'pacientes', 'agenda', 'pagos'
+    'pacientes', 'agenda', 'pagos'
   ],
   coordinador: [
     'pacientes', 'usuarios', 'agenda', 'personas',
-    'programas', 'terapias-dia', 'pagos', 'informes', 'indicadores'
+    'programas', 'pagos', 'informes', 'indicadores'
   ],
   encargado: [
-    'hijos', 'agenda', 'estado-cuenta', 'informes'
+    'hijos', 'agenda', 'estado-cuenta'
   ],
   // 'indicadores' no va aquí: el rol pruebas no tiene el permiso
   // 'ver indicadores', así que el enlace le daría 403.
@@ -34,8 +35,7 @@ const menuPorRol = {
     'pagos', 'expedientes'
   ],
   terapeuta: [
-    'terapias-dia', 'pacientes', 'agenda', 'objetivos',
-    'evaluaciones', 'informes'
+    'pacientes', 'agenda', 'objetivos', 'evaluaciones'
   ]
 }
 
@@ -54,7 +54,6 @@ const ordenMenu = [
   'pagos',
   'hijos',
   'estado-cuenta',
-  'terapias-dia',
   'objetivos',
   'evaluaciones',
   'informes',
@@ -92,7 +91,6 @@ const menuConfig = {
   'estado-cuenta': { icon: 'account_balance_wallet', label: 'Estado de Cuenta', href: '/estado-cuenta' },
   usuarios: { icon: 'people', label: 'Usuarios', href: '/usuarios' },
   informes: { icon: 'description', label: 'Informes', href: '/informes' },
-  'terapias-dia': { icon: 'pending_actions', label: 'Terapias del día', href: '/terapias-dia' },
   objetivos: { icon: 'flag', label: 'Objetivos terapéuticos', href: '/objetivos' },
   evaluaciones: { icon: 'assignment', label: 'Evaluaciones', href: '/evaluaciones' }
 }
@@ -100,9 +98,17 @@ const menuConfig = {
 
 <template>
   <div class="flex min-h-screen bg-[#FAF9F7]">
-    <!-- Menú lateral fijo -->
-    <aside :class="colapsado ? 'w-20' : 'w-64'"
-      class="bg-[#1F1D3F] text-white flex flex-col h-screen fixed left-0 top-0 transition-all duration-300">
+    <!-- Fondo del menú en teléfono: cierra el cajón al tocar fuera. -->
+    <div v-if="menuAbierto" class="fixed inset-0 bg-black/40 z-30 md:hidden"
+      @click="menuAbierto = false"></div>
+
+    <!-- Menú lateral fijo. Debajo de md sale de pantalla y entra como cajón. -->
+    <aside
+      :class="[
+        colapsado ? 'w-20' : 'w-64',
+        menuAbierto ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+      ]"
+      class="bg-[#1F1D3F] text-white flex flex-col h-screen fixed left-0 top-0 z-40 transition-all duration-300">
       <!-- Logo -->
       <div class="flex justify-center items-center py-4">
         <Link href="/dashboard">
@@ -112,7 +118,7 @@ const menuConfig = {
       </div>
 
       <!-- Menú ocupa todo el espacio disponible -->
-      <nav class="flex-1 mt-2">
+      <nav class="flex-1 mt-2" @click="menuAbierto = false">
         <NavLink v-for="item in menuFinal" :key="item" :href="menuConfig[item].href"
           :active="$page.url.startsWith(menuConfig[item].href)">
           <span class="material-icons">{{ menuConfig[item].icon }}</span>
@@ -120,17 +126,22 @@ const menuConfig = {
         </NavLink>
       </nav>
       <!-- Botón colapsar abajo -->
-      <button class="px-6 py-3 bg-[#1f1d3f] hover:bg-[#14132a] flex items-center justify-center"
+      <button class="px-6 py-3 bg-[#1f1d3f] hover:bg-[#14132a] hidden md:flex items-center justify-center"
         @click="colapsado = !colapsado">
         <span class="material-icons">{{ colapsado ? 'chevron_right' : 'chevron_left' }}</span>
       </button>
     </aside>
 
     <!-- Contenido principal -->
-    <div :class="colapsado ? 'ml-20' : 'ml-64'" class="flex-1 flex flex-col">
+    <div :class="colapsado ? 'md:ml-20' : 'md:ml-64'" class="flex-1 flex flex-col min-w-0">
       <!-- Barra superior -->
       <nav class="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-[#2D2B5B]"></h1>
+        <div class="flex items-center gap-3">
+          <button class="md:hidden text-[#2D2B5B]" @click="menuAbierto = true" aria-label="Abrir menú">
+            <span class="material-icons">menu</span>
+          </button>
+          <h1 class="text-xl font-bold text-[#2D2B5B]"></h1>
+        </div>
         <div class="flex items-center space-x-4">
 
           <!-- Notificaciones -->
@@ -149,7 +160,7 @@ const menuConfig = {
                   <div>
                     <p class="text-sm font-semibold text-gray-800">{{ notif.titulo }}</p>
                     <p class="text-xs text-gray-600">{{ notif.descripcion }}</p>
-                    <span class="text-xs text-gray-400">{{ notif.fecha }}</span>
+                    <span class="text-xs text-gray-400">{{ fecha(notif.fecha) }}</span>
                   </div>
                 </div>
               </div>
@@ -178,7 +189,7 @@ const menuConfig = {
         </div>
       </nav>
       <!-- Área de trabajo -->
-      <main class="p-6 overflow-y-auto">
+      <main class="p-6">
         <slot />
       </main>
       <!-- Modal Notificaciones -->
@@ -201,7 +212,7 @@ const menuConfig = {
                   <p class="text-xs text-gray-600">{{ notif.descripcion }}</p>
                 </div>
               </div>
-              <span class="text-xs text-gray-400">{{ notif.fecha }}</span>
+              <span class="text-xs text-gray-400">{{ fecha(notif.fecha) }}</span>
             </div>
           </div>
         </div>
@@ -221,6 +232,7 @@ export default {
   data() {
     return {
       colapsado: false,
+      menuAbierto: false,
       open: false,
       mostrarDropdownNotificaciones: false,
       mostrarModalNotificaciones: false

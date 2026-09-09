@@ -1,5 +1,6 @@
 <!-- Components/personas/EncargadoModalVer.vue -->
 <script setup>
+import { fecha } from '@/Utils/fechas'
 import ModalBaseVer from '../ModalBaseVer.vue'
 
 defineProps({
@@ -26,7 +27,7 @@ defineProps({
 
     <!-- Campos específicos -->
     <div class="grid grid-cols-2 gap-4 text-gray-700">
-      <p><strong>Fecha nacimiento:</strong> {{ encargado.fecha_nacimiento }}</p>
+      <p><strong>Fecha nacimiento:</strong> {{ fecha(encargado.fecha_nacimiento) }}</p>
       <p><strong>DPI:</strong> {{ encargado.dpi }}</p>
       <p><strong>Dirección:</strong> {{ encargado.direccion }}</p>
       <p><strong>Ocupación:</strong> {{ encargado.ocupacion }}</p>

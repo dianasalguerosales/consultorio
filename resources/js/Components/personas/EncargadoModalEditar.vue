@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ModalBaseEditar from '../ModalBaseEditar.vue'
 
@@ -12,10 +13,19 @@ const props = defineProps({
   usuariosDisponibles: { type: Array, default: () => [] }
 })
 
+// El usuario ya asignado no viene en usuariosDisponibles —esa lista trae solo
+// los libres— así que se antepone para que el select pueda mostrarlo.
+const opcionesUsuario = computed(() => {
+  const libres = props.usuariosDisponibles ?? []
+  const propio = props.encargado?.user
+
+  return propio && !libres.some((u) => u.id === propio.id) ? [propio, ...libres] : libres
+})
+
 const form = useForm({
   nombres: props.encargado?.nombres || '',
   apellidos: props.encargado?.apellidos || '',
-  user_id: props.administrativo?.user_id || '',
+  user_id: props.encargado?.user_id ?? '',
   fecha_nacimiento: props.encargado?.fecha_nacimiento || '',
   dpi: props.encargado?.dpi || '',
   telefono: props.encargado?.telefono || '',
@@ -61,8 +71,8 @@ function submit() {
         <label class="block text-sm font-medium">Usuario del sistema</label>
         <select v-model="form.user_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm 
            focus:ring-[#53C6D3] focus:border-[#53C6D3]">
-          <option value="">Seleccione...</option>
-          <option v-for="u in usuariosDisponibles" :key="u.id" :value="u.id">
+          <option :value="''">Seleccione...</option>
+          <option v-for="u in opcionesUsuario" :key="u.id" :value="u.id">
             {{ u.email }}
           </option>
         </select>

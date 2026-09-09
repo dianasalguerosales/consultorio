@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { EscClose } from '@/Utils/EscClose'
+import { fechaLarga } from '@/Utils/fechas'
 import {
   NIVELES,
   OBSERVACION,
@@ -89,9 +90,7 @@ const diagnosticos = computed(() =>
   (props.expediente?.diagnosticos ?? []).map((d) => d.nombre).join(', ') || 'Sin diagnóstico'
 )
 
-const hoy = new Date().toLocaleDateString('es-GT', {
-  day: '2-digit', month: 'long', year: 'numeric',
-})
+const hoy = fechaLarga(new Date().toLocaleDateString('sv-SE'))
 
 function imprimir() {
   // Al imprimir se muestran todos los criterios, no solo los filtrados: el

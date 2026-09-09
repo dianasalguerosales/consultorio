@@ -17,6 +17,9 @@ use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\GeneroController;
 use App\Http\Controllers\SesionController;
 use App\Http\Controllers\SubalternosController;
+use App\Http\Controllers\HijosController;
+use App\Http\Controllers\EvaluacionesController;
+use App\Http\Controllers\InformesController;
 use App\Http\Controllers\TerapeutaController;
 use App\Http\Controllers\EncargadoController;
 
@@ -41,6 +44,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/configuracion/password', [ProfileController::class, 'updatePassword'])->name('configuracion.password.update');
 
     Route::get('/generos', [GeneroController::class, 'list'])->name('generos.list');
+
+    // Portal del encargado: sus hijos. El controlador filtra por encargado_id.
+    Route::get('/hijos', [HijosController::class, 'index'])
+        ->middleware('permission:acceso portal padres')
+        ->name('hijos.index');
 
     // Indicadores: analítica de la población de pacientes. Administrador y
     // coordinador, igual que la ocupación de personal.
@@ -69,6 +77,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/agenda/{cita}/sesion', [SesionController::class, 'store'])
             ->middleware('role:terapeuta')
             ->name('agenda.sesion.store');
+    });
+
+    // Informes: cruzan a todos los pacientes, así que solo administrador,
+    // coordinador y pruebas (los que tienen 'ver reportes').
+    Route::middleware(['permission:ver reportes'])->group(function () {
+        Route::get('/informes', [InformesController::class, 'index'])->name('informes.index');
+        Route::get('/informes/exportar', [InformesController::class, 'exportar'])->name('informes.exportar');
+    });
+
+    // Evaluaciones: el récord de las aplicadas. Mismo permiso que pacientes,
+    // que es el que ya tiene el terapeuta.
+    Route::middleware(['permission:gestionar pacientes'])->group(function () {
+        Route::get('/evaluaciones', [EvaluacionesController::class, 'index'])->name('evaluaciones.index');
+        Route::post('/evaluaciones', [EvaluacionesController::class, 'store'])->name('evaluaciones.store');
     });
 
     // Pacientes: terapeuta y coordinador

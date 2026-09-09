@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { avatarUsuario, rolPrincipal, ETIQUETAS_ROL } from '@/Utils/avatares';
+import { fecha, fechaHora } from '@/Utils/fechas';
 
 const props = defineProps({
   user: Object,
@@ -78,8 +79,8 @@ const capitalize = (str) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : 
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100">
-            <p><strong>Fecha de creación:</strong> {{ user.created_at }}</p>
-            <p><strong>Última actualización:</strong> {{ user.updated_at }}</p>
+            <p><strong>Fecha de creación:</strong> {{ fechaHora(user.created_at) }}</p>
+            <p><strong>Última actualización:</strong> {{ fechaHora(user.updated_at) }}</p>
           </div>
         </div>
 
@@ -90,7 +91,7 @@ const capitalize = (str) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : 
             <p><strong>Nombre:</strong> {{ administrativo.nombre_completo }}</p>
             <p><strong>Teléfono:</strong> {{ administrativo.telefono }}</p>
             <p><strong>Correo:</strong> {{ administrativo.correo }}</p>
-            <p><strong>Fecha de nacimiento:</strong> {{ administrativo.fecha_nacimiento }}</p>
+            <p><strong>Fecha de nacimiento:</strong> {{ fecha(administrativo.fecha_nacimiento) }}</p>
           </div>
         </div>
 

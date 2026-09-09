@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import EncargadoModalVer from '@/Components/personas/EncargadoModalVer.vue'
 import EncargadoModalEditar from '@/Components/personas/EncargadoModalEditar.vue'
+import { avatarUsuario } from '@/Utils/avatares'
 
 defineProps({
   encargados: Array,
@@ -54,7 +55,7 @@ function closeEditModal() {
         <tr v-for="e in encargados" :key="e.id" class="border-t hover:bg-[#FAF9F7] transition">
           <!-- Avatar -->
           <td class="px-4 py-2 text-center">
-            <img :src="e.avatar_url || '/images/avatar.webp'" alt="avatar"
+            <img :src="avatarUsuario(['encargado'], e.genero)" :alt="e.relacionPaciente?.nombre ?? 'Encargado'"
               class="w-10 h-10 rounded-full border inline-block" />
           </td>
 

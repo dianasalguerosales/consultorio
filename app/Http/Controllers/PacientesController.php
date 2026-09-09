@@ -39,7 +39,6 @@ class PacientesController extends Controller
             'citas.atendidoPor',
         ])->orderBy('apellidos')->get();
 
-
         $encargados = Encargado::all();
 
         return Inertia::render('Pacientes', [

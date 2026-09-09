@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
 import CitaModal from '@/Components/CitaModal.vue'
+import { fechaCorta } from '@/Utils/fechas'
 import SesionModal from '@/Components/SesionModal.vue'
 
 const props = defineProps({
@@ -37,10 +38,61 @@ const colorDe = (estado) => COLOR_ESTADO[estado] ?? COLOR_POR_OMISION
 
 const leyenda = Object.keys(COLOR_ESTADO)
 
+/* ---------- Filtros ---------- */
+
+// Arrancan todos marcados: el filtro sirve para quitar ruido, no para tener que
+// armar la vista desde cero cada vez que se entra.
+const estadosVisibles = ref([...leyenda])
+
+const todosLosEstados = computed({
+  get: () => estadosVisibles.value.length === leyenda.length,
+  set: (marcar) => { estadosVisibles.value = marcar ? [...leyenda] : [] },
+})
+
+// Se clasifica por "tipo:id" y no por id a secas: el terapeuta 1 y el auxiliar 1
+// son personas distintas.
+const claveDe = (cita) =>
+  `${cita.extendedProps?.atiendeTipo ?? '?'}:${cita.extendedProps?.atiendeId ?? '?'}`
+
+// Solo quienes tienen citas en el rango cargado: ofrecer a alguien sin citas
+// daría un calendario vacío sin explicar por qué.
+const quienesAtienden = computed(() => {
+  const personas = new Map()
+
+  for (const cita of props.citas) {
+    const clave = claveDe(cita)
+    if (!personas.has(clave)) {
+      personas.set(clave, { clave, nombre: cita.extendedProps?.atiende ?? 'Sin asignar' })
+    }
+  }
+
+  return [...personas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
+})
+
+const atiendeFiltro = ref('')
+
+const citasFiltradas = computed(() =>
+  props.citas.filter((cita) => {
+    const estado = cita.extendedProps?.estado
+    if (estado && !estadosVisibles.value.includes(estado)) return false
+
+    return !atiendeFiltro.value || claveDe(cita) === atiendeFiltro.value
+  })
+)
+
+function limpiarFiltros() {
+  estadosVisibles.value = [...leyenda]
+  atiendeFiltro.value = ''
+}
+
+const hayFiltro = computed(() =>
+  Boolean(atiendeFiltro.value) || estadosVisibles.value.length !== leyenda.length
+)
+
 /* ---------- Eventos para FullCalendar ---------- */
 
 const eventos = computed(() =>
-  props.citas.map((cita) => {
+  citasFiltradas.value.map((cita) => {
     const color = colorDe(cita.extendedProps?.estado)
 
     return {
@@ -123,7 +175,7 @@ function alCambiarRango(info) {
 const hoy = new Date().toISOString().slice(0, 10)
 
 const citasDeHoy = computed(() =>
-  props.citas.filter((c) => c.start?.slice(0, 10) === hoy)
+  citasFiltradas.value.filter((c) => c.start?.slice(0, 10) === hoy)
 )
 
 // Conteo por estado para el "Resumen del día".
@@ -139,7 +191,7 @@ const resumenDeHoy = computed(() => {
 })
 
 const proximasCitas = computed(() =>
-  props.citas
+  citasFiltradas.value
     .filter((c) => c.start >= hoy)
     .sort((a, b) => a.start.localeCompare(b.start))
     .slice(0, 5)
@@ -165,11 +217,6 @@ function atender(cita) {
 
 function cerrarSesionModal() {
   citaAtendiendo.value = null
-}
-
-const fechaCorta = (iso) => {
-  const [, mes, dia] = iso.slice(0, 10).split('-')
-  return `${dia}/${mes}`
 }
 
 const opcionesCalendario = computed(() => ({
@@ -224,16 +271,53 @@ const opcionesCalendario = computed(() => ({
 
           <!-- Calendario -->
           <div class="lg:col-span-3 bg-white shadow rounded-lg p-4">
-            <FullCalendar ref="calendario" :options="opcionesCalendario" />
+            <!-- Filtros. Las casillas llevan el color del estado, así que la
+                 fila también hace de leyenda. -->
+            <div class="mb-4 pb-4 border-b border-gray-100 space-y-3">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" v-model="todosLosEstados"
+                    class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
+                  <span class="text-xs font-medium text-caine-azul">Todos</span>
+                </label>
 
-            <!-- Leyenda -->
-            <div class="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100">
-              <div v-for="estado in leyenda" :key="estado" class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-sm inline-block"
-                  :style="{ backgroundColor: colorDe(estado).borde }"></span>
-                <span class="text-xs text-gray-600">{{ estado }}</span>
+                <span class="w-px h-4 bg-gray-200"></span>
+
+                <label v-for="estado in leyenda" :key="estado"
+                  class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" :value="estado" v-model="estadosVisibles"
+                    class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
+                  <span class="w-3 h-3 rounded-sm inline-block shrink-0"
+                    :style="{ backgroundColor: colorDe(estado).borde }"></span>
+                  <span class="text-xs text-gray-600">{{ estado }}</span>
+                </label>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <!-- Con una sola persona el selector no filtra nada. -->
+                <label v-if="quienesAtienden.length > 1" class="flex items-center gap-2">
+                  <span class="text-xs font-medium text-caine-azul">Atiende</span>
+                  <select v-model="atiendeFiltro"
+                    class="text-xs rounded-md border-gray-300 py-1 focus:ring-caine-celeste focus:border-caine-celeste">
+                    <option value="">Todos</option>
+                    <option v-for="p in quienesAtienden" :key="p.clave" :value="p.clave">
+                      {{ p.nombre }}
+                    </option>
+                  </select>
+                </label>
+
+                <span class="text-xs text-gray-400">
+                  {{ citasFiltradas.length }} de {{ citas.length }} citas
+                </span>
+
+                <button v-if="hayFiltro" type="button" @click="limpiarFiltros"
+                  class="text-xs font-medium text-caine-celeste hover:underline">
+                  Limpiar filtros
+                </button>
               </div>
             </div>
+
+            <FullCalendar ref="calendario" :options="opcionesCalendario" />
           </div>
 
           <!-- Paneles laterales -->

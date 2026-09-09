@@ -1,4 +1,5 @@
 <script setup>
+import { fecha } from '@/Utils/fechas'
 import ModalBaseVer from '../ModalBaseVer.vue'
 
 defineProps({
@@ -22,7 +23,7 @@ defineProps({
     </div>
 
     <div class="grid grid-cols-2 gap-4 text-gray-700">
-      <p><strong>Fecha nacimiento:</strong> {{ terapeuta.fecha_nacimiento }}</p>
+      <p><strong>Fecha nacimiento:</strong> {{ fecha(terapeuta.fecha_nacimiento) }}</p>
       <p><strong>DPI:</strong> {{ terapeuta.dpi }}</p>
       <p><strong>Género:</strong> {{ terapeuta.genero?.nombre }}</p>
       <p><strong>Especialidad:</strong> {{ terapeuta.especialidad?.nombre }}</p>

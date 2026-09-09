@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { avatarUsuario } from '@/Utils/avatares'
 import { Link } from '@inertiajs/vue3'
 import TerapeutaModalVer from '@/Components/personas/TerapeutaModalVer.vue'
 import TerapeutaModalEditar from '@/Components/personas/TerapeutaModalEditar.vue'
@@ -53,7 +54,7 @@ function closeEditModal() {
         <tr v-for="t in terapeutas" :key="t.id" class="border-t hover:bg-[#FAF9F7] transition">
           <!-- Avatar -->
           <td class="px-4 py-2 text-center">
-            <img :src="t.avatar_url || '/images/avatar.webp'" alt="avatar"
+            <img :src="avatarUsuario(['terapeuta'])" alt="Terapeuta"
               class="w-10 h-10 rounded-full border inline-block" />
           </td>
 

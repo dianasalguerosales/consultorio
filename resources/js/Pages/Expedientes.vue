@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/vue3'
 import ExpedienteModal from '@/Components/ExpedienteModal.vue'
 import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
 import { avatarPaciente } from '@/Utils/avatares'
+import { fecha } from '@/Utils/fechas'
 
 const props = defineProps({
   expedientes: Array,
@@ -115,7 +116,7 @@ function deleteExpediente(exp) {
               {{ exp.paciente ? exp.paciente.nombres + ' ' + exp.paciente.apellidos : exp.nombres + ' ' + exp.apellidos
               }}
             </td>
-            <td class="px-4 py-2">{{ exp.fecha_inicio }}</td>
+            <td class="px-4 py-2">{{ fecha(exp.fecha_inicio) }}</td>
             <td class="px-4 py-2">
               <span :class="{
                 'text-green-600 font-semibold': exp.estado?.nombre === 'activo',

@@ -17,6 +17,20 @@ use Inertia\Inertia;
 
 class PersonasController extends Controller
 {
+    // Usuarios que todavía no están amarrados a ninguna persona. El usuario ya
+    // asignado a alguien NO sale acá: cada modal agrega el suyo a la lista.
+    private function usuariosLibres()
+    {
+        $usados = collect()
+            ->merge(Encargado::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Terapeuta::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->merge(Administrativo::withTrashed()->whereNotNull('user_id')->pluck('user_id')->toArray())
+            ->unique()
+            ->values();
+
+        return User::whereNotIn('id', $usados)->orderBy('email')->get(['id', 'email']);
+    }
+
     public function index()
     {
         $usados = collect()
@@ -44,29 +58,32 @@ class PersonasController extends Controller
     public function administrativos()
     {
         return Inertia::render('Personas/Administrativos', [
-            'administrativos' => Administrativo::with(['cargo', 'especialidad', 'genero'])->get(),
+            'administrativos' => Administrativo::with(['cargo', 'especialidad', 'genero', 'user:id,email'])->get(),
             'cargos' => Cargo::all(),
             'especialidades' => Especialidad::all(),
             'generos' => Genero::all(),
+            'usuariosDisponibles' => $this->usuariosLibres(),
         ]);
     }
 
     public function terapeutas()
     {
         return Inertia::render('Personas/Terapeutas', [
-            'terapeutas' => Terapeuta::with(['especialidad', 'genero'])->get(),
+            'terapeutas' => Terapeuta::with(['especialidad', 'genero', 'user:id,email'])->get(),
             'especialidades' => Especialidad::all(),
             'generos' => Genero::all(),
+            'usuariosDisponibles' => $this->usuariosLibres(),
         ]);
     }
 
     public function encargados()
     {
         return Inertia::render('Personas/Encargados', [
-            'encargados' => Encargado::with(['relacionPaciente', 'genero', 'estadoCivil'])->get(),
+            'encargados' => Encargado::with(['relacionPaciente', 'genero', 'estadoCivil', 'user:id,email'])->get(),
             'generos' => Genero::all(),
             'estadosCiviles' => EstadoCivil::all(),
             'relacionesPaciente' => RelacionPaciente::all(),
+            'usuariosDisponibles' => $this->usuariosLibres(),
         ]);
     }
 
@@ -318,9 +335,6 @@ class PersonasController extends Controller
             $usuariosDisponibles->push($terapeuta->user);
             $usuariosDisponibles = $usuariosDisponibles->unique('id');
         }
-
-        dd($usuariosDisponibles->toArray());
-
 
         return Inertia::render('Personas/TerapeutaEditar', [
             'terapeuta' => $terapeuta,

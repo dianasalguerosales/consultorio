@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import UsuarioForm from '@/Components/UsuarioForm.vue'
 import InfoModal from '@/Components/InfoModal.vue'
 import { avatarUsuario } from '@/Utils/avatares'
+import { fechaHora } from '@/Utils/fechas'
 
 const { props } = usePage()
 const usuarios = props.usuarios
@@ -162,7 +163,7 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
   <InfoModal v-if="infoModalVisible" :visible="infoModalVisible" title="Información del Usuario" :data="{
     'Email': selectedUser.email,
     'Estado': selectedUser.status,
-    'Última vez': selectedUser.last_login_at
+    'Última vez': fechaHora(selectedUser.last_login_at, 'Nunca')
   }" @close="infoModalVisible = false" />
 </template>
 

@@ -4,6 +4,7 @@ import { Head, router, Link } from '@inertiajs/vue3'
 import { Chart, Tooltip, CategoryScale } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
 import { RAMPA, SUPERFICIE, cortesDe, pasoEn } from '@/Utils/paleta'
+import { fecha } from '@/Utils/fechas'
 
 Chart.register(MatrixController, MatrixElement, Tooltip, CategoryScale)
 
@@ -523,7 +524,7 @@ const masLargas = computed(() => {
           <tbody>
             <tr v-for="cita in desglose.citas" :key="cita.id"
               class="border-b border-gray-50 last:border-0">
-              <td class="py-2 pr-4 text-gray-500 tabular-nums" v-if="!desglose.dia">{{ cita.fecha }}</td>
+              <td class="py-2 pr-4 text-gray-500 tabular-nums" v-if="!desglose.dia">{{ fecha(cita.fecha) }}</td>
               <td class="py-2 pr-4 font-medium text-caine-azul tabular-nums">
                 {{ cita.horaInicio }}<template v-if="cita.horaFin"> – {{ cita.horaFin }}</template>
               </td>
