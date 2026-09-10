@@ -75,6 +75,11 @@ class Cita extends Model
         return $this->hasOne(Sesion::class);
     }
 
+    public function solicitudesReprogramacion()
+    {
+        return $this->hasMany(SolicitudReprogramacion::class);
+    }
+
     /** Citas cuya fecha cae dentro del rango que pide el calendario. */
     public function scopeEnRango($query, string $desde, string $hasta)
     {

@@ -16,23 +16,23 @@ const roles = props.auth?.user?.roles ?? []
 const menuPorRol = {
   administrador: [
     'usuarios', 'pacientes', 'personas', 'agenda', 'expedientes',
-    'programas', 'indicadores', 'parametros', 'pagos', 'informes'
+    'programas', 'evaluaciones', 'indicadores', 'parametros', 'pagos', 'informes'
   ],
   auxiliar: [
-    'pacientes', 'agenda', 'pagos'
+    'pacientes', 'agenda', 'evaluaciones', 'pagos'
   ],
   coordinador: [
     'pacientes', 'usuarios', 'agenda', 'personas',
-    'programas', 'pagos', 'informes', 'indicadores'
+    'programas', 'evaluaciones', 'pagos', 'informes', 'indicadores'
   ],
   encargado: [
-    'hijos', 'agenda', 'estado-cuenta'
+    'hijos', 'agenda', 'evaluaciones', 'estado-cuenta'
   ],
   // 'indicadores' no va aquí: el rol pruebas no tiene el permiso
   // 'ver indicadores', así que el enlace le daría 403.
   pruebas: [
     'usuarios', 'pacientes', 'informes',
-    'pagos', 'expedientes'
+    'pagos', 'expedientes', 'evaluaciones'
   ],
   terapeuta: [
     'pacientes', 'agenda', 'objetivos', 'evaluaciones'
@@ -62,6 +62,25 @@ const ordenMenu = [
 ]
 
 // Calcular menú final
+// El circulito rojo de la campana.
+const sinLeer = computed(() =>
+  (usePage().props.notificaciones ?? []).filter((n) => !n.leida).length
+)
+
+const opcionesLectura = { preserveScroll: true, preserveState: true }
+
+function marcarLeida(notif) {
+  if (notif.leida) return
+
+  router.put(`/notificaciones/${notif.id}/leer`, {}, opcionesLectura)
+}
+
+function marcarTodasLeidas() {
+  if (!sinLeer.value) return
+
+  router.put('/notificaciones/leer-todas', {}, opcionesLectura)
+}
+
 const menuFinal = computed(() => {
   let opciones = [...comunes]
   roles.forEach(r => {
@@ -110,7 +129,7 @@ const menuConfig = {
       ]"
       class="bg-[#1F1D3F] text-white flex flex-col h-screen fixed left-0 top-0 z-40 transition-all duration-300">
       <!-- Logo -->
-      <div class="flex justify-center items-center py-4">
+      <div class="flex justify-center items-center py-4 shrink-0">
         <Link href="/dashboard">
           <img v-if="!colapsado" src="/images/Logo_blanco.webp" alt="CAINE Logo" class="h-22 w-auto" />
           <img v-else src="/images/Isotipo_blanco.webp" alt="CAINE Logo reducido" class="h-20 w-auto" />
@@ -118,7 +137,9 @@ const menuConfig = {
       </div>
 
       <!-- Menú ocupa todo el espacio disponible -->
-      <nav class="flex-1 mt-2" @click="menuAbierto = false">
+      <!-- min-h-0 va junto con overflow-y-auto: sin él, el hijo de una
+           columna flex no se encoge bajo su contenido y no aparece el scroll. -->
+      <nav class="flex-1 min-h-0 overflow-y-auto mt-2" @click="menuAbierto = false">
         <NavLink v-for="item in menuFinal" :key="item" :href="menuConfig[item].href"
           :active="$page.url.startsWith(menuConfig[item].href)">
           <span class="material-icons">{{ menuConfig[item].icon }}</span>
@@ -146,22 +167,45 @@ const menuConfig = {
 
           <!-- Notificaciones -->
           <div class="relative">
-            <button class="flex items-center focus:outline-none"
+            <button class="relative flex items-center focus:outline-none"
               @click="mostrarDropdownNotificaciones = !mostrarDropdownNotificaciones">
               <span class="material-icons">notifications</span>
+
+              <span v-if="sinLeer"
+                class="absolute -top-1 -right-1 min-w-[1.15rem] h-[1.15rem] px-1 rounded-full
+                       bg-caine-error text-white text-[10px] font-bold leading-none
+                       flex items-center justify-center">
+                {{ sinLeer > 9 ? '9+' : sinLeer }}
+              </span>
             </button>
             <div v-if="mostrarDropdownNotificaciones"
               class="absolute right-0 mt-2 w-96 bg-white border rounded shadow-lg z-50">
-              <div class="px-4 py-2 border-b font-bold text-[#2D2B5B]">Notificaciones</div>
+              <div class="px-4 py-2 border-b flex items-center justify-between gap-2">
+                <span class="font-bold text-[#2D2B5B]">Notificaciones</span>
+                <button v-if="sinLeer" type="button" @click="marcarTodasLeidas"
+                  class="text-xs font-medium text-caine-celeste hover:underline">
+                  Marcar todas como leídas
+                </button>
+              </div>
               <div class="max-h-300 overflow-y-auto">
-                <div v-if="notificaciones && notificaciones.length" v-for="(notif, index) in notificaciones.slice(0, 3)"
-                  :key="index" class="flex items-start px-4 py-3 border-b space-x-3">
-                  <span class="material-icons text-[#2D2B5B]">{{ notif.icono }}</span>
-                  <div>
-                    <p class="text-sm font-semibold text-gray-800">{{ notif.titulo }}</p>
-                    <p class="text-xs text-gray-600">{{ notif.descripcion }}</p>
-                    <span class="text-xs text-gray-400">{{ fecha(notif.fecha) }}</span>
+                <div v-if="notificaciones && notificaciones.length"
+                  v-for="(notif, index) in notificaciones.slice(0, 3)" :key="index"
+                  class="flex items-start justify-between gap-2 px-4 py-3 border-b"
+                  :class="{ 'bg-caine-celeste/5': !notif.leida }">
+                  <div class="flex items-start space-x-3">
+                    <span class="material-icons text-[#2D2B5B]">{{ notif.icono }}</span>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-800">{{ notif.titulo }}</p>
+                      <p class="text-xs text-gray-600">{{ notif.descripcion }}</p>
+                      <span class="text-xs text-gray-400">{{ fecha(notif.fecha) }}</span>
+                    </div>
                   </div>
+
+                  <button v-if="!notif.leida" type="button" @click="marcarLeida(notif)"
+                    title="Marcar como leída"
+                    class="shrink-0 text-gray-300 hover:text-caine-verde">
+                    <span class="material-icons text-base">check_circle</span>
+                  </button>
                 </div>
               </div>
               <div class="px-4 py-2">
@@ -198,19 +242,31 @@ const menuConfig = {
         <div class="bg-white rounded-lg shadow-lg w-[800px] max-h-[90vh] flex flex-col">
           <div class="px-6 py-4 border-b flex justify-between items-center">
             <h2 class="text-lg font-bold text-[#2D2B5B]">Historial de Notificaciones</h2>
-            <button @click="mostrarModalNotificaciones = false" class="text-gray-500 hover:text-gray-700">
-              <span class="material-icons">close</span>
-            </button>
+            <div class="flex items-center gap-4">
+              <button v-if="sinLeer" type="button" @click="marcarTodasLeidas"
+                class="text-xs font-medium text-caine-celeste hover:underline">
+                Marcar todas como leídas
+              </button>
+              <button @click="mostrarModalNotificaciones = false" class="text-gray-500 hover:text-gray-700">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
           </div>
           <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <div v-for="(notif, index) in notificaciones" :key="index"
-              class="flex items-start justify-between border-b pb-3">
+              class="flex items-start justify-between border-b pb-3"
+              :class="{ 'bg-caine-celeste/5': !notif.leida }">
               <div class="flex items-start space-x-3">
                 <span class="material-icons text-[#2D2B5B]">{{ notif.icono }}</span>
                 <div>
                   <p class="text-sm font-semibold text-gray-800">{{ notif.titulo }}</p>
                   <p class="text-xs text-gray-600">{{ notif.descripcion }}</p>
                 </div>
+                <button v-if="!notif.leida" type="button" @click="marcarLeida(notif)"
+                  title="Marcar como leída"
+                  class="shrink-0 text-gray-300 hover:text-caine-verde">
+                  <span class="material-icons text-base">check_circle</span>
+                </button>
               </div>
               <span class="text-xs text-gray-400">{{ fecha(notif.fecha) }}</span>
             </div>

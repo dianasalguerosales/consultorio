@@ -1,21 +1,24 @@
 <?php
 
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\OcupacionController;
 use App\Http\Controllers\IndicadoresController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PersonasController;
+use App\Http\Controllers\AdministrativoController;
+use App\Http\Controllers\RolesController;
 use App\Http\Controllers\ParametroController;
+use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\AnamnesisController;
-use App\Http\Controllers\ServicioController;
-use App\Http\Controllers\EspecialidadController;
-use App\Http\Controllers\EscolaridadController;
 use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\GeneroController;
 use App\Http\Controllers\SesionController;
+use App\Http\Controllers\SolicitudReprogramacionController;
 use App\Http\Controllers\SubalternosController;
 use App\Http\Controllers\HijosController;
 use App\Http\Controllers\EvaluacionesController;
@@ -38,6 +41,8 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
     Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notificaciones.index');
+    Route::put('/notificaciones/{notificacion}/leer', [NotificationController::class, 'leer'])->name('notificaciones.leer');
+    Route::put('/notificaciones/leer-todas', [NotificationController::class, 'leerTodas'])->name('notificaciones.leerTodas');
 
     // Configuración
     Route::get('/configuracion', [ProfileController::class, 'configuracion'])->name('configuracion');
@@ -63,7 +68,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda.index');
 
         // Ocupación del personal: solo administrador y coordinador.
-        Route::get('/agenda/ocupacion', [AgendaController::class, 'ocupacion'])
+        Route::get('/agenda/ocupacion', [OcupacionController::class, 'index'])
             ->middleware('permission:ver ocupacion personal')
             ->name('agenda.ocupacion');
 
@@ -72,6 +77,16 @@ Route::middleware('auth')->group(function () {
             Route::put('/agenda/{cita}', [AgendaController::class, 'update'])->name('agenda.update');
             Route::delete('/agenda/{cita}', [AgendaController::class, 'destroy'])->name('agenda.destroy');
         });
+
+        // El encargado pide mover una cita de sus hijos; la resuelve
+        // coordinación o administración.
+        Route::post('/agenda/{cita}/reprogramacion', [SolicitudReprogramacionController::class, 'store'])
+            ->middleware('permission:acceso portal padres')
+            ->name('agenda.reprogramacion.store');
+
+        Route::put('/reprogramaciones/{solicitud}', [SolicitudReprogramacionController::class, 'update'])
+            ->middleware('role:administrador|coordinador')
+            ->name('reprogramaciones.update');
 
         // El controlador verifica además que sea quien atiende la cita.
         Route::post('/agenda/{cita}/sesion', [SesionController::class, 'store'])
@@ -88,10 +103,15 @@ Route::middleware('auth')->group(function () {
 
     // Evaluaciones: el récord de las aplicadas. Mismo permiso que pacientes,
     // que es el que ya tiene el terapeuta.
-    Route::middleware(['permission:gestionar pacientes'])->group(function () {
-        Route::get('/evaluaciones', [EvaluacionesController::class, 'index'])->name('evaluaciones.index');
-        Route::post('/evaluaciones', [EvaluacionesController::class, 'store'])->name('evaluaciones.store');
-    });
+    // Consultar el récord es más amplio que aplicar: pruebas y encargado solo
+    // consultan, y al encargado el controlador le filtra a sus hijos.
+    Route::get('/evaluaciones', [EvaluacionesController::class, 'index'])
+        ->middleware('permission:ver evaluaciones')
+        ->name('evaluaciones.index');
+
+    Route::post('/evaluaciones', [EvaluacionesController::class, 'store'])
+        ->middleware('permission:gestionar pacientes')
+        ->name('evaluaciones.store');
 
     // Pacientes: terapeuta y coordinador
     Route::middleware(['permission:gestionar pacientes'])->group(function () {
@@ -106,6 +126,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/pacientes/{paciente}/seguimiento', [PacientesController::class, 'seguimiento'])->name('pacientes.seguimiento');
     });
 
+    // Pagos: se cobra sobre las sesiones ya recibidas. 'pruebas' entra
+    // solo a consultar, por eso no se le abre el registro.
+    Route::middleware(['role:administrador|coordinador|auxiliar|pruebas'])->group(function () {
+        Route::get('/pagos', [PagoController::class, 'index'])->name('pagos.index');
+    });
+
+    Route::middleware(['role:administrador|coordinador|auxiliar'])->group(function () {
+        Route::post('/pagos/{cita}', [PagoController::class, 'store'])->name('pagos.store');
+        Route::delete('/pagos/{pago}', [PagoController::class, 'destroy'])->name('pagos.destroy');
+    });
+
     // Expedientes: administrador y coordinador
     Route::middleware(['role:administrador|coordinador'])->group(function () {
         Route::get('/usuarios', [UserController::class, 'index'])->name('usuarios');
@@ -116,35 +147,38 @@ Route::middleware('auth')->group(function () {
         // Personas: administrador y coordinador
         Route::middleware(['role:administrador|coordinador'])->group(function () {
             Route::get('/personas', [PersonasController::class, 'index'])->name('personas.index');
+            // Cada tipo de persona tiene su controlador. Las URLs y los
+            // nombres de ruta no cambian: el frontend usa las URLs literales.
+            //
+            // Se quitaron los 'create' y 'show', que apuntaban a métodos
+            // inexistentes y nadie enlazaba.
+
             // Administrativos
-            Route::get('/personas/administrativos', [PersonasController::class, 'administrativos'])->name('personas.administrativos');
-            Route::get('/personas/administrativos/create', [PersonasController::class, 'createAdministrativo'])->name('personas.administrativos.create');
-            Route::post('/personas/administrativos', [PersonasController::class, 'storeAdministrativo'])->name('personas.administrativos.store');
-            Route::get('/personas/administrativos/{id}', [PersonasController::class, 'showAdministrativo'])->name('personas.administrativos.show');
-            Route::get('/personas/administrativos/{id}/edit', [PersonasController::class, 'editAdministrativo'])->name('personas.administrativos.edit');
-            Route::put('/personas/administrativos/{id}', [PersonasController::class, 'updateAdministrativo'])->name('personas.administrativos.update');
-            Route::delete('/personas/administrativos/{id}', [PersonasController::class, 'destroyAdministrativo'])->name('personas.administrativos.destroy');
+            Route::get('/personas/administrativos', [AdministrativoController::class, 'index'])->name('personas.administrativos');
+            Route::post('/personas/administrativos', [AdministrativoController::class, 'store'])->name('personas.administrativos.store');
+            Route::get('/personas/administrativos/{id}/edit', [AdministrativoController::class, 'edit'])->name('personas.administrativos.edit');
+            Route::put('/personas/administrativos/{id}', [AdministrativoController::class, 'update'])->name('personas.administrativos.update');
+            Route::delete('/personas/administrativos/{id}', [AdministrativoController::class, 'destroy'])->name('personas.administrativos.destroy');
+
+            // Roles de una persona: se le asignan a su usuario ligado.
+            Route::put('/personas/{tipo}/{id}/roles', [RolesController::class, 'update'])->name('personas.roles.update');
 
             // Organigrama: los subalternos salen del cargo, no de una tabla.
             Route::get('/personas/administrativo/{administrativo}/subalternos', [SubalternosController::class, 'show'])->name('personas.subalternos');
 
             // Terapeutas
-            Route::get('/personas/terapeutas', [PersonasController::class, 'terapeutas'])->name('personas.terapeutas');
-            Route::get('/personas/terapeutas/create', [PersonasController::class, 'createTerapeuta'])->name('personas.terapeutas.create');
-            Route::post('/personas/terapeutas', [PersonasController::class, 'storeTerapeuta'])->name('personas.terapeutas.store');
-            Route::get('/personas/terapeutas/{id}', [PersonasController::class, 'showTerapeuta'])->name('personas.terapeutas.show');
-            Route::get('/personas/terapeutas/{id}/edit', [PersonasController::class, 'editTerapeuta'])->name('personas.terapeutas.edit');
-            Route::put('/personas/terapeutas/{id}', [PersonasController::class, 'updateTerapeuta'])->name('personas.terapeutas.update');
-            Route::delete('/personas/terapeutas/{id}', [PersonasController::class, 'destroyTerapeuta'])->name('personas.terapeutas.destroy');
+            Route::get('/personas/terapeutas', [TerapeutaController::class, 'index'])->name('personas.terapeutas');
+            Route::post('/personas/terapeutas', [TerapeutaController::class, 'store'])->name('personas.terapeutas.store');
+            Route::get('/personas/terapeutas/{id}/edit', [TerapeutaController::class, 'edit'])->name('personas.terapeutas.edit');
+            Route::put('/personas/terapeutas/{id}', [TerapeutaController::class, 'update'])->name('personas.terapeutas.update');
+            Route::delete('/personas/terapeutas/{id}', [TerapeutaController::class, 'destroy'])->name('personas.terapeutas.destroy');
 
             // Encargados
-            Route::get('/personas/encargados', [PersonasController::class, 'encargados'])->name('personas.encargados');
-            Route::get('/personas/encargados/create', [PersonasController::class, 'createEncargado'])->name('personas.encargados.create');
-            Route::post('/personas/encargados', [PersonasController::class, 'storeEncargado'])->name('personas.encargados.store');
-            Route::get('/personas/encargados/{id}', [PersonasController::class, 'showEncargado'])->name('personas.encargados.show');
-            Route::get('/personas/encargados/{id}/edit', [PersonasController::class, 'editEncargado'])->name('personas.encargados.edit');
-            Route::put('/personas/encargados/{id}', [PersonasController::class, 'updateEncargado'])->name('personas.encargados.update');
-            Route::delete('/personas/encargados/{id}', [PersonasController::class, 'destroyEncargado'])->name('personas.encargados.destroy');
+            Route::get('/personas/encargados', [EncargadoController::class, 'index'])->name('personas.encargados');
+            Route::post('/personas/encargados', [EncargadoController::class, 'store'])->name('personas.encargados.store');
+            Route::get('/personas/encargados/{id}/edit', [EncargadoController::class, 'edit'])->name('personas.encargados.edit');
+            Route::put('/personas/encargados/{id}', [EncargadoController::class, 'update'])->name('personas.encargados.update');
+            Route::delete('/personas/encargados/{id}', [EncargadoController::class, 'destroy'])->name('personas.encargados.destroy');
         });
 
 
@@ -160,21 +194,11 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/parametros', [ParametroController::class, 'index'])->name('parametros.index');
 
-        Route::get('/especialidades', [EspecialidadController::class, 'index'])->name('especialidades.index');
-        Route::post('/especialidades', [EspecialidadController::class, 'store'])->name('especialidades.store');
-        Route::put('/especialidades/{especialidad}', [EspecialidadController::class, 'update'])->name('especialidades.update');
-        Route::delete('/especialidades/{especialidad}', [EspecialidadController::class, 'destroy'])->name('especialidades.destroy');
-
-        Route::get('/escolaridades', [EscolaridadController::class, 'index'])->name('escolaridades.index');
-        Route::post('/escolaridades', [EscolaridadController::class, 'store'])->name('escolaridades.store');
-        Route::put('/escolaridades/{escolaridad}', [EscolaridadController::class, 'update'])->name('escolaridades.update');
-        Route::delete('/escolaridades/{escolaridad}', [EscolaridadController::class, 'destroy'])->name('escolaridades.destroy');
-
-        // Servicios
-        Route::get('/servicios', [ServicioController::class, 'index'])->name('servicios.index');
-        Route::post('/servicios', [ServicioController::class, 'store'])->name('servicios.store');
-        Route::put('/servicios/{servicio}', [ServicioController::class, 'update'])->name('servicios.update');
-        Route::delete('/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('servicios.destroy');
+        // Un CRUD para los seis catálogos. La clave se valida contra
+        // App\Catalogos\Catalogos, que es la lista blanca.
+        Route::post('/catalogos/{catalogo}', [CatalogoController::class, 'store'])->name('catalogos.store');
+        Route::put('/catalogos/{catalogo}/{id}', [CatalogoController::class, 'update'])->name('catalogos.update');
+        Route::delete('/catalogos/{catalogo}/{id}', [CatalogoController::class, 'destroy'])->name('catalogos.destroy');
 
 
         Route::get('/personas/terapeuta/{id}/pacientes', [TerapeutaController::class, 'pacientes'])->name('terapeuta.pacientes');

@@ -9,12 +9,17 @@ import esLocale from '@fullcalendar/core/locales/es'
 import CitaModal from '@/Components/CitaModal.vue'
 import { fechaCorta } from '@/Utils/fechas'
 import SesionModal from '@/Components/SesionModal.vue'
+import SolicitarReprogramacionModal from '@/Components/SolicitarReprogramacionModal.vue'
+import ResolverReprogramacionModal from '@/Components/ResolverReprogramacionModal.vue'
 
 const props = defineProps({
   citas: { type: Array, default: () => [] },
   rango: { type: Object, default: () => ({}) },
   permisos: { type: Object, default: () => ({}) },
   catalogos: { type: Object, default: null },
+  solicitudes: { type: Array, default: () => [] },
+  // La define el backend en SolicitudReprogramacion::HORAS_MINIMAS.
+  horasMinimasReprogramacion: { type: Number, default: 24 },
 })
 
 /* ---------- Colores por estado ---------- */
@@ -49,25 +54,38 @@ const todosLosEstados = computed({
   set: (marcar) => { estadosVisibles.value = marcar ? [...leyenda] : [] },
 })
 
+// Al encargado le sirve filtrar por hijo, no por quién atiende: todas sus
+// citas las atiende el personal del consultorio, lo que cambia es el paciente.
+const esEncargado = computed(() => Boolean(props.permisos.solicitarReprogramacion))
+
 // Se clasifica por "tipo:id" y no por id a secas: el terapeuta 1 y el auxiliar 1
 // son personas distintas.
 const claveDe = (cita) =>
-  `${cita.extendedProps?.atiendeTipo ?? '?'}:${cita.extendedProps?.atiendeId ?? '?'}`
+  esEncargado.value
+    ? `paciente:${cita.extendedProps?.pacienteId ?? '?'}`
+    : `${cita.extendedProps?.atiendeTipo ?? '?'}:${cita.extendedProps?.atiendeId ?? '?'}`
 
 // Solo quienes tienen citas en el rango cargado: ofrecer a alguien sin citas
 // daría un calendario vacío sin explicar por qué.
-const quienesAtienden = computed(() => {
-  const personas = new Map()
+const opcionesFiltro = computed(() => {
+  const opciones = new Map()
 
   for (const cita of props.citas) {
     const clave = claveDe(cita)
-    if (!personas.has(clave)) {
-      personas.set(clave, { clave, nombre: cita.extendedProps?.atiende ?? 'Sin asignar' })
-    }
+    if (opciones.has(clave)) continue
+
+    opciones.set(clave, {
+      clave,
+      nombre: esEncargado.value
+        ? cita.extendedProps?.paciente ?? 'Sin paciente'
+        : cita.extendedProps?.atiende ?? 'Sin asignar',
+    })
   }
 
-  return [...personas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
+  return [...opciones.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
 })
+
+const etiquetaFiltro = computed(() => (esEncargado.value ? 'Hijo' : 'Atiende'))
 
 const atiendeFiltro = ref('')
 
@@ -190,12 +208,16 @@ const resumenDeHoy = computed(() => {
   return conteo
 })
 
-const proximasCitas = computed(() =>
-  citasFiltradas.value
+// Al encargado el panel es su forma de pedir reprogramaciones, así que ve
+// todas sus citas futuras; al personal le alcanzan las próximas cinco porque
+// trabaja sobre el calendario.
+const proximasCitas = computed(() => {
+  const futuras = citasFiltradas.value
     .filter((c) => c.start >= hoy)
     .sort((a, b) => a.start.localeCompare(b.start))
-    .slice(0, 5)
-)
+
+  return props.permisos.solicitarReprogramacion ? futuras : futuras.slice(0, 5)
+})
 
 /* ---------- Atender una cita ---------- */
 
@@ -217,6 +239,28 @@ function atender(cita) {
 
 function cerrarSesionModal() {
   citaAtendiendo.value = null
+}
+
+/* ---------- Reprogramación ---------- */
+
+const citaAReprogramar = ref(null)
+const solicitudAResolver = ref(null)
+
+// El encargado pide con 24 horas de anticipación. El backend lo valida igual:
+// esto solo evita ofrecer un botón que iba a fallar.
+const horasHasta = (cita) => (new Date(cita.start) - new Date()) / 36e5
+
+const puedeSolicitar = (cita) =>
+  Boolean(props.permisos.solicitarReprogramacion)
+  && !cita.extendedProps?.tieneSolicitud
+  && horasHasta(cita) >= props.horasMinimasReprogramacion
+
+// Un botón que no está no explica nada: al encargado se le dice por qué.
+const motivoSinReprogramar = (cita) => {
+  if (!props.permisos.solicitarReprogramacion || puedeSolicitar(cita)) return null
+  if (cita.extendedProps?.tieneSolicitud) return 'Reprogramación solicitada'
+
+  return `Faltan menos de ${props.horasMinimasReprogramacion} h`
 }
 
 const opcionesCalendario = computed(() => ({
@@ -254,12 +298,6 @@ const opcionesCalendario = computed(() => ({
       <h2 class="text-2xl font-bold text-caine-azul">Agenda</h2>
 
       <div class="flex items-center gap-2">
-        <Link v-if="permisos.verOcupacion" href="/agenda/ocupacion"
-          class="inline-flex items-center gap-1 px-4 py-3 rounded-lg border border-caine-azul text-caine-azul font-semibold hover:bg-caine-azul hover:text-white transition">
-          <span class="material-icons text-base">insights</span>
-          Ocupación de personal
-        </Link>
-
         <button v-if="permisos.agendar" type="button" @click="nuevaCita"
           class="bg-caine-celeste text-white px-6 py-3 rounded-lg font-semibold shadow hover:scale-105 transition">
           + Nueva cita
@@ -267,10 +305,12 @@ const opcionesCalendario = computed(() => ({
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- El calendario ocupa el ancho completo; los paneles bajan debajo, así
+         las columnas de la semana no quedan amontonadas. -->
+    <div class="space-y-6">
 
           <!-- Calendario -->
-          <div class="lg:col-span-3 bg-white shadow rounded-lg p-4">
+          <div class="bg-white shadow rounded-lg p-4">
             <!-- Filtros. Las casillas llevan el color del estado, así que la
                  fila también hace de leyenda. -->
             <div class="mb-4 pb-4 border-b border-gray-100 space-y-3">
@@ -294,14 +334,14 @@ const opcionesCalendario = computed(() => ({
               </div>
 
               <div class="flex flex-wrap items-center gap-3">
-                <!-- Con una sola persona el selector no filtra nada. -->
-                <label v-if="quienesAtienden.length > 1" class="flex items-center gap-2">
-                  <span class="text-xs font-medium text-caine-azul">Atiende</span>
+                <!-- Con una sola opción el selector no filtra nada. -->
+                <label v-if="opcionesFiltro.length > 1" class="flex items-center gap-2">
+                  <span class="text-xs font-medium text-caine-azul">{{ etiquetaFiltro }}</span>
                   <select v-model="atiendeFiltro"
                     class="text-xs rounded-md border-gray-300 py-1 focus:ring-caine-celeste focus:border-caine-celeste">
                     <option value="">Todos</option>
-                    <option v-for="p in quienesAtienden" :key="p.clave" :value="p.clave">
-                      {{ p.nombre }}
+                    <option v-for="o in opcionesFiltro" :key="o.clave" :value="o.clave">
+                      {{ o.nombre }}
                     </option>
                   </select>
                 </label>
@@ -320,8 +360,33 @@ const opcionesCalendario = computed(() => ({
             <FullCalendar ref="calendario" :options="opcionesCalendario" />
           </div>
 
-          <!-- Paneles laterales -->
-          <div class="lg:col-span-1 space-y-6">
+          <!-- Solicitudes de reprogramación esperando respuesta -->
+          <div v-if="permisos.resolverReprogramacion && solicitudes.length"
+            class="bg-white shadow rounded-lg p-5">
+            <h3 class="font-bold text-[#2D2B5B] mb-1">Solicitudes de reprogramación</h3>
+            <p class="text-sm text-gray-400 mb-4">{{ solicitudes.length }} esperando respuesta</p>
+
+            <ul class="space-y-3">
+              <li v-for="s in solicitudes" :key="s.id"
+                class="flex flex-wrap items-center justify-between gap-3 border-l-2 border-caine-naranja pl-3">
+                <div class="text-sm">
+                  <p class="font-medium text-[#2D2B5B]">{{ s.paciente }}</p>
+                  <p class="text-gray-500">{{ s.fecha }} · {{ s.hora }} · {{ s.servicio }}</p>
+                  <p v-if="s.motivo" class="text-gray-500 italic">«{{ s.motivo }}»</p>
+                </div>
+
+                <button type="button" @click="solicitudAResolver = s"
+                  class="inline-flex items-center gap-1 rounded-md border border-caine-azul px-3 py-1
+                         text-xs font-medium text-caine-azul transition hover:bg-caine-azul hover:text-white">
+                  <span class="material-icons text-sm">event_available</span>
+                  Resolver
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Paneles, ahora debajo del calendario y en dos columnas -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- Resumen del día -->
             <div class="bg-white shadow rounded-lg p-5">
@@ -345,15 +410,28 @@ const opcionesCalendario = computed(() => ({
             <div class="bg-white shadow rounded-lg p-5">
               <h3 class="font-bold text-[#2D2B5B] mb-4">Próximas citas</h3>
 
-              <ul v-if="proximasCitas.length" class="space-y-3">
+              <ul v-if="proximasCitas.length" class="divide-y divide-gray-200">
                 <li v-for="cita in proximasCitas" :key="cita.id"
-                  class="text-sm border-l-2 pl-3"
+                  class="text-sm border-l-2 pl-3 py-4 first:pt-0 last:pb-0"
                   :style="{ borderColor: colorDe(cita.extendedProps?.estado).borde }">
-                  <!-- Fecha y botón en la misma línea  -->
+                  <!-- Fecha y acción en la misma línea -->
                   <div class="flex items-center justify-between gap-2">
                     <p class="text-gray-500">
                       {{ fechaCorta(cita.start) }} · {{ cita.extendedProps?.horaInicio }}
                     </p>
+
+                    <button v-if="puedeSolicitar(cita)" type="button" @click="citaAReprogramar = cita"
+                      class="inline-flex shrink-0 items-center gap-1 rounded-md border
+                             border-caine-celeste px-2 py-1 text-xs font-medium text-caine-celeste
+                             transition hover:bg-caine-celeste hover:text-white">
+                      <span class="material-icons text-sm">event_repeat</span>
+                      Reprogramar
+                    </button>
+
+                    <span v-else-if="motivoSinReprogramar(cita)"
+                      class="shrink-0 text-xs text-gray-400">
+                      {{ motivoSinReprogramar(cita) }}
+                    </span>
 
                     <button v-if="puedeAtender(cita)" type="button" @click="atender(cita)"
                       class="inline-flex shrink-0 items-center gap-1 rounded-md border
@@ -391,6 +469,12 @@ const opcionesCalendario = computed(() => ({
 
     <SesionModal v-if="citaAtendiendo" :cita="citaAtendiendo"
       @close="cerrarSesionModal" />
+
+    <SolicitarReprogramacionModal v-if="citaAReprogramar" :cita="citaAReprogramar"
+      @close="citaAReprogramar = null" />
+
+    <ResolverReprogramacionModal v-if="solicitudAResolver" :solicitud="solicitudAResolver"
+      @close="solicitudAResolver = null" />
   </div>
 </template>
 

@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue'
 import { avatarUsuario } from '@/Utils/avatares'
+import RolesModal from '@/Components/personas/RolesModal.vue'
 import { Link } from '@inertiajs/vue3'
 import TerapeutaModalVer from '@/Components/personas/TerapeutaModalVer.vue'
 import TerapeutaModalEditar from '@/Components/personas/TerapeutaModalEditar.vue'
 
-defineProps({
+const props = defineProps({
   terapeutas: Array,
+  roles: Array,
   especialidades: Array,
   generos: Array,
   usuariosDisponibles: Array
@@ -14,6 +16,7 @@ defineProps({
 
 const showViewModal = ref(false)
 const showEditModal = ref(false)
+const enRoles = ref(null)
 const selectedTerapeuta = ref(null)
 
 function openViewModal(terapeuta) {
@@ -32,6 +35,10 @@ function openEditModal(terapeuta) {
 function closeEditModal() {
   showEditModal.value = false
   selectedTerapeuta.value = null
+}
+
+function abrirRoles(persona) {
+  enRoles.value = persona
 }
 </script>
 
@@ -93,12 +100,12 @@ function closeEditModal() {
                 <span class="ml-1">Eliminar</span>
               </Link>
 
-              <!-- Permisos -->
-              <Link :href="`/personas/terapeuta/${t.id}/permisos`"
+              <!-- Permisos: se gestionan sobre el usuario ligado a la persona. -->
+              <button type="button" @click="abrirRoles(t)"
                 class="inline-flex items-center px-3 py-1 text-[#2D2B5B] hover:text-[#53C6D3]">
                 <span class="material-icons text-base">lock</span>
                 <span class="ml-1">Permisos</span>
-              </Link>
+              </button>
 
               <!-- Pacientes -->
               <Link :href="`/personas/terapeuta/${t.id}/pacientes`"
@@ -128,5 +135,7 @@ function closeEditModal() {
       :usuariosDisponibles="usuariosDisponibles"
       @close="closeEditModal"
     />
+    <RolesModal v-if="enRoles" :persona="enRoles" tipo="terapeuta" :roles="roles ?? []"
+      @close="enRoles = null" />
   </div>
 </template>

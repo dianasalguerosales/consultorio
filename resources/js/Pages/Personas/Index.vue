@@ -15,7 +15,8 @@ defineProps({
     generos: Array,
     estadosCiviles: Array,
     relacionesPaciente: Array,
-    usuariosDisponibles: Array
+    usuariosDisponibles: Array,
+    roles: Array
 })
 
 
@@ -70,11 +71,11 @@ function closeNuevoModal() {
             </button>
         </div>
 
-        <AdministrativosIndex v-if="tab === 'administrativos'" :administrativos="administrativos" :cargos="cargos"
+        <AdministrativosIndex :roles="roles" v-if="tab === 'administrativos'" :administrativos="administrativos" :cargos="cargos"
             :especialidades="especialidades" :generos="generos" :usuariosDisponibles="usuariosDisponibles" />
-        <TerapeutasIndex v-if="tab === 'terapeutas'" :terapeutas="terapeutas" :especialidades="especialidades"
+        <TerapeutasIndex :roles="roles" v-if="tab === 'terapeutas'" :terapeutas="terapeutas" :especialidades="especialidades"
             :generos="generos" :usuariosDisponibles="usuariosDisponibles" />
-        <EncargadosIndex v-if="tab === 'encargados'" :encargados="encargados" :estados-civiles="estadosCiviles"
+        <EncargadosIndex :roles="roles" v-if="tab === 'encargados'" :encargados="encargados" :estados-civiles="estadosCiviles"
             :generos="generos" :relaciones-paciente="relacionesPaciente" :usuariosDisponibles="usuariosDisponibles" />
         <PersonaModalNuevo v-if="showNuevoModal" :cargos="cargos" :especialidades="especialidades" :generos="generos"
             :estadosCiviles="estadosCiviles" :relacionesPaciente="relacionesPaciente"

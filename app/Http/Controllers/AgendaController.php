@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Administrativo;
+use App\Agenda\QuienAtiende;
+use App\Models\SolicitudReprogramacion;
 use App\Models\Cita;
 use App\Models\EstadoCita;
 use App\Models\Modalidad;
 use App\Models\Paciente;
 use App\Models\Programa;
 use App\Models\Servicio;
-use App\Models\Terapeuta;
 use App\Models\TipoCita;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,15 +21,6 @@ use Inertia\Inertia;
 
 class AgendaController extends Controller
 {
-    /*
-     * Tipos que pueden atender una cita. Se valida contra esta lista en vez de
-     * aceptar cualquier clase que llegue del formulario.
-     */
-    private const TIPOS_ATIENDEN = [
-        'terapeuta' => Terapeuta::class,
-        'auxiliar' => Administrativo::class,
-    ];
-
     public function index(Request $request)
     {
         $user = $request->user();
@@ -47,6 +38,8 @@ class AgendaController extends Controller
                 'modalidad',
                 'tipoCita',
                 'sesion',
+                // Para no ofrecer dos veces la reprogramación de la misma cita.
+                'solicitudesReprogramacion',
             ]),
             $user
         )
@@ -70,9 +63,21 @@ class AgendaController extends Controller
                 // El auxiliar agenda solo para sí mismo, así que el selector
                 // de "Atiende" le queda fijo.
                 'soloParaSiMismo' => $this->soloAgendaParaSiMismo($user),
-                'yoAtiendo' => $this->comoAtiende($user),
+                'yoAtiendo' => QuienAtiende::de($user),
                 'atender' => $user->hasRole('terapeuta'),
+                // El encargado pide mover las citas de sus hijos.
+                'solicitarReprogramacion' => (bool) $user->encargado,
+                'resolverReprogramacion' => $user->hasAnyRole(['administrador', 'coordinador']),
             ],
+
+            // La regla de anticipación se manda armada: el frontend no debe
+            // tener su propia copia del número.
+            'horasMinimasReprogramacion' => SolicitudReprogramacion::HORAS_MINIMAS,
+
+            // Las que esperan respuesta, para quien las autoriza.
+            'solicitudes' => $user->hasAnyRole(['administrador', 'coordinador'])
+                ? $this->solicitudesPendientes()
+                : [],
 
             // Catálogos solo para quien realmente puede crear citas.
             'catalogos' => $user->can('agendar citas')
@@ -119,159 +124,6 @@ class AgendaController extends Controller
             ->route('agenda.index')
             ->with('success', 'Cita eliminada.');
     }
-    /**
-     * Ocupación semanal del personal que atiende: cuántas citas tiene cada
-     * terapeuta o auxiliar en cada día de la semana, más una comparación de
-     * horas para detectar quién carga citas más largas.
-     */
-    public function ocupacion(Request $request)
-    {
-        $semana = ($request->date('semana') ?? Carbon::now())->startOfWeek();
-        $finSemana = $semana->copy()->endOfWeek();
-
-        $personal = $this->personalQueAtiende();
-
-        $citas = Cita::query()
-            ->with(['paciente', 'servicio', 'estadoCita', 'modalidad', 'atendidoPor'])
-            ->enRango($semana->toDateString(), $finSemana->toDateString())
-            // Una cita cancelada no ocupa la agenda de nadie.
-            ->whereHas('estadoCita', fn($q) => $q->where('nombre', '!=', 'Cancelada'))
-            ->orderBy('fecha')
-            ->orderBy('hora_inicio')
-            ->get();
-
-        $dias = collect(range(0, 6))->map(function (int $i) use ($semana) {
-            $dia = $semana->copy()->addDays($i);
-
-            return [
-                'fecha' => $dia->toDateString(),
-                'etiqueta' => ucfirst($dia->locale('es')->isoFormat('ddd')),
-                'numero' => $dia->day,
-                'esFinDeSemana' => $dia->isWeekend(),
-            ];
-        });
-
-        // Las citas se agrupan por "tipo:id" para no confundir el id 1 de
-        // terapeutas con el id 1 de administrativos.
-        $porPersona = $citas->groupBy(fn(Cita $c) => $this->claveDelTipo($c->atendido_por_type) . ':' . $c->atendido_por_id);
-
-        return Inertia::render('Ocupacion', [
-            'semana' => [
-                'desde' => $semana->toDateString(),
-                'hasta' => $finSemana->toDateString(),
-                'etiqueta' => $this->etiquetaDeSemana($semana, $finSemana),
-                'anterior' => $semana->copy()->subWeek()->toDateString(),
-                'siguiente' => $semana->copy()->addWeek()->toDateString(),
-                'esActual' => $semana->isSameWeek(Carbon::now()),
-            ],
-
-            'dias' => $dias,
-
-            'personal' => $personal->map(function (array $persona) use ($porPersona, $dias) {
-                $suyas = $porPersona->get($persona['clave'], collect());
-
-                return [
-                    ...$persona,
-
-                    // Una celda por día: lo que pinta el heatmap.
-                    'porDia' => $dias->map(function (array $dia) use ($suyas) {
-                        $delDia = $suyas->filter(fn(Cita $c) => $c->fecha->toDateString() === $dia['fecha']);
-
-                        return [
-                            'fecha' => $dia['fecha'],
-                            'citas' => $delDia->count(),
-                            'minutos' => $delDia->sum(fn(Cita $c) => $this->minutosDe($c)),
-                        ];
-                    }),
-
-                    'totales' => $this->totalesDe($suyas),
-
-                    // El desglose se arma en el cliente al hacer clic, sin
-                    // otra vuelta al servidor: son pocas citas por semana.
-                    'citas' => $suyas->map(fn(Cita $c) => [
-                        'id' => $c->id,
-                        'fecha' => $c->fecha->toDateString(),
-                        'horaInicio' => substr($c->hora_inicio, 0, 5),
-                        'horaFin' => $c->hora_fin ? substr($c->hora_fin, 0, 5) : null,
-                        'minutos' => $this->minutosDe($c),
-                        'paciente' => $c->paciente?->nombre_completo,
-                        'servicio' => $c->servicio?->nombre,
-                        'estado' => $c->estadoCita?->nombre,
-                        'modalidad' => $c->modalidad?->nombre,
-                    ])->values(),
-                ];
-            })->values(),
-        ]);
-    }
-
-    /** Terapeutas y auxiliares: los dos tipos que pueden atender una cita. */
-    private function personalQueAtiende()
-    {
-        $terapeutas = Terapeuta::query()
-            ->orderBy('nombres')
-            ->get()
-            ->map(fn(Terapeuta $t) => [
-                'clave' => 'terapeuta:' . $t->id,
-                'tipo' => 'terapeuta',
-                'id' => $t->id,
-                'nombre_completo' => $t->nombre_completo,
-                'rol' => 'Terapeuta',
-            ]);
-
-        $auxiliares = Administrativo::query()
-            ->whereHas('cargo', fn($q) => $q->where('nombre', 'Auxiliar'))
-            ->orderBy('nombres')
-            ->get()
-            ->map(fn(Administrativo $a) => [
-                'clave' => 'auxiliar:' . $a->id,
-                'tipo' => 'auxiliar',
-                'id' => $a->id,
-                'nombre_completo' => $a->nombre_completo,
-                'rol' => 'Auxiliar',
-            ]);
-
-        return $terapeutas->concat($auxiliares);
-    }
-
-    /** Duración en minutos; sin hora_fin se asume una hora. */
-    private function minutosDe(Cita $cita): int
-    {
-        if (! $cita->hora_fin) {
-            return 60;
-        }
-
-        $inicio = Carbon::createFromFormat('H:i:s', Cita::normalizarHora($cita->hora_inicio));
-        $fin = Carbon::createFromFormat('H:i:s', Cita::normalizarHora($cita->hora_fin));
-
-        return max(0, $inicio->diffInMinutes($fin));
-    }
-
-    /** Resumen de la semana para la tabla comparativa de horas. */
-    private function totalesDe($citas): array
-    {
-        $minutos = $citas->map(fn(Cita $c) => $this->minutosDe($c));
-
-        return [
-            'citas' => $citas->count(),
-            'minutos' => (int) $minutos->sum(),
-            // Lo que revela quién carga citas largas frente a quién tiene
-            // muchas cortas.
-            'promedioMinutos' => $citas->isEmpty() ? 0 : (int) round($minutos->avg()),
-            'maxMinutos' => (int) ($minutos->max() ?? 0),
-            'diasConCitas' => $citas->pluck('fecha')->map(fn($f) => $f->toDateString())->unique()->count(),
-        ];
-    }
-
-    private function etiquetaDeSemana(Carbon $desde, Carbon $hasta): string
-    {
-        $mesIgual = $desde->isSameMonth($hasta);
-
-        return $mesIgual
-            ? $desde->day . ' – ' . $hasta->day . ' ' . ucfirst($hasta->locale('es')->isoFormat('MMMM YYYY'))
-            : $desde->day . ' ' . ucfirst($desde->locale('es')->isoFormat('MMM'))
-              . ' – ' . $hasta->day . ' ' . ucfirst($hasta->locale('es')->isoFormat('MMM YYYY'));
-    }
-
     /* ---------- Alcance por rol ---------- */
 
     /**
@@ -336,11 +188,11 @@ class AgendaController extends Controller
             return;
         }
 
-        $propio = $this->comoAtiende($user);
+        $propio = QuienAtiende::de($user);
 
         abort_unless(
             $propio
-                && $cita->atendido_por_type === self::TIPOS_ATIENDEN[$propio['tipo']]
+                && $cita->atendido_por_type === QuienAtiende::clase($propio['tipo'])
                 && (int) $cita->atendido_por_id === $propio['id'],
             403,
             'Solo puede modificar las citas que usted mismo atiende.'
@@ -351,34 +203,13 @@ class AgendaController extends Controller
      * El par (tipo, id) con el que este usuario aparece como quien atiende, o
      * null si no atiende citas (por ejemplo un coordinador sin ficha).
      */
-    private function comoAtiende(User $user): ?array
-    {
-        if ($user->administrativo) {
-            return [
-                'tipo' => 'auxiliar',
-                'id' => $user->administrativo->id,
-                'nombre_completo' => $user->administrativo->nombre_completo,
-            ];
-        }
-
-        if ($user->terapeuta) {
-            return [
-                'tipo' => 'terapeuta',
-                'id' => $user->terapeuta->id,
-                'nombre_completo' => $user->terapeuta->nombre_completo,
-            ];
-        }
-
-        return null;
-    }
-
     /* ---------- Validación ---------- */
 
     private function validar(Request $request): array
     {
         $validado = $request->validate([
             'paciente_id' => ['required', 'integer', 'exists:pacientes,id'],
-            'atiende_tipo' => ['required', Rule::in(array_keys(self::TIPOS_ATIENDEN))],
+            'atiende_tipo' => ['required', Rule::in(QuienAtiende::tipos())],
             'atiende_id' => ['required', 'integer'],
             'estado_cita_id' => ['required', 'integer', 'exists:estado_citas,id'],
             'modalidad_id' => ['nullable', 'integer', 'exists:modalidades,id'],
@@ -391,7 +222,7 @@ class AgendaController extends Controller
             'precio_aplicado' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $claseAtiende = self::TIPOS_ATIENDEN[$validado['atiende_tipo']];
+        $claseAtiende = QuienAtiende::clase($validado['atiende_tipo']);
 
         // exists: no sirve aquí porque la tabla depende del tipo elegido.
         if (! $claseAtiende::whereKey($validado['atiende_id'])->exists()) {
@@ -403,7 +234,7 @@ class AgendaController extends Controller
         // El auxiliar no puede agendarle a otra persona, aunque manipule el
         // formulario: se valida en el servidor, no solo en la vista.
         if ($this->soloAgendaParaSiMismo($request->user())) {
-            $propio = $this->comoAtiende($request->user());
+            $propio = QuienAtiende::de($request->user());
 
             $esElMismo = $propio
                 && $validado['atiende_tipo'] === $propio['tipo']
@@ -477,7 +308,7 @@ class AgendaController extends Controller
                 'paciente' => $cita->paciente?->nombre_completo,
                 'pacienteGenero' => $cita->paciente?->genero?->nombre,
                 'atiende' => $atiende?->nombre_completo,
-                'atiendeTipo' => $this->claveDelTipo($cita->atendido_por_type),
+                'atiendeTipo' => QuienAtiende::tipoDe($cita->atendido_por_type),
                 'atiendeId' => $cita->atendido_por_id,
                 'estado' => $cita->estadoCita?->nombre,
                 'estadoId' => $cita->estado_cita_id,
@@ -497,49 +328,44 @@ class AgendaController extends Controller
                     'observacionesGenerales' => $cita->sesion->observaciones_generales,
                     'duracionMinutos' => $cita->sesion->duracion_minutos,
                 ] : null,
+
+                // Una solicitud pendiente bloquea pedir otra sobre la misma cita.
+                'tieneSolicitud' => $cita->solicitudesReprogramacion
+                    ->where('estado', SolicitudReprogramacion::PENDIENTE)
+                    ->isNotEmpty(),
             ],
         ];
     }
 
-    /** Invierte TIPOS_ATIENDEN: de clase Eloquent a la clave que usa la vista. */
-    private function claveDelTipo(?string $clase): ?string
+    /** Solicitudes de reprogramación sin resolver, para el panel de la agenda. */
+    private function solicitudesPendientes(): array
     {
-        if (! $clase) {
-            return null;
-        }
-
-        return array_search($clase, self::TIPOS_ATIENDEN, true) ?: null;
+        return SolicitudReprogramacion::with(['cita.paciente', 'cita.atendidoPor', 'cita.servicio', 'solicitante'])
+            ->pendientes()
+            ->latest()
+            ->get()
+            ->map(fn(SolicitudReprogramacion $s) => [
+                'id' => $s->id,
+                'motivo' => $s->motivo,
+                'solicitadaEl' => $s->created_at?->format('d/m/Y H:i'),
+                'paciente' => $s->cita?->paciente?->nombre_completo,
+                'atiende' => $s->cita?->atendidoPor?->nombre_completo,
+                'servicio' => $s->cita?->servicio?->nombre,
+                'fecha' => $s->cita?->fecha?->format('d/m/Y'),
+                'hora' => substr((string) $s->cita?->hora_inicio, 0, 5)
+                    . ' - ' . substr((string) $s->cita?->hora_fin, 0, 5),
+            ])
+            ->all();
     }
 
     private function catalogos(User $user): array
     {
         // Al auxiliar solo se le ofrece a sí mismo como quien atiende.
-        if ($this->soloAgendaParaSiMismo($user)) {
-            $propio = $this->comoAtiende($user);
-            $atienden = collect($propio ? [$propio] : []);
-        } else {
-            // Los auxiliares se identifican por su cargo en administrativos.
-            $auxiliares = Administrativo::query()
-                ->whereHas('cargo', fn($q) => $q->where('nombre', 'Auxiliar'))
-                ->orderBy('nombres')
-                ->get()
-                ->map(fn(Administrativo $a) => [
-                    'id' => $a->id,
-                    'tipo' => 'auxiliar',
-                    'nombre_completo' => $a->nombre_completo,
-                ]);
+        $propio = QuienAtiende::de($user);
 
-            $terapeutas = Terapeuta::query()
-                ->orderBy('nombres')
-                ->get()
-                ->map(fn(Terapeuta $t) => [
-                    'id' => $t->id,
-                    'tipo' => 'terapeuta',
-                    'nombre_completo' => $t->nombre_completo,
-                ]);
-
-            $atienden = $terapeutas->concat($auxiliares);
-        }
+        $atienden = $this->soloAgendaParaSiMismo($user)
+            ? collect($propio ? [$propio] : [])
+            : QuienAtiende::todos();
 
         return [
             'pacientes' => Paciente::query()

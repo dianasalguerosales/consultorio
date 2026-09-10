@@ -80,8 +80,7 @@ props.criteriosModulo3.forEach(c => form.itemsModulo3.push({ criterio_id: c.id, 
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-6xl h-5/6 flex flex-col relative">
+  <ModalCapa panel="max-w-6xl h-5/6 flex flex-col" @close="emit('close')">
       <!-- Header -->
       <div class="flex justify-between items-center border-b p-4">
         <h2 class="text-xl font-bold text-caine-azul">
@@ -114,6 +113,5 @@ props.criteriosModulo3.forEach(c => form.itemsModulo3.push({ criterio_id: c.id, 
           :modalidadesList="modalidadesList" :estadoExpedientes="estadoExpedientes" @next="nextStep" @prev="prevStep"
           @save="saveChanges" />
       </div>
-    </div>
-  </div>
+  </ModalCapa>
 </template>

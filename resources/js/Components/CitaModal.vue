@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { EscClose } from '@/Utils/EscClose'
+import ModalCapa from '@/Components/ModalCapa.vue'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -15,11 +15,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-// Misma salida con Escape que el resto de los modales del sistema.
-EscClose(() => {
-  if (props.show) emit('close')
-})
 
 const esEdicion = computed(() => Boolean(props.cita?.id))
 
@@ -130,10 +125,9 @@ function eliminar() {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40" @click="emit('close')"></div>
-
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+  <!-- Este modal vive siempre montado: `mostrar` le dice a la capa cuándo
+       está visible, y de eso depende que Escape lo cierre. -->
+  <ModalCapa :mostrar="show" panel="max-w-2xl max-h-[90vh] overflow-y-auto" @close="emit('close')">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <h3 class="text-lg font-bold text-[#2D2B5B]">
           {{ esEdicion ? 'Editar cita' : 'Nueva cita' }}
@@ -286,6 +280,5 @@ function eliminar() {
           </div>
         </div>
       </form>
-    </div>
-  </div>
+  </ModalCapa>
 </template>

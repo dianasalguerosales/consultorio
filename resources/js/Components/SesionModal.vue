@@ -1,7 +1,7 @@
 <script setup>
 import { computed, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { EscClose } from '@/Utils/EscClose'
+import ModalCapa from '@/Components/ModalCapa.vue'
 
 const props = defineProps({
   // La cita a atender, en el formato de evento que manda AgendaController.
@@ -9,10 +9,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-// Este modal se monta y desmonta con v-if, así que el callback no necesita
-// guard: cuando existe, está visible.
-EscClose(() => emit('close'))
 
 const datos = computed(() => props.cita?.extendedProps ?? {})
 
@@ -57,10 +53,7 @@ function guardar() {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40" @click="emit('close')"></div>
-
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+  <ModalCapa panel="max-w-2xl max-h-[92vh] flex flex-col" @close="emit('close')">
 
       <!-- Encabezado -->
       <div class="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-200">
@@ -144,6 +137,5 @@ function guardar() {
           {{ form.processing ? 'Guardando...' : 'Guardar cita atendida' }}
         </button>
       </div>
-    </div>
-  </div>
+  </ModalCapa>
 </template>

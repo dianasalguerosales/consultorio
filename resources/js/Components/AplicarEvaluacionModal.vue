@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
-import { EscClose } from '@/Utils/EscClose'
+import ModalCapa from '@/Components/ModalCapa.vue'
 
 const props = defineProps({
   evaluaciones: { type: Array, default: () => [] },
@@ -9,8 +9,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-EscClose(() => emit('close'))
 
 const form = useForm({
   expediente_id: '',
@@ -30,10 +28,7 @@ function guardar() {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40" @click="emit('close')"></div>
-
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg flex flex-col">
+  <ModalCapa panel="max-w-lg flex flex-col" @close="emit('close')">
       <div class="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-200">
         <h3 class="text-lg font-bold text-caine-azul">Aplicar evaluación</h3>
         <button type="button" @click="emit('close')"
@@ -85,6 +80,5 @@ function guardar() {
           {{ form.processing ? 'Aplicando...' : 'Aplicar' }}
         </button>
       </div>
-    </div>
-  </div>
+  </ModalCapa>
 </template>

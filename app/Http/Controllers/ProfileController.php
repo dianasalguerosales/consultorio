@@ -12,45 +12,37 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         $user = $request->user()->load([
-            'terapeuta' => fn($q) => $q->withCount('pacientes'),
-            'encargado' => fn($q) => $q->withCount('pacientes')->with('genero'),
-            'administrativo',
+            'administrativo.cargo', 'administrativo.especialidad', 'administrativo.genero',
+            'terapeuta.especialidad', 'terapeuta.genero',
+            'encargado.relacionPaciente', 'encargado.genero', 'encargado.estadoCivil',
         ]);
+
+        // Un usuario es a lo más una de las tres cosas. Se manda la persona y
+        // su tipo, y la vista arma la misma ficha para cualquiera de ellos.
+        [$tipo, $persona] = match (true) {
+            (bool) $user->administrativo => ['administrativo', $user->administrativo],
+            (bool) $user->terapeuta => ['terapeuta', $user->terapeuta],
+            (bool) $user->encargado => ['encargado', $user->encargado],
+            default => [null, null],
+        };
+
+        if ($persona) {
+            $persona->setRelation('user', $user->only(['id', 'email']));
+        }
 
         return Inertia::render('Perfil', [
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
                 'roles' => $user->getRoleNames(),
-                'created_at' => $user->created_at?->format('d-m-Y'),
-                'updated_at' => $user->updated_at?->format('d-m-Y'),
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
             ],
-            'terapeuta' => $user->terapeuta ? [
-                'nombre_completo' => $user->terapeuta->nombre_completo,
-                'especialidad' => $user->terapeuta->especialidad,
-                'fecha_nacimiento' => $user->terapeuta->fecha_nacimiento,
-                'telefono' => $user->terapeuta->telefono,
-                'correo' => $user->terapeuta->correo,
-                'numero_colegiado' => $user->terapeuta->numero_colegiado,
-                'experiencia' => $user->terapeuta->experiencia,
-                'formacion' => $user->terapeuta->formacion,
-                'certificaciones' => $user->terapeuta->certificaciones,
-                'pacientes_count' => $user->terapeuta->pacientes_count,
-            ] : null,
-            'administrativo' => $user->administrativo ? [
-                'nombre_completo' => $user->administrativo->nombre_completo,
-                'fecha_nacimiento' => $user->administrativo->fecha_nacimiento,
-                'telefono' => $user->administrativo->telefono,
-                'correo' => $user->administrativo->correo,
-            ] : null,
-            'encargado' => $user->encargado ? [
-                'nombre_completo' => $user->encargado->nombre_completo,
-                'genero' => $user->encargado->genero?->nombre,
-                'telefono' => $user->encargado->telefono,
-                'correo' => $user->encargado->correo,
-                'relacion' => $user->encargado->relacion,
-                'pacientes_count' => $user->encargado->pacientes_count,
-            ] : null,
+            'tipo' => $tipo,
+            'persona' => $persona,
+            // Cuántos pacientes tiene a cargo, cuando aplica.
+            'pacientes' => $user->terapeuta?->pacientes()->count()
+                ?? $user->encargado?->pacientes()->count(),
         ]);
     }
 

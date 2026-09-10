@@ -4,9 +4,11 @@ import { Link } from '@inertiajs/vue3'
 import AdministrativosModalVer from '@/Components/personas/AdministrativoModalVer.vue'
 import AdministrativoModalEditar from '@/Components/personas/AdministrativoModalEditar.vue'
 import { avatarUsuario } from '@/Utils/avatares'
+import RolesModal from '@/Components/personas/RolesModal.vue'
 
-defineProps({
+const props = defineProps({
   administrativos: Array,
+  roles: Array,
   cargos: Array,
   especialidades: Array,
   generos: Array,
@@ -15,6 +17,7 @@ defineProps({
 
 const showVerModal = ref(false)
 const showEditarModal = ref(false)
+const enRoles = ref(null)
 const selectedAdministrativo = ref(null)
 
 function openVerModal(administrativo) {
@@ -33,6 +36,10 @@ function openEditarModal(administrativo) {
 function closeEditarModal() {
   showEditarModal.value = false
   selectedAdministrativo.value = null
+}
+
+function abrirRoles(persona) {
+  enRoles.value = persona
 }
 </script>
 
@@ -94,12 +101,12 @@ function closeEditarModal() {
                 <span class="ml-1">Eliminar</span>
               </Link>
 
-              <!-- Permisos -->
-              <Link :href="`/personas/administrativo/${a.id}/permisos`"
+              <!-- Permisos: se gestionan sobre el usuario ligado a la persona. -->
+              <button type="button" @click="abrirRoles(a)"
                 class="inline-flex items-center px-3 py-1 text-[#2D2B5B] hover:text-[#53C6D3]">
                 <span class="material-icons text-base">lock</span>
                 <span class="ml-1">Permisos</span>
-              </Link>
+              </button>
 
               <!-- Subalternos -->
               <Link :href="`/personas/administrativo/${a.id}/subalternos`"
@@ -130,6 +137,8 @@ function closeEditarModal() {
       :usuariosDisponibles="usuariosDisponibles"
       @close="closeEditarModal"
     />
+    <RolesModal v-if="enRoles" :persona="enRoles" tipo="administrativo" :roles="roles ?? []"
+      @close="enRoles = null" />
   </div>
 </template>
 

@@ -11,7 +11,8 @@ class EstadoCitaSeeder extends Seeder
     {
         // La agenda los usa en su leyenda y en el resumen del día. 'Atendida'
         // la pone SesionController y 'Vencida' el comando citas:marcar-vencidas;
-        // ninguna de las dos se elige a mano.
+        // ninguna de las dos se elige a mano. 'Pendiente de reprogramación' la
+        // pone la solicitud del encargado.
         $estados = [
             'Pendiente',
             'Programada',
@@ -20,6 +21,7 @@ class EstadoCitaSeeder extends Seeder
             'Cancelada',
             'Atendida',
             'Vencida',
+            'Pendiente de reprogramación',
         ];
 
         foreach ($estados as $nombre) {

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import cytoscape from 'cytoscape'
 import { NIVELES, OBSERVACION, EN_DESARROLLO, nivelDe } from '@/Utils/anamnesis'
 import { CATEGORICO, NEUTRO, SUPERFICIE } from '@/Utils/paleta'
@@ -356,7 +356,17 @@ const etiquetaNivel = computed(() =>
   <Head title="Indicadores" />
 
   <div class="p-8 max-w-7xl mx-auto">
-    <h2 class="text-2xl font-bold text-caine-azul mb-6">Indicadores</h2>
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <h2 class="text-2xl font-bold text-caine-azul">Indicadores</h2>
+
+      <Link v-if="$page.props.auth.user.permissions.includes('ver ocupacion personal')"
+        href="/agenda/ocupacion"
+        class="inline-flex items-center gap-1 px-4 py-3 rounded-lg border border-caine-azul
+               text-caine-azul font-semibold hover:bg-caine-azul hover:text-white transition">
+        <span class="material-icons text-base">insights</span>
+        Ocupación de personal
+      </Link>
+    </div>
 
     <!-- Filtros: una sola fila, arriba de todo lo que condicionan -->
     <div class="flex flex-wrap items-center gap-3 mb-6">

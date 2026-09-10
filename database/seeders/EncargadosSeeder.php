@@ -17,6 +17,8 @@ class EncargadosSeeder extends Seeder
             [
                 'nombres' => 'Carlos',
                 'apellidos' => 'Gómez',
+                'fecha_nacimiento' => '1982-04-11',
+                'dpi' => 1834726510101,
                 'telefono' => '555-9876',
                 'correo' => 'carlos@example.com',
                 'relacion_paciente_id' => RelacionPaciente::where('nombre', 'Padre')->first()->id,
@@ -31,6 +33,8 @@ class EncargadosSeeder extends Seeder
             [
                 'nombres' => 'Ana',
                 'apellidos' => 'Torres',
+                'fecha_nacimiento' => '1986-09-27',
+                'dpi' => 2495138760101,
                 'telefono' => '555-6543',
                 'correo' => 'ana@example.com',
                 'relacion_paciente_id' => RelacionPaciente::where('nombre', 'Madre')->first()->id,

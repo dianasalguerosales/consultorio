@@ -143,6 +143,7 @@ class PacientesPruebaSeeder extends Seeder
         $definicion = [
             [
                 'email' => 'marisol.chavez@caine.com',
+                'dpi' => 2891034560101,
                 'nombres' => 'Marisol',
                 'apellidos' => 'Chávez Ordóñez',
                 'especialidad' => 'Lenguaje',
@@ -156,6 +157,7 @@ class PacientesPruebaSeeder extends Seeder
             ],
             [
                 'email' => 'diego.aguilar@caine.com',
+                'dpi' => 1776452310101,
                 'nombres' => 'Diego',
                 'apellidos' => 'Aguilar Ruano',
                 'especialidad' => 'Terapia Ocupacional',
@@ -169,6 +171,7 @@ class PacientesPruebaSeeder extends Seeder
             ],
             [
                 'email' => 'gabriela.morales@caine.com',
+                'dpi' => 2033718940101,
                 'nombres' => 'Gabriela',
                 'apellidos' => 'Morales Pinto',
                 'especialidad' => 'Psicología',
@@ -197,6 +200,7 @@ class PacientesPruebaSeeder extends Seeder
             $terapeutas[$d['especialidad']] = Terapeuta::updateOrCreate(
                 ['user_id' => $user->id],
                 [
+                    'dpi' => $d['dpi'] ?? null,
                     'nombres' => $d['nombres'],
                     'apellidos' => $d['apellidos'],
                     'fecha_nacimiento' => $d['fecha_nacimiento'],
@@ -223,6 +227,7 @@ class PacientesPruebaSeeder extends Seeder
         $definicion = [
             'rosales' => [
                 'email' => 'silvia.rosales@example.com',
+                'dpi' => 2564890120101,
                 'nombres' => 'Silvia',
                 'apellidos' => 'Rosales de León',
                 'relacion' => 'Madre',
@@ -235,6 +240,7 @@ class PacientesPruebaSeeder extends Seeder
             ],
             'batres' => [
                 'email' => 'rodrigo.batres@example.com',
+                'dpi' => 1893256740101,
                 'nombres' => 'Rodrigo',
                 'apellidos' => 'Batres Coronado',
                 'relacion' => 'Padre',
@@ -247,6 +253,7 @@ class PacientesPruebaSeeder extends Seeder
             ],
             'quinonez' => [
                 'email' => 'lucrecia.quinonez@example.com',
+                'dpi' => 2917463850101,
                 'nombres' => 'Lucrecia',
                 'apellidos' => 'Quiñónez Marroquín',
                 'relacion' => 'Madre',
@@ -259,6 +266,7 @@ class PacientesPruebaSeeder extends Seeder
             ],
             'castellanos' => [
                 'email' => 'hugo.castellanos@example.com',
+                'dpi' => 1645320980101,
                 'nombres' => 'Hugo',
                 'apellidos' => 'Castellanos Arriaga',
                 'relacion' => 'Tutor',
@@ -271,6 +279,7 @@ class PacientesPruebaSeeder extends Seeder
             ],
             'melgar' => [
                 'email' => 'andrea.melgar@example.com',
+                'dpi' => 2708194530101,
                 'nombres' => 'Andrea',
                 'apellidos' => 'Melgar Sandoval',
                 'relacion' => 'Madre',
@@ -298,6 +307,7 @@ class PacientesPruebaSeeder extends Seeder
             $encargados[$clave] = Encargado::updateOrCreate(
                 ['user_id' => $user->id],
                 [
+                    'dpi' => $d['dpi'] ?? null,
                     'nombres' => $d['nombres'],
                     'apellidos' => $d['apellidos'],
                     'fecha_nacimiento' => $d['fecha_nacimiento'],

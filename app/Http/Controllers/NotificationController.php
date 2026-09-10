@@ -19,4 +19,23 @@ class NotificationController extends Controller
             'notificaciones' => $notificaciones,
         ]);
     }
+
+    /** Se marca al abrirla desde la campana. */
+    public function leer(Request $request, Notification $notificacion)
+    {
+        abort_unless($notificacion->user_id === $request->user()->id, 403);
+
+        $notificacion->update(['leida' => true]);
+
+        return back();
+    }
+
+    public function leerTodas(Request $request)
+    {
+        Notification::where('user_id', $request->user()->id)
+            ->where('leida', false)
+            ->update(['leida' => true]);
+
+        return back()->with('success', 'Notificaciones marcadas como leídas.');
+    }
 }

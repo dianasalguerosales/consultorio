@@ -2,106 +2,110 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
+use App\Models\Especialidad;
+use App\Models\Genero;
 use App\Models\Terapeuta;
+use App\Personas\Personas;
+use App\Personas\UsuariosDisponibles;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
+/**
+ * El CRUD salió de PersonasController, que tenía los tres CRUD de personas
+ * calcados en un solo archivo.
+ */
 class TerapeutaController extends Controller
 {
     public function index()
     {
-        $terapeutas = Terapeuta::withCount('pacientes')->with('user')->get();
-
-        return Inertia::render('Terapeutas', [
-            'terapeutas' => $terapeutas,
+        return Inertia::render('Personas/Terapeutas', [
+            'terapeutas' => Terapeuta::with(['especialidad', 'genero', 'user.roles'])->get(),
+            'especialidades' => Especialidad::all(),
+            'generos' => Genero::all(),
+            'usuariosDisponibles' => UsuariosDisponibles::libres(),
+            'roles' => Role::orderBy('name')->pluck('name'),
         ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'fecha_nacimiento' => 'required|date',
-            'telefono' => 'nullable|string|max:20',
-            'correo' => 'required|email|unique:terapeutas,correo',
-            'numero_colegiado' => 'nullable|string|max:50',
-            'especialidad_id' => 'nullable|exists:especialidades,id',
-            'genero_id' => 'nullable|exists:generos,id',
-            'formacion' => 'nullable|string',
-            'certificaciones' => 'nullable|string',
-        ]);
+        $persona = Terapeuta::create($this->validar($request));
 
-        Terapeuta::create($validated);
+        // Nace con el rol que le toca por su tipo o su cargo.
+        Personas::asignarRolInicial($persona->load('user'));
 
-        return redirect()->route('terapeutas')->with('success', 'Terapeuta creado correctamente.');
+        return redirect()->route('personas.index')
+            ->with('success', 'Terapeuta creado correctamente.');
     }
 
-    public function update(Request $request, Terapeuta $terapeuta)
+    public function edit($id)
     {
-        $validated = $request->validate([
-            'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'fecha_nacimiento' => 'required|date',
-            'telefono' => 'nullable|string|max:20',
-            'correo' => 'required|email|unique:terapeutas,correo,' . $terapeuta->id,
-            'numero_colegiado' => 'nullable|string|max:50',
-            'especialidad_id' => 'nullable|exists:especialidades,id',
-            'genero_id' => 'nullable|exists:generos,id',
-            'formacion' => 'nullable|string',
-            'certificaciones' => 'nullable|string',
-        ]);
+        $terapeuta = Terapeuta::with('user')->findOrFail($id);
 
-        $terapeuta->update($validated);
-
-        return redirect()->route('terapeutas')->with('success', 'Terapeuta actualizado correctamente.');
-    }
-
-    public function destroy(Terapeuta $terapeuta)
-    {
-        $terapeuta->delete();
-
-        return redirect()->route('terapeutas')->with('success', 'Terapeuta eliminado correctamente.');
-    }
-
-    public function perfil(Terapeuta $terapeuta)
-    {
-        return Inertia::render('Terapeutas/Perfil', [
-            'terapeuta' => $terapeuta->load('user', 'pacientes'),
+        return Inertia::render('Personas/TerapeutaEditar', [
+            'terapeuta' => $terapeuta,
+            'especialidades' => Especialidad::all(),
+            'generos' => Genero::all(),
+            'usuariosDisponibles' => UsuariosDisponibles::libresMas($terapeuta->user),
         ]);
     }
 
-    public function paciente(Terapeuta $terapeuta)
+    public function update(Request $request, $id)
     {
-        return Inertia::render('Terapeutas/Pacientes', [
-            'pacientes' => $terapeuta->pacientes,
-        ]);
+        Terapeuta::findOrFail($id)->update($this->validar($request));
+
+        return redirect()->route('personas.index')
+            ->with('success', 'Terapeuta actualizado correctamente.');
     }
 
+    public function destroy($id)
+    {
+        Terapeuta::findOrFail($id)->delete();
+
+        return redirect()->route('personas.index')
+            ->with('success', 'Terapeuta eliminado correctamente.');
+    }
+
+    /** Los pacientes del terapeuta, en forma de organigrama. */
     public function pacientes($id)
-{
-    $terapeuta = Terapeuta::with('pacientes')->findOrFail($id);
+    {
+        $terapeuta = Terapeuta::with('pacientes')->findOrFail($id);
 
-    return inertia('Personas/TerapeutaPacientes', [
-        'organigrama' => [
-            'id' => $terapeuta->id,
-            'nombre' => $terapeuta->nombres . ' ' . $terapeuta->apellidos,
-            'cargo' => 'Terapeuta',
-            'correo' => $terapeuta->correo,
-            'rol' => 'terapeuta',
-            'avatar' => $terapeuta->avatar_url ?? '/images/avatar.webp',
-            'subalternos' => $terapeuta->pacientes->map(fn($p) => [
-                'id' => $p->id,
-                'nombre' => $p->nombres . ' ' . $p->apellidos,
-                'cargo' => 'Paciente',
-                'correo' => null,
-                'rol' => 'paciente',
-                'avatar' => '/images/avatar.webp',
-                'subalternos' => [],
-            ]),
-        ]
-    ]);
-}
+        return Inertia::render('Personas/TerapeutaPacientes', [
+            'organigrama' => [
+                'id' => $terapeuta->id,
+                'nombre' => $terapeuta->nombre_completo,
+                'cargo' => 'Terapeuta',
+                'correo' => $terapeuta->correo,
+                'rol' => 'terapeuta',
+                'subalternos' => $terapeuta->pacientes->map(fn($p) => [
+                    'id' => $p->id,
+                    'nombre' => $p->nombre_completo,
+                    'cargo' => 'Paciente',
+                    'correo' => null,
+                    'rol' => 'paciente',
+                    'subalternos' => [],
+                ]),
+            ],
+        ]);
+    }
 
+    private function validar(Request $request): array
+    {
+        return $request->validate([
+            'nombres' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'user_id' => 'nullable|exists:users,id',
+            'fecha_nacimiento' => 'nullable|date',
+            'dpi' => 'nullable|numeric',
+            'telefono' => 'nullable|string|max:25',
+            'correo' => 'nullable|email|max:255',
+            'genero_id' => 'nullable|exists:generos,id',
+            'especialidad_id' => 'nullable|exists:especialidades,id',
+            'experiencia' => 'nullable|string',
+            'certificaciones' => 'nullable|string',
+            'cursos' => 'nullable|string',
+        ]);
+    }
 }

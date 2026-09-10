@@ -28,6 +28,11 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Indicadores: vistas analíticas de toda la población de pacientes.
             'ver indicadores',
+
+            // Evaluaciones. 'ver' es más amplio que aplicar: pruebas y
+            // encargado consultan pero no crean, y el encargado además solo ve
+            // las de sus hijos.
+            'ver evaluaciones',
         ];
 
         foreach ($permisos as $permiso) {
@@ -50,6 +55,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $coordinador->syncPermissions([
             'gestionar citas',
             'ver reportes',
+            'ver evaluaciones',
             'gestionar pacientes',
             'ver agenda',
             'agendar citas',
@@ -61,6 +67,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // las crea, por eso ya no lleva 'gestionar citas'.
         $terapeuta->syncPermissions([
             'gestionar pacientes',
+            'ver evaluaciones',
             'crear informes',
             'editar informes',
             'ver agenda',
@@ -69,6 +76,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // El auxiliar atiende solo en sucursal, así que agenda sus propias citas.
         $auxiliar->syncPermissions([
             'gestionar pacientes',
+            'ver evaluaciones',
             'gestionar citas',
             'ver agenda',
             'agendar citas',
@@ -79,11 +87,14 @@ class RolesAndPermissionsSeeder extends Seeder
         $encargado->syncPermissions([
             'acceso portal padres',
             'ver agenda',
+            // Solo consulta, y solo las de sus hijos: lo filtra el controlador.
+            'ver evaluaciones',
         ]);
 
-        // Rol pruebas: sin permisos o mínimos
+        // Rol pruebas: consulta, sin crear nada.
         $pruebas->syncPermissions([
             'ver reportes',
+            'ver evaluaciones',
         ]);
     }
 }

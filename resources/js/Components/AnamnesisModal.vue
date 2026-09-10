@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { EscClose } from '@/Utils/EscClose'
+import ModalCapa from '@/Components/ModalCapa.vue'
 import { fechaLarga } from '@/Utils/fechas'
 import {
   NIVELES,
@@ -16,8 +16,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-EscClose(() => emit('close'))
 
 // La escala vive en @/Utils/anamnesis, compartida con Historia Clínica e
 // /indicadores.
@@ -107,11 +105,8 @@ function imprimir() {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 anamnesis-modal">
-    <div class="absolute inset-0 bg-black/40 no-imprimir" @click="emit('close')"></div>
-
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[92vh]
-                flex flex-col anamnesis-hoja">
+  <ModalCapa clase="anamnesis-modal" @close="emit('close')"
+    panel="max-w-4xl max-h-[92vh] flex flex-col anamnesis-hoja">
 
       <!-- Encabezado -->
       <div class="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-200">
@@ -243,8 +238,7 @@ function imprimir() {
           </div>
         </template>
       </div>
-    </div>
-  </div>
+  </ModalCapa>
 </template>
 
 <style>
@@ -283,7 +277,8 @@ function imprimir() {
     max-height: none !important;
   }
 
-  .no-imprimir {
+  .no-imprimir,
+  .modal-fondo {
     display: none !important;
   }
 

@@ -1,5 +1,5 @@
 <script setup>
-import { EscClose } from '@/Utils/EscClose'
+import ModalCapa from '@/Components/ModalCapa.vue'
 
 defineProps({
   user: Object,
@@ -9,14 +9,10 @@ defineProps({
 
 const emit = defineEmits(['close', 'save'])
 
-EscClose(() => {
-  emit('close')
-})
 </script>
 
 <template>
-  <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+  <ModalCapa panel="max-w-2xl p-8" @close="emit('close')">
 
       <h2 class="text-lg font-bold text-caine-azul mb-6">
         {{ user ? 'Editar Usuario' : 'Nuevo Usuario' }}
@@ -123,7 +119,5 @@ EscClose(() => {
         </button>
 
       </div>
-
-    </div>
-  </div>
+  </ModalCapa>
 </template>

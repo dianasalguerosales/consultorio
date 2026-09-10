@@ -1,5 +1,5 @@
 <script setup>
-import { EscClose } from '@/Utils/EscClose'
+import ModalCapa from '@/Components/ModalCapa.vue'
 import { fecha } from '@/Utils/fechas'
 
 defineProps({
@@ -12,16 +12,10 @@ const nombreCompleto = (p) => [p?.nombres, p?.apellidos].filter(Boolean).join(' 
 
 const emit = defineEmits(['close', 'save'])
 
-EscClose(() => {
-  emit('close')
-})
-
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <!-- Ajuste de tamaño igual al Expediente -->
-    <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-6xl h-5/6 overflow-y-auto flex flex-col">
+  <ModalCapa panel="max-w-6xl h-5/6 overflow-y-auto flex flex-col" @close="emit('close')">
       
       <!-- Header -->
       <div class="flex justify-between items-center border-b p-4">
@@ -69,6 +63,5 @@ EscClose(() => {
           Cerrar
         </button>
       </div>
-    </div>
-  </div>
+  </ModalCapa>
 </template>

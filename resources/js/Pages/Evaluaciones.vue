@@ -6,6 +6,8 @@ import AplicarEvaluacionModal from '@/Components/AplicarEvaluacionModal.vue'
 
 const props = defineProps({
   aplicadas: { type: Array, default: () => [] },
+  // pruebas y encargado solo consultan.
+  puedeAplicar: { type: Boolean, default: false },
   evaluaciones: { type: Array, default: () => [] },
   expedientes: { type: Array, default: () => [] },
 })
@@ -35,7 +37,7 @@ const aplicando = ref(false)
   <div class="p-8 max-w-7xl mx-auto">
     <h2 class="text-2xl font-bold text-caine-azul mb-6">Evaluaciones</h2>
 
-    <div class="mb-6 flex justify-end">
+    <div v-if="puedeAplicar" class="mb-6 flex justify-end">
       <button type="button" @click="aplicando = true"
         class="bg-caine-celeste text-white px-6 py-3 rounded-lg font-semibold shadow hover:scale-105 transition">
         + Aplicar evaluación
@@ -97,7 +99,7 @@ const aplicando = ref(false)
       </p>
     </div>
 
-    <AplicarEvaluacionModal v-if="aplicando" :evaluaciones="evaluaciones"
+    <AplicarEvaluacionModal v-if="aplicando && puedeAplicar" :evaluaciones="evaluaciones"
       :expedientes="expedientes" @close="aplicando = false" />
   </div>
 </template>
