@@ -14,6 +14,7 @@ asistente — sin tener que reconstruir el razonamiento desde cero.
 |---|---|
 | [Informe de cambios](informe-de-cambios.md) | Qué se construyó y qué se corrigió el 7 de septiembre de 2026, con los archivos tocados |
 | [Informe 09-09](informe_09-09.md) | El 9 de septiembre de 2026: módulos Hijos, Evaluaciones e Informes, organigrama, layout responsivo y fechas dd/mm/yyyy |
+| [Informe 10-09](informe1009.md) | El 10 de septiembre de 2026: migración a Laravel 12, modularización, y los módulos Roles, Reprogramación de citas y Pagos |
 
 ## Reglas de trabajo
 
