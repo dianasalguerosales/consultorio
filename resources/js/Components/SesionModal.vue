@@ -73,6 +73,16 @@ function guardar() {
         </button>
       </div>
 
+      <!-- Hoy cumple años: se avisa a quien lo atiende para que lo salude -->
+      <div v-if="datos.cumpleanos"
+        class="flex items-center gap-3 mx-6 mt-4 px-4 py-3 rounded-md bg-caine-naranja/10 border border-caine-naranja/40">
+        <span class="material-icons text-caine-naranja">cake</span>
+        <p class="text-sm text-[#7A4A12]">
+          <strong>Hoy es el cumpleaños de {{ datos.paciente }}.</strong>
+          No olvide felicitarlo.
+        </p>
+      </div>
+
       <!-- Formulario -->
       <form @submit.prevent="guardar" class="flex-1 overflow-y-auto px-6 py-4 space-y-5">
 

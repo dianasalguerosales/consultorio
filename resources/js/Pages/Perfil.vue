@@ -41,18 +41,18 @@ const capitalize = (str) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : 
 <template>
   <Head title="Perfil de usuario" />
 
-  <div class="p-8 max-w-5xl mx-auto">
+  <div class="p-4 sm:p-8 max-w-5xl mx-auto">
     <h2 class="text-2xl font-bold text-caine-azul mb-6">Perfil de usuario</h2>
 
     <!-- La ficha es la misma que ve el coordinador en Personas. -->
-    <div class="bg-white shadow rounded-lg p-6">
-      <FichaPersona v-if="persona" :persona="persona" :tipo="tipo" avatarClase="w-48 h-48" />
+    <div class="bg-white shadow rounded-lg p-4 sm:p-6">
+      <FichaPersona v-if="persona" :persona="persona" :tipo="tipo" avatarClase="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48" />
 
       <!-- Sin ficha de persona: solo el usuario. -->
-      <div v-else class="flex items-center gap-4">
+      <div v-else class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
         <img :src="avatarSuelto" :alt="etiquetaRol"
-          class="w-32 h-32 rounded-full border object-cover bg-white shrink-0" />
-        <div>
+          class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border object-cover bg-white shrink-0" />
+        <div class="min-w-0">
           <p class="text-xl font-semibold text-caine-azul">{{ nombreMostrado }}</p>
           <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ etiquetaRol }}</p>
           <p class="text-sm text-gray-500">Este usuario no tiene ficha de persona asociada.</p>
@@ -61,10 +61,10 @@ const capitalize = (str) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : 
     </div>
 
     <!-- Datos de la cuenta, que son del usuario y no de la persona -->
-    <div class="bg-white shadow rounded-lg p-6 mt-6">
+    <div class="bg-white shadow rounded-lg p-4 sm:p-6 mt-6">
       <h3 class="text-lg font-bold text-[#2D2B5B] mb-4">Cuenta</h3>
 
-      <p class="text-sm text-gray-500">{{ user.email }}</p>
+      <p class="text-sm text-gray-500 break-all">{{ user.email }}</p>
 
       <div class="mt-3 flex flex-wrap gap-2">
         <span v-for="role in roles" :key="role"

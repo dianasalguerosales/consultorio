@@ -10,7 +10,7 @@ class SolicitudReprogramacion extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'solicitudes_reprogramacion';
+    protected $table = 'reprogramaciones';
 
     /**
      * Horas mínimas de anticipación para pedir una reprogramación: las

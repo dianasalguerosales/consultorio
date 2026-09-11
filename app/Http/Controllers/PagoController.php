@@ -11,9 +11,10 @@ use Inertia\Inertia;
 /**
  * Cobro de las sesiones ya recibidas.
  *
- * Solo se cobra lo que se dio: la lista sale de las citas que tienen sesión
- * registrada. Las que nadie ha pagado no tienen fila en `pagos`, se muestran
- * como pendientes.
+ * Salen todas las citas del período, con el estado en que está cada una: un
+ * programa se cobra por adelantado, así que esperar a que la sesión se dé
+ * dejaría fuera lo que hay que cobrar. Las que nadie ha pagado no tienen fila
+ * en `pagos`; se muestran como pendientes.
  */
 class PagoController extends Controller
 {
@@ -22,9 +23,8 @@ class PagoController extends Controller
         $rango = Quincena::desdeFiltro($request->query('desde'), $request->query('hasta'));
 
         $citas = Cita::query()
-            ->has('sesion')
             ->enRango($rango->inicio(), $rango->fin())
-            ->with(['paciente:id,nombres,apellidos,genero', 'servicio:id,nombre', 'atendidoPor'])
+            ->with(['paciente:id,nombres,apellidos,genero', 'servicio:id,nombre', 'atendidoPor', 'estadoCita:id,nombre'])
             ->orderBy('fecha')
             ->orderBy('hora_inicio')
             ->get();
@@ -45,8 +45,6 @@ class PagoController extends Controller
     /** Registra o corrige el pago de una cita. */
     public function store(Request $request, Cita $cita)
     {
-        abort_unless($cita->sesion, 422, 'La cita todavía no tiene sesión registrada.');
-
         $datos = $request->validate([
             'monto' => 'required|numeric|min:0.01',
             'metodo' => 'required|in:' . implode(',', Pago::METODOS),
@@ -93,6 +91,8 @@ class PagoController extends Controller
             'servicio' => $cita->servicio?->nombre ?? 'Sin servicio',
             'atiende' => $cita->atendidoPor?->nombre_completo ?? 'Sin asignar',
             'precio' => (float) $cita->precio_aplicado,
+            'estado_cita' => $cita->estadoCita?->nombre ?? 'Sin estado',
+            'cancelada' => $cita->estadoCita?->nombre === 'Cancelada',
             'estado' => $pago?->estado ?? Pago::PENDIENTE,
             'monto' => $pago ? (float) $pago->monto : null,
             'metodo' => $pago?->metodo,
@@ -104,7 +104,8 @@ class PagoController extends Controller
     /** Lo que se espera cobrar en el período, contra lo que ya entró. */
     private function totales($filas): array
     {
-        $esperado = $filas->sum('precio');
+        // Una cita cancelada se sigue viendo, pero no se espera cobrarla.
+        $esperado = $filas->where('cancelada', false)->sum('precio');
         $cobrado = $filas->sum(fn ($f) => $f['monto'] ?? 0);
 
         return [

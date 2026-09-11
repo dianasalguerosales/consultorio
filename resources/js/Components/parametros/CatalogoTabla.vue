@@ -9,6 +9,15 @@ const props = defineProps({
   catalogo: { type: Object, required: true },
 })
 
+// Los campos extra que declara el catalogo (Programas: cantidad y costo).
+const campos = props.catalogo.campos ?? []
+
+const valor = (item, campo) => {
+  const v = item[campo.clave]
+  if (v === null || v === undefined || v === '') return '—'
+  return campo.tipo === 'moneda' ? `Q${Number(v).toFixed(2)}` : v
+}
+
 const seleccionado = ref(null)
 const viendo = ref(false)
 const editando = ref(false)
@@ -46,6 +55,7 @@ function cerrar() {
           <tr>
             <th class="px-4 py-2 text-left">Nombre</th>
             <th v-if="catalogo.conDescripcion" class="px-4 py-2 text-left">Descripción</th>
+            <th v-for="c in campos" :key="c.clave" class="px-4 py-2 text-right">{{ c.etiqueta }}</th>
             <th class="px-4 py-2 text-center">Activo</th>
             <th class="px-4 py-2 text-center">Acciones</th>
           </tr>
@@ -56,6 +66,10 @@ function cerrar() {
             <td class="px-4 py-2 font-medium text-[#2D2B5B]">{{ item.nombre }}</td>
 
             <td v-if="catalogo.conDescripcion" class="px-4 py-2 text-gray-700">{{ item.descripcion }}</td>
+
+            <td v-for="c in campos" :key="c.clave" class="px-4 py-2 text-right whitespace-nowrap">
+              {{ valor(item, c) }}
+            </td>
 
             <td class="px-4 py-2 text-center">
               <span :class="item.activo ? 'text-green-600' : 'text-red-600'">
@@ -95,9 +109,9 @@ function cerrar() {
     </div>
 
     <CatalogoModalVer v-if="viendo" :item="seleccionado" :titulo="catalogo.titulo"
-      :conDescripcion="catalogo.conDescripcion" @close="cerrar" />
+      :conDescripcion="catalogo.conDescripcion" :campos="campos" @close="cerrar" />
 
     <CatalogoModalEditar v-if="editando" :item="seleccionado" :catalogo="catalogo.clave"
-      :titulo="catalogo.titulo" :conDescripcion="catalogo.conDescripcion" @close="cerrar" />
+      :titulo="catalogo.titulo" :conDescripcion="catalogo.conDescripcion" :campos="campos" @close="cerrar" />
   </div>
 </template>

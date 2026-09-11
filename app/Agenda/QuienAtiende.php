@@ -52,16 +52,18 @@ class QuienAtiende
     public static function todos(): Collection
     {
         $terapeutas = Terapeuta::query()
+            ->with('especialidad:id,nombre')
             ->orderBy('nombres')
             ->get()
-            ->map(fn(Terapeuta $t) => self::comoFila('terapeuta', $t->id, $t->nombre_completo, 'Terapeuta'));
+            ->map(fn(Terapeuta $t) => self::comoFila('terapeuta', $t->id, $t->nombre_completo, 'Terapeuta', $t->especialidad?->nombre));
 
         // Los auxiliares se identifican por su cargo en administrativos.
         $auxiliares = Administrativo::query()
+            ->with('especialidad:id,nombre')
             ->whereHas('cargo', fn($q) => $q->where('nombre', 'Auxiliar'))
             ->orderBy('nombres')
             ->get()
-            ->map(fn(Administrativo $a) => self::comoFila('auxiliar', $a->id, $a->nombre_completo, 'Auxiliar'));
+            ->map(fn(Administrativo $a) => self::comoFila('auxiliar', $a->id, $a->nombre_completo, 'Auxiliar', $a->especialidad?->nombre));
 
         return $terapeutas->concat($auxiliares)->values();
     }
@@ -70,17 +72,17 @@ class QuienAtiende
     public static function de(User $user): ?array
     {
         if ($user->administrativo) {
-            return self::comoFila('auxiliar', $user->administrativo->id, $user->administrativo->nombre_completo, 'Auxiliar');
+            return self::comoFila('auxiliar', $user->administrativo->id, $user->administrativo->nombre_completo, 'Auxiliar', $user->administrativo->especialidad?->nombre);
         }
 
         if ($user->terapeuta) {
-            return self::comoFila('terapeuta', $user->terapeuta->id, $user->terapeuta->nombre_completo, 'Terapeuta');
+            return self::comoFila('terapeuta', $user->terapeuta->id, $user->terapeuta->nombre_completo, 'Terapeuta', $user->terapeuta->especialidad?->nombre);
         }
 
         return null;
     }
 
-    private static function comoFila(string $tipo, int $id, ?string $nombre, string $rol): array
+    private static function comoFila(string $tipo, int $id, ?string $nombre, string $rol, ?string $especialidad = null): array
     {
         return [
             'clave' => "{$tipo}:{$id}",
@@ -88,6 +90,9 @@ class QuienAtiende
             'id' => $id,
             'nombre_completo' => $nombre,
             'rol' => $rol,
+            // La especialidad sale de la persona: al elegirla, la pantalla la
+            // muestra debajo del nombre en vez de pedir que se escoja aparte.
+            'especialidad' => $especialidad,
         ];
     }
 }

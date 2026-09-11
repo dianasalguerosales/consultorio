@@ -67,7 +67,7 @@ const filaEnEdicion = ref(null)
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
       <div>
         <h2 class="text-2xl font-bold text-[#2D2B5B]">Pagos</h2>
-        <p class="text-sm text-gray-500">Sesiones recibidas del {{ fecha(rango.desde) }} al {{ fecha(rango.hasta) }}</p>
+        <p class="text-sm text-gray-500">Citas del {{ fecha(rango.desde) }} al {{ fecha(rango.hasta) }}</p>
       </div>
       <div class="relative">
         <span class="material-icons absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
@@ -106,7 +106,7 @@ const filaEnEdicion = ref(null)
     <!-- Resumen del período -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <div class="p-4 rounded-lg border border-gray-200">
-        <p class="text-xs text-gray-500">Sesiones</p>
+        <p class="text-xs text-gray-500">Citas</p>
         <p class="text-xl font-bold text-[#2D2B5B]">{{ totales.sesiones }}</p>
       </div>
       <div class="p-4 rounded-lg border border-gray-200">
@@ -132,6 +132,7 @@ const filaEnEdicion = ref(null)
             <th class="px-4 py-2 text-left">Paciente</th>
             <th class="px-4 py-2 text-left">Sesión</th>
             <th class="px-4 py-2 text-left">Servicio</th>
+            <th class="px-4 py-2 text-left">Cita</th>
             <th class="px-4 py-2 text-right">Precio</th>
             <th class="px-4 py-2 text-right">Pagado</th>
             <th class="px-4 py-2 text-left">Tipo de pago</th>
@@ -153,6 +154,11 @@ const filaEnEdicion = ref(null)
             <td class="px-4 py-2">
               {{ f.servicio }}
               <span class="block text-sm text-gray-500">{{ f.atiende }}</span>
+            </td>
+            <td class="px-4 py-2">
+              <span class="text-sm" :class="f.cancelada ? 'text-red-600' : 'text-gray-600'">
+                {{ f.estado_cita }}
+              </span>
             </td>
             <td class="px-4 py-2 text-right whitespace-nowrap">{{ quetzales(f.precio) }}</td>
             <td class="px-4 py-2 text-right whitespace-nowrap">
@@ -178,8 +184,8 @@ const filaEnEdicion = ref(null)
           </tr>
 
           <tr v-if="!filasFiltradas.length">
-            <td colspan="10" class="px-4 py-8 text-center text-gray-500">
-              No hay sesiones recibidas en este período.
+            <td colspan="11" class="px-4 py-8 text-center text-gray-500">
+              No hay citas en este período.
             </td>
           </tr>
         </tbody>

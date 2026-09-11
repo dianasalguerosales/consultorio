@@ -89,15 +89,31 @@ watch(() => props.show, (abierto) => {
 })
 
 // Al auxiliar no se le deja cambiar quién atiende.
+// La especialidad no se elige: es la de quien atiende. Se muestra debajo del
+// nombre para que quien agenda sepa a quién está mandando al niño.
+const especialidadDeQuienAtiende = computed(() => {
+  const elegido = (props.catalogos?.atienden ?? []).find(
+    (a) => `${a.tipo}:${a.id}` === atiendeSeleccionado.value
+  )
+
+  return elegido?.especialidad ?? null
+})
+
 const atiendeFijo = computed(() =>
   Boolean(props.permisos?.soloParaSiMismo && props.permisos?.yoAtiendo)
 )
 
-// Al elegir un programa se sugiere su precio, pero se puede sobrescribir.
+// Al elegir un programa se sugiere lo que cuesta UNA cita, que es el costo
+// del paquete dividido entre sus citas. Antes se copiaba el costo completo y
+// una sola cita quedaba con el precio del mes entero.
 watch(() => form.programa_id, (id) => {
   if (!id || esEdicion.value) return
+
   const programa = props.catalogos?.programas?.find((p) => String(p.id) === String(id))
-  if (programa?.precio_mensual) form.precio_aplicado = programa.precio_mensual
+  if (!programa?.precio_mensual) return
+
+  const citas = Number(programa.sesiones_por_mes) || 1
+  form.precio_aplicado = (Number(programa.precio_mensual) / citas).toFixed(2)
 })
 
 function guardar() {
@@ -163,6 +179,9 @@ function eliminar() {
                 {{ a.nombre_completo }} ({{ a.tipo }})
               </option>
             </select>
+            <p v-if="especialidadDeQuienAtiende" class="mt-1 text-xs text-gray-500">
+              Especialidad: {{ especialidadDeQuienAtiende }}
+            </p>
             <p v-if="atiendeFijo" class="mt-1 text-xs text-gray-400">
               Solo puede agendar citas que usted mismo atiende.
             </p>

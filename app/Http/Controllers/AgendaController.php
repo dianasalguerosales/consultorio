@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Agenda\QuienAtiende;
+use App\Cumpleanos\Cumpleanos;
 use App\Models\SolicitudReprogramacion;
 use App\Models\Cita;
 use App\Models\EstadoCita;
@@ -32,6 +33,8 @@ class AgendaController extends Controller
         $citas = $this->conAlcanceDe(
             Cita::query()->with([
                 'paciente.genero',
+                // Para avisar en el modal si el niño cumple años ese día.
+                'paciente.expediente:id,paciente_id,fecha_nacimiento',
                 'atendidoPor',
                 'estadoCita',
                 'servicio',
@@ -321,6 +324,13 @@ class AgendaController extends Controller
                 'horaInicio' => substr($cita->hora_inicio, 0, 5),
                 'horaFin' => $cita->hora_fin ? substr($cita->hora_fin, 0, 5) : null,
 
+                // Se compara contra la fecha de la cita, no contra hoy: una
+                // cita de mañana también avisa que ese día es el cumpleaños.
+                'cumpleanos' => Cumpleanos::esCumpleanos(
+                    $cita->paciente?->expediente?->fecha_nacimiento,
+                    $cita->fecha
+                ),
+
                 // null = aún sin atender. Sirve para abrir el modal con lo escrito.
                 'sesion' => $cita->sesion ? [
                     'evolucion' => $cita->sesion->evolucion,
@@ -396,7 +406,7 @@ class AgendaController extends Controller
             'modalidades' => Modalidad::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre']),
             'tiposCita' => TipoCita::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre']),
             'servicios' => Servicio::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre']),
-            'programas' => Programa::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre', 'precio_mensual']),
+            'programas' => Programa::where('activo', 1)->orderBy('nombre')->get(['id', 'nombre', 'sesiones_por_mes', 'precio_mensual']),
         ];
     }
 }

@@ -2,16 +2,41 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Programa;
+use Illuminate\Database\Seeder;
 
+/**
+ * Los programas que se venden. La cantidad de citas es la que trae el paquete;
+ * el costo se divide entre ellas para sacar el precio de cada cita.
+ *
+ * Los costos quedan vacíos a propósito: los llena la coordinación desde
+ * Parámetros. No se inventan acá.
+ */
 class ProgramaSeeder extends Seeder
 {
     public function run(): void
     {
         $programas = [
-            ['nombre' => 'Diario', 'descripcion' => 'Sesiones todos los días', 'sesiones_por_mes' => 30, 'precio_mensual' => 800.00, 'activo' => 1],
-            ['nombre' => 'Mensual', 'descripcion' => 'Plan mensual estándar', 'sesiones_por_mes' => 8, 'precio_mensual' => 250.00, 'activo' => 1],
+            [
+                'nombre' => '4 sesiones',
+                'descripcion' => 'Cuatro citas al mes.',
+                'sesiones_por_mes' => 4,
+            ],
+            [
+                'nombre' => '8 sesiones',
+                'descripcion' => 'Ocho citas al mes.',
+                'sesiones_por_mes' => 8,
+            ],
+            [
+                'nombre' => '12 sesiones',
+                'descripcion' => 'Doce citas al mes.',
+                'sesiones_por_mes' => 12,
+            ],
+            [
+                'nombre' => 'Caine Kids',
+                'descripcion' => 'Escuela de lunes a viernes, de 9:15 a 12:15. Se paga por mes.',
+                'sesiones_por_mes' => 20,
+            ],
         ];
 
         foreach ($programas as $p) {
@@ -20,8 +45,7 @@ class ProgramaSeeder extends Seeder
                 [
                     'descripcion' => $p['descripcion'],
                     'sesiones_por_mes' => $p['sesiones_por_mes'],
-                    'precio_mensual' => $p['precio_mensual'],
-                    'activo' => $p['activo'],
+                    'activo' => 1,
                 ]
             );
         }

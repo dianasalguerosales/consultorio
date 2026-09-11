@@ -10,8 +10,6 @@ const props = defineProps({
   tipo: { type: String, required: true },
   // El perfil lo quiere más grande que la ficha de los modales.
   avatarClase: { type: String, default: 'w-20 h-20' },
-  // El perfil lo quiere más grande que la ficha de los modales.
-  avatarClase: { type: String, default: 'w-20 h-20' }
 })
 
 /* ---------- Avatar ---------- */
@@ -89,11 +87,11 @@ const tituloPropios = {
 <template>
   <div class="space-y-6">
     <!-- Cabecera -->
-    <div class="flex items-center gap-4">
+    <div class="flex flex-col sm:flex-row items-center sm:items-center gap-4 text-center sm:text-left">
       <img :src="avatar" :alt="etiqueta" class="rounded-full border object-cover bg-white shrink-0"
         :class="avatarClase" />
 
-      <div class="min-w-0">
+      <div class="min-w-0 w-full">
         <p class="text-xl font-semibold text-caine-azul truncate">{{ nombre }}</p>
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ etiqueta }}</p>
         <p class="text-gray-600 truncate">{{ persona.correo || '—' }}</p>

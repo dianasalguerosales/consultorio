@@ -39,13 +39,13 @@ class PacientesController extends Controller
             'citas.atendidoPor',
         ])->orderBy('apellidos')->get();
 
-        $encargados = Encargado::all();
-
         return Inertia::render('Pacientes', [
             'pacientes' => $pacientes,
             'encargados' => Encargado::all(),
             'generos' => Genero::orderBy('nombre')->get(),
             'escolaridades' => Escolaridad::orderBy('nombre')->get(),
+            // Para el modal de programa, que se abre desde la ficha.
+            'catalogosPrograma' => app(AsignacionProgramaController::class)->catalogos(),
         ]);
     }
 

@@ -8,14 +8,21 @@ const props = defineProps({
   catalogo: { type: String, required: true },
   titulo: { type: String, required: true },
   conDescripcion: { type: Boolean, default: false },
+  // Campos propios del catalogo, como la cantidad de citas y el costo de un
+  // programa. Vienen de App\Catalogos\Catalogos.
+  campos: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['close'])
 
+// Los campos extra se declaran aca a proposito: useForm solo manda las llaves
+// que existen en el objeto inicial, y un v-model sobre una llave no declarada
+// se descarta sin avisar.
 const form = useForm({
   nombre: props.item?.nombre ?? '',
   descripcion: props.item?.descripcion ?? '',
   activo: props.item ? Boolean(props.item.activo) : true,
+  ...Object.fromEntries(props.campos.map((c) => [c.clave, props.item?.[c.clave] ?? ''])),
 })
 
 function guardar() {
@@ -48,6 +55,13 @@ function guardar() {
         <textarea v-model="form.descripcion"
           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
         <p v-if="form.errors.descripcion" class="mt-1 text-sm text-caine-error">{{ form.errors.descripcion }}</p>
+      </div>
+
+      <div v-for="c in campos" :key="c.clave">
+        <label class="block text-sm font-medium">{{ c.etiqueta }}</label>
+        <input v-model="form[c.clave]" type="number" :step="c.tipo === 'moneda' ? '0.01' : '1'" min="0"
+          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+        <p v-if="form.errors[c.clave]" class="mt-1 text-sm text-caine-error">{{ form.errors[c.clave] }}</p>
       </div>
 
       <div>

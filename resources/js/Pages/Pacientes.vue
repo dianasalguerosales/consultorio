@@ -4,6 +4,7 @@ import { ref } from "vue";
 import PacienteForm from "@/Components/PacienteForm.vue";
 import ExpedienteModal from "@/Components/ExpedienteModal.vue";
 import HistorialModal from "@/Components/HistorialModal.vue";
+import AsignarProgramaModal from "@/Components/AsignarProgramaModal.vue";
 import { avatarPaciente } from "@/Utils/avatares";
 
 const { props } = usePage();
@@ -14,6 +15,12 @@ const escolaridades = props.escolaridades;
 
 const isOpen = ref(false);
 const selectedPaciente = ref(null);
+
+// El programa lo asigna coordinación, no cualquiera que gestione pacientes.
+const puedeAsignarPrograma = ["administrador", "coordinador"].some((r) =>
+    props.auth.user.roles.includes(r)
+);
+const pacienteConPrograma = ref(null);
 
 const form = useForm({
     nombres: "",
@@ -129,7 +136,7 @@ function closeHistorial() {
                     </h3>
                     <p class="text-sm text-gray-500">
                         Expediente:
-                        {{ paciente.expediente?.id || "No asignado" }}
+                        {{ paciente.expediente?.codigo || "No asignado" }}
                     </p>
                     <p class="text-sm text-gray-500">
                         Género: {{ paciente.genero?.nombre || "No asignado" }}
@@ -176,6 +183,11 @@ function closeHistorial() {
                         @click="openHistorial(paciente)">
                         Historial
                     </button>
+                    <button v-if="puedeAsignarPrograma"
+                        class="col-span-2 bg-caine-morado text-white py-2 rounded-md text-sm hover:bg-caine-azul"
+                        @click="pacienteConPrograma = paciente">
+                        Programa
+                    </button>
                 </div>
             </div>
         </div>
@@ -185,6 +197,8 @@ function closeHistorial() {
             :escolaridades="escolaridades" :encargados="encargados" @close="closeModal" @save="saveChanges" />
         <ExpedienteModal v-if="showExpediente" :expediente="selectedPaciente?.expediente" @close="closeExpediente" />
         <HistorialModal v-if="showHistorial" :paciente="selectedPaciente" @close="closeHistorial" />
+        <AsignarProgramaModal v-if="pacienteConPrograma" :paciente="pacienteConPrograma"
+            :catalogos="props.catalogosPrograma" @close="pacienteConPrograma = null" />
     </div>
 </template>
 

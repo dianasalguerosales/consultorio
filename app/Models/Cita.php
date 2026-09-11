@@ -19,6 +19,7 @@ class Cita extends Model
         'tipo_cita_id',
         'servicio_id',
         'programa_id',
+        'asignacion_programa_id',
         'fecha',
         'hora_inicio',
         'hora_fin',
@@ -68,6 +69,12 @@ class Cita extends Model
     public function tipoCita()
     {
         return $this->belongsTo(TipoCita::class);
+    }
+
+    /** El programa del que nació esta cita, si vino de uno. */
+    public function asignacionPrograma()
+    {
+        return $this->belongsTo(AsignacionPrograma::class, 'asignacion_programa_id');
     }
 
     public function sesion()

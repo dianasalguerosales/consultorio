@@ -13,6 +13,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\AsignacionProgramaController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\AnamnesisController;
 use App\Http\Controllers\ProgramaController;
@@ -34,9 +36,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/perfil', [ProfileController::class, 'show'])->name('perfil.show');
@@ -190,7 +191,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/anamnesis', [AnamnesisController::class, 'store'])->name('anamnesis.store');
         Route::put('/anamnesis/{anamnesis}', [AnamnesisController::class, 'update'])->name('anamnesis.update');
 
-        Route::get('/programas', [ProgramaController::class, 'index'])->name('programas.index');
+        // Programas de los niños. El catálogo de programas vive en
+        // /parametros; acá se ve a quién se le asignó cada uno.
+        Route::get('/programas', [AsignacionProgramaController::class, 'index'])->name('programas.index');
+        Route::post('/pacientes/{paciente}/programa', [AsignacionProgramaController::class, 'store'])->name('programas.asignar');
+        Route::delete('/programas/{asignacion}', [AsignacionProgramaController::class, 'destroy'])->name('programas.destroy');
 
         Route::get('/parametros', [ParametroController::class, 'index'])->name('parametros.index');
 

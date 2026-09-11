@@ -12,6 +12,13 @@ use Illuminate\Validation\Rule;
  */
 class CatalogoController extends Controller
 {
+    /** Validación de los campos extra que declara el registro. */
+    private const REGLAS = [
+        'entero' => ['nullable', 'integer', 'min:1'],
+        'moneda' => ['nullable', 'numeric', 'min:0'],
+        'texto' => ['nullable', 'string', 'max:255'],
+    ];
+
     public function store(Request $request, string $catalogo)
     {
         $c = $this->definicion($catalogo);
@@ -61,7 +68,16 @@ class CatalogoController extends Controller
             $reglas['descripcion'] = ['nullable', 'string'];
         }
 
-        return $request->validate($reglas);
+        $etiquetas = [];
+
+        foreach ($c['campos'] as $campo) {
+            $reglas[$campo['clave']] = self::REGLAS[$campo['tipo']];
+            // Sin esto el error sale como "sesiones por mes" en vez de
+            // "Cantidad de citas", que es lo que dice la pantalla.
+            $etiquetas[$campo['clave']] = $campo['etiqueta'];
+        }
+
+        return $request->validate($reglas, [], $etiquetas);
     }
 
     /** "Servicio creado", "Escolaridad creada": el género va en el registro. */

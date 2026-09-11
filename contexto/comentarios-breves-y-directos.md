@@ -34,3 +34,28 @@ abajo.
 - Tampoco va volver a nombrar en prosa lo que la función ya dice.
 
 Aplica igual a PHP y a Vue/JS. Ver [Convenciones de Vue del proyecto](convenciones-vue-proyecto.md).
+
+## Las migraciones van sin comentarios
+
+Una migración que crea una tabla **no lleva comentarios**, salvo que sean muy
+necesarios. Diana lo pidió el 11 de septiembre de 2026.
+
+El esquema ya se explica solo: `foreignId('paciente_id')->constrained()` no
+necesita un renglón que diga que es el paciente. Y el comentario que justifica
+una decisión de diseño envejece peor ahí que en cualquier otro lado, porque la
+migración queda congelada: nadie la vuelve a abrir después de correrla, pero el
+comentario sigue ahí afirmando cosas sobre un modelo que ya cambió.
+
+Lo que sí se queda es lo que no se deduce del esquema y evita un error al
+leerlo. Por ejemplo, en `asignaciones_programa`:
+
+```php
+// Días en formato ISO: 1 lunes ... 7 domingo.
+$table->json('dias');
+```
+
+Sin esa línea no hay forma de saber si el 1 es lunes o domingo. Eso es una
+advertencia que evita un bug, no una descripción.
+
+La justificación de por qué existe la tabla va en el **modelo**, que es donde
+alguien la va a leer.

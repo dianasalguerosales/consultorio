@@ -1,11 +1,18 @@
 <script setup>
 import ModalBaseVer from '../ModalBaseVer.vue'
 
-defineProps({
+const props = defineProps({
   item: { type: Object, required: true },
   titulo: { type: String, required: true },
   conDescripcion: { type: Boolean, default: false },
+  campos: { type: Array, default: () => [] },
 })
+
+const valor = (campo) => {
+  const v = props.item[campo.clave]
+  if (v === null || v === undefined || v === '') return '—'
+  return campo.tipo === 'moneda' ? `Q${Number(v).toFixed(2)}` : v
+}
 
 const emit = defineEmits(['close'])
 </script>
@@ -19,6 +26,7 @@ const emit = defineEmits(['close'])
     <div class="space-y-4">
       <p><strong>Nombre:</strong> {{ item.nombre }}</p>
       <p v-if="conDescripcion"><strong>Descripción:</strong> {{ item.descripcion }}</p>
+      <p v-for="c in campos" :key="c.clave"><strong>{{ c.etiqueta }}:</strong> {{ valor(c) }}</p>
       <p><strong>Activo:</strong> {{ item.activo ? 'Sí' : 'No' }}</p>
     </div>
   </ModalBaseVer>
