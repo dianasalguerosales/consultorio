@@ -102,6 +102,22 @@ class QuienAtiende
         return null;
     }
 
+    /**
+     * Si a esta persona se le pueden agendar citas.
+     *
+     * `de()` devuelve ficha para cualquier administrativo, tenga el cargo que
+     * tenga; esto responde la otra pregunta: si aparece o no en `todos()`.
+     */
+    public static function atiendeCitas(User $user): bool
+    {
+        if ($user->terapeuta) {
+            return true;
+        }
+
+        return (bool) $user->administrativo?->cargo
+            && in_array($user->administrativo->cargo->nombre, self::CARGOS_QUE_ATIENDEN, true);
+    }
+
     private static function comoFila(string $tipo, int $id, ?string $nombre, string $rol, ?string $especialidad = null): array
     {
         return [

@@ -10,18 +10,26 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Quién cumple años hoy y mañana, entre pacientes y personal.
+ * Quién cumple años, entre pacientes y personal.
  *
  * El filtro se hace en PHP y no en la consulta porque sacar el mes y el día de
  * una fecha se escribe distinto en SQLite y en MySQL, y son pocas filas.
  */
 class Cumpleanos
 {
-    public static function hoyYManana(): array
+    /**
+     * Ayer, hoy y mañana.
+     *
+     * Ayer también cuenta: si nadie abrió el sistema ese día, el saludo se
+     * pierde sin que nadie se entere. Mañana sirve para preparar con un día de
+     * anticipación.
+     */
+    public static function deLosTresDias(): array
     {
         $personas = self::todas();
 
         return [
+            'ayer' => self::losDe($personas, Carbon::yesterday()),
             'hoy' => self::losDe($personas, Carbon::today()),
             'manana' => self::losDe($personas, Carbon::tomorrow()),
         ];
