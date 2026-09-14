@@ -11,18 +11,17 @@ const emit = defineEmits(['next','prev'])
       Atención Terapéutica
     </h3>
 
-    <!-- Objetivos terapéuticos -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium text-[#2D2B5B]">Objetivos terapéuticos</label>
-      <textarea v-model="form.objetivos_terapeuticos" rows="3"
-        class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
-    </div>
-
-    <!-- Planificación terapéutica -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium text-[#2D2B5B]">Planificación terapéutica</label>
-      <textarea v-model="form.planificacion_terapeutica" rows="3"
-        class="mt-1 block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]"></textarea>
+    <!-- Estos dos campos eran textareas que no guardaban nada: `expedientes` no
+         tiene esas columnas y el controlador tampoco las validaba. Los
+         objetivos pasaron a su propia tabla, por área y colgados del paciente,
+         y se editan desde la ficha del niño. -->
+    <div class="mb-6 rounded-md bg-[#FAF9F7] border border-gray-200 p-4">
+      <p class="text-sm text-[#2D2B5B] font-medium">Objetivos terapéuticos</p>
+      <p class="mt-1 text-sm text-gray-600">
+        Se plantean por área y se revisan durante todo el tratamiento, así que
+        no se llenan al abrir el expediente: van en
+        <strong>Pacientes → Objetivos</strong>.
+      </p>
     </div>
 
     <!-- Navegación -->

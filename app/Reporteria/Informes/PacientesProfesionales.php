@@ -55,13 +55,18 @@ class PacientesProfesionales extends Informe
 
     public function filtros(): array
     {
-        return [
-            'terapeuta_id' => [
-                'etiqueta' => 'Terapeuta',
-                'tipo' => 'select',
-                'opciones' => $this->opcionesPersonas(Terapeuta::class),
-                'aplicar' => fn($q, $v) => $q->whereHas('terapeutas', fn($t) => $t->where('terapeutas.id', $v)),
-            ],
-        ];
+        return array_merge(
+            // La consulta es de pacientes, asi que aqui la fecha es la de alta.
+            $this->rangoFechas('created_at', 'Registro'),
+            $this->filtroPaciente(fn($q, $v) => $q->where('pacientes.id', $v)),
+            [
+                'terapeuta_id' => [
+                    'etiqueta' => 'Terapeuta',
+                    'tipo' => 'select',
+                    'opciones' => $this->opcionesPersonas(Terapeuta::class),
+                    'aplicar' => fn($q, $v) => $q->whereHas('terapeutas', fn($t) => $t->where('terapeutas.id', $v)),
+                ],
+            ]
+        );
     }
 }

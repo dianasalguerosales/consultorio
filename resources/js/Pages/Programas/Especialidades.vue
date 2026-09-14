@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
     especialidades: { type: Array, default: () => [] }
@@ -31,7 +32,7 @@ function update(especialidad) {
 }
 
 function deleteEspecialidad(especialidad) {
-    if (confirm(`¿Seguro que deseas eliminar la especialidad "${especialidad.nombre}"?`)) {
+    if (confirmarEliminacion(`la especialidad «${especialidad.nombre}»`)) {
         router.delete(`/especialidades/${especialidad.id}`)
     }
 }

@@ -4,6 +4,7 @@ import DatosGenerales from './tabs/DatosGenerales.vue'
 import HistoriaClinica from './tabs/HistoriaClinica.vue'
 import AtencionTerapeutica from './tabs/AtencionTerapeutica.vue'
 import Evaluaciones from './tabs/Evaluaciones.vue'
+import TerapiasObjetivos from './tabs/TerapiasObjetivos.vue'
 import ModalCapa from '@/Components/ModalCapa.vue'
 
 const props = defineProps({
@@ -11,7 +12,8 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  // Qué pestañas se muestran. Al encargado se le ocultan las Evaluaciones.
+  // Qué pestañas se muestran. Al encargado se le deja solo
+  // 'Terapias y objetivos' — ver Pages/Hijos.vue.
   tabs: {
     type: Array,
     default: () => ['Datos generales', 'Historia Clínica', 'Atención terapéutica', 'Evaluaciones'],
@@ -46,6 +48,7 @@ const getComponent = (tab) => {
     case 'Historia Clínica': return HistoriaClinica
     case 'Atención terapéutica': return AtencionTerapeutica
     case 'Evaluaciones': return Evaluaciones
+    case 'Terapias y objetivos': return TerapiasObjetivos
   }
 }
 </script>

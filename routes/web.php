@@ -23,6 +23,7 @@ use App\Http\Controllers\SesionController;
 use App\Http\Controllers\SolicitudReprogramacionController;
 use App\Http\Controllers\SubalternosController;
 use App\Http\Controllers\HijosController;
+use App\Http\Controllers\ObjetivoTerapeuticoController;
 use App\Http\Controllers\EvaluacionesController;
 use App\Http\Controllers\InformesController;
 use App\Http\Controllers\TerapeutaController;
@@ -56,6 +57,13 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:acceso portal padres')
         ->name('hijos.index');
 
+    // Ocupación del personal: solo administrador y coordinador. Vive bajo
+    // /indicadores y no bajo /agenda para que el menú resalte Indicadores, que
+    // es de donde se entra: el activo se calcula con startsWith sobre la URL.
+    Route::get('/indicadores/ocupacion', [OcupacionController::class, 'index'])
+        ->middleware('permission:ver ocupacion personal')
+        ->name('indicadores.ocupacion');
+
     // Indicadores: analítica de la población de pacientes. Administrador y
     // coordinador, igual que la ocupación de personal.
     Route::get('/indicadores', [IndicadoresController::class, 'index'])
@@ -67,11 +75,6 @@ Route::middleware('auth')->group(function () {
     // 'agendar citas' (administrador, coordinador y auxiliar).
     Route::middleware(['permission:ver agenda'])->group(function () {
         Route::get('/agenda', [AgendaController::class, 'index'])->name('agenda.index');
-
-        // Ocupación del personal: solo administrador y coordinador.
-        Route::get('/agenda/ocupacion', [OcupacionController::class, 'index'])
-            ->middleware('permission:ver ocupacion personal')
-            ->name('agenda.ocupacion');
 
         Route::middleware(['permission:agendar citas'])->group(function () {
             Route::post('/agenda', [AgendaController::class, 'store'])->name('agenda.store');
@@ -114,6 +117,17 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:gestionar pacientes')
         ->name('evaluaciones.store');
 
+    // Objetivos terapéuticos: de 3 a 4 por terapia y por niño. Módulo aparte
+    // del expediente, que se llena una vez al ingreso.
+    Route::get('/objetivos', [ObjetivoTerapeuticoController::class, 'index'])
+        ->middleware('permission:ver evaluaciones')
+        ->name('objetivos.index');
+
+    Route::middleware(['permission:gestionar pacientes'])->group(function () {
+        Route::post('/objetivos', [ObjetivoTerapeuticoController::class, 'store'])->name('objetivos.store');
+        Route::delete('/objetivos', [ObjetivoTerapeuticoController::class, 'destroy'])->name('objetivos.destroy');
+    });
+
     // Pacientes: terapeuta y coordinador
     Route::middleware(['permission:gestionar pacientes'])->group(function () {
         Route::get('/pacientes', [PacientesController::class, 'index'])->name('pacientes.index');
@@ -122,6 +136,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/pacientes/{paciente}', [PacientesController::class, 'destroy'])->name('pacientes.destroy');
 
         Route::get('/pacientes/{paciente}/expediente', [PacientesController::class, 'expediente'])->name('pacientes.expediente');
+
         Route::get('/pacientes/{paciente}/historial', [PacientesController::class, 'historial'])->name('pacientes.historial');
         Route::get('/pacientes/{paciente}/observaciones', [PacientesController::class, 'observaciones'])->name('pacientes.observaciones');
         Route::get('/pacientes/{paciente}/seguimiento', [PacientesController::class, 'seguimiento'])->name('pacientes.seguimiento');
@@ -136,6 +151,23 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:administrador|coordinador|auxiliar'])->group(function () {
         Route::post('/pagos/{cita}', [PagoController::class, 'store'])->name('pagos.store');
         Route::delete('/pagos/{pago}', [PagoController::class, 'destroy'])->name('pagos.destroy');
+
+        // El cliente paga el programa completo; adentro se reparte entre sus
+        // citas. Van antes que /pagos/{cita} no haría falta —el prefijo
+        // 'paquetes' no choca— pero se agrupan acá por ser el mismo permiso.
+        Route::post('/pagos/paquetes/{asignacion}', [PagoController::class, 'pagarPaquete'])->name('pagos.paquete');
+        Route::delete('/pagos/paquetes/{asignacion}', [PagoController::class, 'anularPaquete'])->name('pagos.paquete.anular');
+    });
+
+    // Autorizar el paquete completo: mismo criterio que autorizar un cobro.
+    Route::middleware(['role:administrador|coordinador'])->group(function () {
+        Route::post('/pagos/paquetes/{asignacion}/autorizar', [PagoController::class, 'autorizarPaquete'])
+            ->name('pagos.paquete.autorizar');
+    });
+
+    // Autorizar el cobro de un auxiliar: el auxiliar no se autoriza solo.
+    Route::middleware(['role:administrador|coordinador'])->group(function () {
+        Route::post('/pagos/{pago}/autorizar', [PagoController::class, 'autorizar'])->name('pagos.autorizar');
     });
 
     // Expedientes: administrador y coordinador
@@ -196,6 +228,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/programas', [AsignacionProgramaController::class, 'index'])->name('programas.index');
         Route::post('/pacientes/{paciente}/programa', [AsignacionProgramaController::class, 'store'])->name('programas.asignar');
         Route::delete('/programas/{asignacion}', [AsignacionProgramaController::class, 'destroy'])->name('programas.destroy');
+
+        // Generar el paquete del mes siguiente. A mano y no en automático: lo
+        // decide coordinación, por eso el rol es más estrecho que el del resto.
+        Route::post('/programas/{asignacion}/renovar', [AsignacionProgramaController::class, 'renovar'])
+            ->middleware('role:administrador|coordinador')
+            ->name('programas.renovar');
 
         Route::get('/parametros', [ParametroController::class, 'index'])->name('parametros.index');
 

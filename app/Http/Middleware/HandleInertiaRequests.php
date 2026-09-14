@@ -30,13 +30,9 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'roles' => $user->getRoleNames()->toArray(),
                     'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-                    'nombre' => $user->terapeuta
-                        ? $user->terapeuta->nombres . ' ' . $user->terapeuta->apellidos
-                        : ($user->encargado
-                            ? $user->encargado->nombres . ' ' . $user->encargado->apellidos
-                            : ($user->administrativo
-                                ? $user->administrativo->nombres . ' ' . $user->administrativo->apellidos
-                                : $user->name)),
+                    // La resuelve User::getNombreCompletoAttribute(), que es el
+                    // mismo nombre que ve la tabla de Pagos.
+                    'nombre' => $user->nombre_completo,
                 ] : null,
             ],
 

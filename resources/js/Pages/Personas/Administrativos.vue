@@ -5,6 +5,7 @@ import AdministrativosModalVer from '@/Components/personas/AdministrativoModalVe
 import AdministrativoModalEditar from '@/Components/personas/AdministrativoModalEditar.vue'
 import { avatarUsuario } from '@/Utils/avatares'
 import RolesModal from '@/Components/personas/RolesModal.vue'
+import { confirmarEnClic } from '@/Utils/confirmar'
 
 const props = defineProps({
   administrativos: Array,
@@ -96,6 +97,7 @@ function abrirRoles(persona) {
 
               <!-- Eliminar -->
               <Link as="button" method="delete" :href="`/personas/administrativos/${a.id}`"
+                @click="confirmarEnClic($event, `a ${a.nombres} ${a.apellidos}`)"
                 class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Eliminar</span>

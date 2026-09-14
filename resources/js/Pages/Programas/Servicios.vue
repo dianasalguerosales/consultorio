@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   servicios: { type: Array, default: () => [] }
@@ -33,7 +34,7 @@ function update(servicio) {
 }
 
 function deleteServicio(servicio) {
-  if (confirm(`¿Seguro que deseas eliminar el servicio "${servicio.nombre}"?`)) {
+  if (confirmarEliminacion(`el servicio «${servicio.nombre}»`)) {
     router.delete(`/servicios/${servicio.id}`)
   }
 }

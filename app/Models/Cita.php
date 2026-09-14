@@ -87,6 +87,12 @@ class Cita extends Model
         return $this->hasMany(SolicitudReprogramacion::class);
     }
 
+    /** El cobro de esta cita. Sin fila en `pagos` la cita está pendiente. */
+    public function pago()
+    {
+        return $this->hasOne(Pago::class);
+    }
+
     /** Citas cuya fecha cae dentro del rango que pide el calendario. */
     public function scopeEnRango($query, string $desde, string $hasta)
     {

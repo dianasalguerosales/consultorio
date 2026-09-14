@@ -5,6 +5,7 @@ import UsuarioForm from '@/Components/UsuarioForm.vue'
 import InfoModal from '@/Components/InfoModal.vue'
 import { avatarUsuario } from '@/Utils/avatares'
 import { fechaHora } from '@/Utils/fechas'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const { props } = usePage()
 const usuarios = props.usuarios
@@ -52,7 +53,7 @@ function saveChanges() {
 }
 
 function deleteUser(user) {
-  if (confirm(`¿Seguro que deseas eliminar a ${user.email}?`)) {
+  if (confirmarEliminacion(`el usuario ${user.email}`)) {
     form.delete(route('usuarios.destroy', user.id), {
       onSuccess: () => {
         router.visit(route('usuarios'), { only: ['usuarios'] })

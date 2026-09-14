@@ -2,6 +2,7 @@
 
 namespace App\Reporteria;
 
+use App\Reporteria\Informes\CierreDeMes;
 use App\Reporteria\Informes\CitasPacientes;
 use App\Reporteria\Informes\EncargadosPacientes;
 use App\Reporteria\Informes\ExpedienteClinico;
@@ -9,7 +10,7 @@ use App\Reporteria\Informes\PacientesDiagnosticos;
 use App\Reporteria\Informes\PacientesProfesionales;
 use App\Reporteria\Informes\PacientesServicios;
 use App\Reporteria\Informes\ProfesionalesAgenda;
-use App\Reporteria\Informes\SesionesObservaciones;
+use App\Reporteria\Informes\Evoluciones;
 
 /**
  * Todos los informes disponibles. Agregar uno es crear su clase en Informes/ y
@@ -26,9 +27,10 @@ class Registro
         PacientesServicios::class,
         CitasPacientes::class,
         ExpedienteClinico::class,
-        SesionesObservaciones::class,
+        Evoluciones::class,
         EncargadosPacientes::class,
         ProfesionalesAgenda::class,
+        CierreDeMes::class,
     ];
 
     /** @return Informe[] indexados por su clave */

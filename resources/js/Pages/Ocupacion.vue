@@ -62,7 +62,7 @@ const diaLargo = (etiqueta) => DIAS_LARGOS[etiqueta] ?? etiqueta
 /* ---------- Navegación de semana ---------- */
 
 function irA(semana) {
-  router.get('/agenda/ocupacion', { semana }, { preserveScroll: true, preserveState: true })
+  router.get('/indicadores/ocupacion', { semana }, { preserveScroll: true, preserveState: true })
 }
 
 /* ---------- Desglose ---------- */
@@ -329,10 +329,10 @@ const masLargas = computed(() => {
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-2xl font-bold text-caine-azul">Ocupación de personal</h2>
 
-      <Link href="/agenda"
+      <Link href="/indicadores"
         class="inline-flex items-center gap-1 text-sm font-medium text-caine-azul hover:underline">
         <span class="material-icons text-base">arrow_back</span>
-        Volver a la agenda
+        Volver a indicadores
       </Link>
     </div>
 

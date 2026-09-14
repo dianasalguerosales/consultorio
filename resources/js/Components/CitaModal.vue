@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ModalCapa from '@/Components/ModalCapa.vue'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -131,7 +132,7 @@ function guardar() {
 
 function eliminar() {
   if (!esEdicion.value) return
-  if (!confirm('¿Eliminar esta cita?')) return
+  if (!confirmarEliminacion('esta cita')) return
 
   form.delete(`/agenda/${props.cita.id}`, {
     preserveScroll: true,

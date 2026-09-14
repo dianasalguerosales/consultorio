@@ -17,7 +17,6 @@ const datos = computed(() => props.cita?.extendedProps ?? {})
 const yaAtendida = computed(() => Boolean(datos.value.sesion))
 
 const form = useForm({
-  evolucion: '',
   observaciones_clinicas: '',
   observaciones_generales: '',
   duracion_minutos: '',
@@ -31,7 +30,6 @@ watch(
     const sesion = cita?.extendedProps?.sesion
 
     form.defaults({
-      evolucion: sesion?.evolucion ?? '',
       observaciones_clinicas: sesion?.observacionesClinicas ?? '',
       observaciones_generales: sesion?.observacionesGenerales ?? '',
       duracion_minutos: sesion?.duracionMinutos ?? '',
@@ -62,7 +60,7 @@ function guardar() {
             {{ yaAtendida ? 'Editar observaciones' : 'Atender cita' }}
           </h3>
           <p class="text-sm text-gray-500">
-            {{ datos.paciente }} · {{ cita?.title }}
+            {{ datos.paciente }} · {{ datos.servicio }}
             <template v-if="datos.horaInicio"> · {{ datos.horaInicio }}</template>
           </p>
         </div>
@@ -88,10 +86,10 @@ function guardar() {
 
         <div>
           <label class="block text-sm font-medium text-caine-azul mb-1">
-            Observaciones psicológicas
+            Evolución
           </label>
           <textarea v-model="form.observaciones_clinicas" rows="4"
-            placeholder="Hallazgos clínicos de la sesión"
+            placeholder="Avance del paciente y hallazgos de la sesión"
             class="block w-full border rounded-md px-3 py-2 focus:ring-caine-celeste focus:border-caine-celeste"></textarea>
           <p v-if="form.errors.observaciones_clinicas" class="mt-1 text-sm text-caine-error">
             {{ form.errors.observaciones_clinicas }}
@@ -100,25 +98,13 @@ function guardar() {
 
         <div>
           <label class="block text-sm font-medium text-caine-azul mb-1">
-            Observaciones generales
+            Observaciones públicas
           </label>
           <textarea v-model="form.observaciones_generales" rows="3"
             placeholder="Conducta, asistencia, acompañamiento del encargado"
             class="block w-full border rounded-md px-3 py-2 focus:ring-caine-celeste focus:border-caine-celeste"></textarea>
           <p v-if="form.errors.observaciones_generales" class="mt-1 text-sm text-caine-error">
             {{ form.errors.observaciones_generales }}
-          </p>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-caine-azul mb-1">
-            Evolución
-          </label>
-          <textarea v-model="form.evolucion" rows="3"
-            placeholder="Avance del paciente respecto a la sesión anterior"
-            class="block w-full border rounded-md px-3 py-2 focus:ring-caine-celeste focus:border-caine-celeste"></textarea>
-          <p v-if="form.errors.evolucion" class="mt-1 text-sm text-caine-error">
-            {{ form.errors.evolucion }}
           </p>
         </div>
 

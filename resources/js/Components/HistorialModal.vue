@@ -4,7 +4,7 @@ import { fecha } from '@/Utils/fechas'
 
 defineProps({
   paciente: Object,
-  // El encargado ve solo las observaciones generales de cada sesión.
+  // El encargado ve solo las observaciones públicas de cada sesión.
   mostrarClinicas: { type: Boolean, default: true },
 })
 
@@ -37,8 +37,7 @@ const emit = defineEmits(['close', 'save'])
               <th class="p-2 border">Estado</th>
               <th class="p-2 border">Modalidad</th>
               <th v-if="mostrarClinicas" class="p-2 border">Evolución</th>
-              <th v-if="mostrarClinicas" class="p-2 border">Observaciones clínicas</th>
-              <th class="p-2 border">Observaciones generales</th>
+              <th class="p-2 border">Observaciones públicas</th>
             </tr>
           </thead>
           <tbody>
@@ -49,8 +48,7 @@ const emit = defineEmits(['close', 'save'])
               <td class="p-2 border">{{ cita.servicio?.nombre }}</td>
               <td class="p-2 border">{{ cita.estado_cita?.nombre }}</td>
               <td class="p-2 border">{{ cita.modalidad?.nombre }}</td>
-              <td v-if="mostrarClinicas" class="p-2 border">{{ cita.sesion?.evolucion || 'Pendiente' }}</td>
-              <td v-if="mostrarClinicas" class="p-2 border">{{ cita.sesion?.observaciones_clinicas }}</td>
+              <td v-if="mostrarClinicas" class="p-2 border">{{ cita.sesion?.observaciones_clinicas || 'Pendiente' }}</td>
               <td class="p-2 border">{{ cita.sesion?.observaciones_generales }}</td>
             </tr>
           </tbody>

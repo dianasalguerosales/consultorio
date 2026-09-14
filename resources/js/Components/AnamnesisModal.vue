@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import ModalCapa from '@/Components/ModalCapa.vue'
 import { fechaLarga } from '@/Utils/fechas'
 import {
@@ -26,16 +26,58 @@ const tieneAnamnesis = computed(() =>
   Boolean(props.expediente?.anamnesis) && items.value.length > 0
 )
 
-/* ---------- Agrupado por módulo y área ---------- */
+/* ---------- Filtros ---------- */
 
 // Solo los deficientes, para revisar rápido sin recorrer los 86 criterios.
 const soloDeficientes = ref(false)
 
-const itemsVisibles = computed(() =>
-  soloDeficientes.value
-    ? items.value.filter(esDeficiente)
-    : items.value
+// Módulo y área acotan la lectura a una parte de la anamnesis. Salen de los
+// criterios que trae el expediente y no de un catálogo aparte: así solo se
+// ofrece lo que esta anamnesis realmente contiene.
+const moduloFiltro = ref('')
+const areaFiltro = ref('')
+
+const modulosDisponibles = computed(() =>
+  [...new Set(items.value.map((i) => i.criterio?.modulo).filter(Boolean))].sort()
 )
+
+// Las áreas se recortan al módulo elegido: ofrecer las 18 con un módulo puesto
+// dejaría elegir combinaciones que no devuelven nada.
+const areasDisponibles = computed(() => {
+  const delModulo = moduloFiltro.value
+    ? items.value.filter((i) => i.criterio?.modulo === moduloFiltro.value)
+    : items.value
+
+  return [...new Set(delModulo.map((i) => i.criterio?.area).filter(Boolean))].sort()
+})
+
+// Al cambiar de módulo, un área que ya no pertenece a él dejaría la lista vacía.
+watch(moduloFiltro, () => {
+  if (areaFiltro.value && !areasDisponibles.value.includes(areaFiltro.value)) {
+    areaFiltro.value = ''
+  }
+})
+
+const hayFiltro = computed(() =>
+  soloDeficientes.value || Boolean(moduloFiltro.value) || Boolean(areaFiltro.value)
+)
+
+function limpiarFiltros() {
+  soloDeficientes.value = false
+  moduloFiltro.value = ''
+  areaFiltro.value = ''
+}
+
+const itemsVisibles = computed(() =>
+  items.value.filter((item) => {
+    if (soloDeficientes.value && !esDeficiente(item)) return false
+    if (moduloFiltro.value && item.criterio?.modulo !== moduloFiltro.value) return false
+
+    return !areaFiltro.value || item.criterio?.area === areaFiltro.value
+  })
+)
+
+/* ---------- Agrupado por módulo y área ---------- */
 
 const modulos = computed(() => {
   const mapa = new Map()
@@ -93,13 +135,19 @@ const hoy = fechaLarga(new Date().toLocaleDateString('sv-SE'))
 function imprimir() {
   // Al imprimir se muestran todos los criterios, no solo los filtrados: el
   // documento físico debe quedar completo.
-  const filtroPrevio = soloDeficientes.value
-  soloDeficientes.value = false
+  const previos = {
+    deficientes: soloDeficientes.value,
+    modulo: moduloFiltro.value,
+    area: areaFiltro.value,
+  }
+  limpiarFiltros()
 
   // Se espera un ciclo para que el DOM ya tenga la lista completa.
   requestAnimationFrame(() => {
     window.print()
-    soloDeficientes.value = filtroPrevio
+    soloDeficientes.value = previos.deficientes
+    moduloFiltro.value = previos.modulo
+    areaFiltro.value = previos.area
   })
 }
 </script>
@@ -170,9 +218,39 @@ function imprimir() {
             </label>
           </div>
 
-          <p v-if="soloDeficientes && !modulos.length"
+          <!-- Módulo y área. No van al papel: lo impreso siempre va completo. -->
+          <div class="flex flex-wrap items-end gap-3 mb-5 no-imprimir">
+            <label class="flex flex-col gap-1">
+              <span class="text-xs font-medium text-caine-azul">Módulo</span>
+              <select v-model="moduloFiltro"
+                class="text-sm rounded-md border-gray-300 py-1.5 focus:ring-caine-celeste focus:border-caine-celeste">
+                <option value="">Todos</option>
+                <option v-for="m in modulosDisponibles" :key="m" :value="m">{{ m }}</option>
+              </select>
+            </label>
+
+            <label class="flex flex-col gap-1">
+              <span class="text-xs font-medium text-caine-azul">Área</span>
+              <select v-model="areaFiltro"
+                class="text-sm rounded-md border-gray-300 py-1.5 focus:ring-caine-celeste focus:border-caine-celeste">
+                <option value="">Todas</option>
+                <option v-for="a in areasDisponibles" :key="a" :value="a">{{ a }}</option>
+              </select>
+            </label>
+
+            <span class="text-xs text-gray-400 pb-2">
+              {{ itemsVisibles.length }} de {{ items.length }} criterios
+            </span>
+
+            <button v-if="hayFiltro" type="button" @click="limpiarFiltros"
+              class="pb-2 text-xs font-medium text-caine-celeste hover:underline">
+              Limpiar filtros
+            </button>
+          </div>
+
+          <p v-if="hayFiltro && !modulos.length"
             class="py-8 text-center text-sm text-gray-400">
-            No hay criterios en Observación ni En desarrollo.
+            Ningún criterio cumple con los filtros.
           </p>
 
           <!-- Módulos -->

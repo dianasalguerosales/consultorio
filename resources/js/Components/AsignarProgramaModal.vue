@@ -33,6 +33,15 @@ const form = useForm({
   fecha_inicio: new Date().toLocaleDateString('sv-SE'),
 })
 
+// Caine Kids es el único paquete con horario fijo: entra a las 9:15 y sale a
+// las 12:15. Los demás se acomodan al terapeuta, así que no tienen horario que
+// traer y por eso esto vive acá y no como columna de `programas`.
+const HORARIO_FIJO = {
+  'caine kids': { hora_inicio: '09:15', hora_fin: '12:15' },
+}
+
+const horarioDe = (nombre) => HORARIO_FIJO[String(nombre ?? '').trim().toLowerCase()] ?? null
+
 // Al elegir el paquete se traen su cantidad de citas y su costo, que quedan
 // editables: a un niño se le puede cobrar distinto.
 watch(() => form.programa_id, (id) => {
@@ -41,7 +50,21 @@ watch(() => form.programa_id, (id) => {
 
   form.cantidad_citas = programa.sesiones_por_mes ?? ''
   form.precio = programa.precio_mensual ?? ''
+
+  // El horario también queda editable: es una propuesta, no un candado.
+  const horario = horarioDe(programa.nombre)
+  if (horario) {
+    form.hora_inicio = horario.hora_inicio
+    form.hora_fin = horario.hora_fin
+  }
 })
+
+// Para avisar en el formulario de dónde salió el horario.
+const programaConHorarioFijo = computed(() =>
+  horarioDe(props.catalogos.programas?.find((p) => p.id === Number(form.programa_id))?.nombre)
+    ? props.catalogos.programas.find((p) => p.id === Number(form.programa_id)).nombre
+    : null
+)
 
 // La especialidad viene de quien atiende, no se selecciona aparte.
 const especialidadDeQuienAtiende = computed(() =>
@@ -142,6 +165,12 @@ function guardar() {
         </div>
         <p v-if="form.errors.dias" class="mt-1 text-sm text-red-600">{{ form.errors.dias }}</p>
       </div>
+
+      <!-- Se avisa de dónde salió el horario, porque se llenó solo. -->
+      <p v-if="programaConHorarioFijo" class="flex items-center gap-2 text-xs text-gray-500">
+        <span class="material-icons text-sm text-[#53C6D3]">schedule</span>
+        {{ programaConHorarioFijo }} entra de 9:15 a 12:15. Puede cambiarlo si este niño lleva otro horario.
+      </p>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>

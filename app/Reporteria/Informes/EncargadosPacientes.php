@@ -64,13 +64,24 @@ class EncargadosPacientes extends Informe
 
     public function filtros(): array
     {
-        return [
-            'relacion_paciente_id' => [
-                'etiqueta' => 'Parentesco',
-                'tipo' => 'select',
-                'opciones' => $this->opciones(RelacionPaciente::class),
-                'aplicar' => fn($q, $v) => $q->where('relacion_paciente_id', $v),
-            ],
-        ];
+        return array_merge(
+            // La consulta es de encargados: la fecha que hay es la de alta.
+            $this->rangoFechas('created_at', 'Registro'),
+            // Se llega por `pacientes.encargado_id`, que es de donde expandir()
+            // saca los hijos; la relación `pacientes()` va por el pivote y
+            // podría no coincidir. Filtrar por un hijo deja al encargado en la
+            // lista, y expandir() le sigue armando una fila por cada hijo.
+            $this->filtroPaciente(
+                fn($q, $v) => $q->whereIn('id', Paciente::whereKey($v)->select('encargado_id'))
+            ),
+            [
+                'relacion_paciente_id' => [
+                    'etiqueta' => 'Parentesco',
+                    'tipo' => 'select',
+                    'opciones' => $this->opciones(RelacionPaciente::class),
+                    'aplicar' => fn($q, $v) => $q->where('relacion_paciente_id', $v),
+                ],
+            ]
+        );
     }
 }

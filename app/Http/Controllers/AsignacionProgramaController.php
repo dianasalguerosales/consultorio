@@ -10,6 +10,7 @@ use App\Models\Programa;
 use App\Models\Servicio;
 use App\Models\TipoCita;
 use App\Programas\CitasDelPrograma;
+use App\Programas\RenovacionPrograma;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ use Inertia\Inertia;
  */
 class AsignacionProgramaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $asignaciones = AsignacionPrograma::query()
             ->with(['paciente:id,nombres,apellidos,genero', 'programa:id,nombre', 'servicio:id,nombre', 'atendidoPor'])
@@ -36,6 +37,8 @@ class AsignacionProgramaController extends Controller
         return Inertia::render('Programas', [
             'asignaciones' => $asignaciones,
             'catalogos' => $this->catalogos(),
+            // Generar el paquete del mes es decisión de coordinación.
+            'puedeRenovar' => $request->user()->hasAnyRole(['administrador', 'coordinador']),
         ]);
     }
 
@@ -87,6 +90,58 @@ class AsignacionProgramaController extends Controller
         return back()->with('success', $aviso);
     }
 
+    /**
+     * Genera el paquete del mes siguiente a partir de uno que está corriendo.
+     *
+     * No es un evento automático: lo aprieta el coordinador cuando toca. El
+     * paquete anterior queda `finalizado`, que además es lo que impide
+     * generarlo dos veces — solo se renueva uno activo.
+     */
+    public function renovar(Request $request, AsignacionPrograma $asignacion)
+    {
+        abort_unless(
+            $asignacion->estado === AsignacionPrograma::ACTIVO,
+            422,
+            'Solo se renueva un programa activo. Este está ' . $asignacion->estado . '.'
+        );
+
+        $datos = $request->validate([
+            'fecha_inicio' => 'required|date|after_or_equal:today',
+            'cantidad_citas' => 'required|integer|min:1|max:200',
+            'precio' => 'required|numeric|min:0',
+            'dias' => 'required|array|min:1',
+            'dias.*' => 'integer|between:1,7',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+        ]);
+
+        // Igual que al asignar: o entran todas las citas o no entra ninguna.
+        $citas = DB::transaction(function () use ($asignacion, $datos, $request) {
+            $nuevo = RenovacionPrograma::crear($asignacion, $datos, $request->user()->id);
+
+            if ($choques = CitasDelPrograma::choques($nuevo)) {
+                throw ValidationException::withMessages([
+                    'fecha_inicio' => 'Estas fechas chocan con otra cita de la misma persona: '
+                        . implode(', ', $choques)
+                        . '. Mueva el inicio, los días o el horario.',
+                ]);
+            }
+
+            $creadas = CitasDelPrograma::crear($nuevo);
+
+            // El anterior ya no genera nada más. Sus citas pendientes siguen en
+            // el calendario: finalizado es "ya se renovó", no "ya se dio".
+            $asignacion->update(['estado' => AsignacionPrograma::FINALIZADO]);
+
+            return $creadas;
+        });
+
+        return back()->with(
+            'success',
+            'Paquete generado. Quedaron ' . count($citas) . ' citas nuevas en el calendario.'
+        );
+    }
+
     /** Cancela el programa y retira del calendario sus citas que no se han dado. */
     public function destroy(AsignacionPrograma $asignacion)
     {
@@ -125,6 +180,15 @@ class AsignacionProgramaController extends Controller
             'hora' => substr($a->hora_inicio, 0, 5) . ' a ' . substr($a->hora_fin, 0, 5),
             'fecha_inicio' => $a->fecha_inicio->toDateString(),
             'estado' => $a->estado,
+
+            // La última cita del paquete: es hasta cuándo está cubierto el niño.
+            'ultima_cita' => $a->citas()->max('fecha'),
+
+            // Solo se renueva lo que está corriendo.
+            'puede_renovar' => $a->estado === AsignacionPrograma::ACTIVO,
+
+            // Ya calculada, para que el formulario abra con todo puesto.
+            'propuesta' => RenovacionPrograma::propuesta($a),
         ];
     }
 

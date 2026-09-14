@@ -8,14 +8,22 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
- * Quién puede atender una cita: una Terapeuta, o un Administrativo con cargo de
- * auxiliar (los auxiliares atienden solos en sucursal).
+ * Quién puede atender una cita: una Terapeuta, o un Administrativo con uno de
+ * los cargos de CARGOS_QUE_ATIENDEN (los auxiliares atienden solos en sucursal;
+ * al administrador también se le agenda).
  *
  * Vive aparte porque lo usan la agenda y la ocupación. Antes cada una tenía su
  * propia versión de la misma consulta.
  */
 class QuienAtiende
 {
+    /**
+     * Los cargos administrativos a los que se les puede agendar. El `tipo` que
+     * viaja en la cita sigue siendo 'auxiliar' para todos: es la clave del
+     * morph a Administrativo, no el puesto de la persona. El puesto va en `rol`.
+     */
+    public const CARGOS_QUE_ATIENDEN = ['Auxiliar', 'Administrador'];
+
     /** Se valida contra esta lista, no contra cualquier clase que llegue del formulario. */
     public const TIPOS = [
         'terapeuta' => Terapeuta::class,
@@ -57,22 +65,34 @@ class QuienAtiende
             ->get()
             ->map(fn(Terapeuta $t) => self::comoFila('terapeuta', $t->id, $t->nombre_completo, 'Terapeuta', $t->especialidad?->nombre));
 
-        // Los auxiliares se identifican por su cargo en administrativos.
-        $auxiliares = Administrativo::query()
-            ->with('especialidad:id,nombre')
-            ->whereHas('cargo', fn($q) => $q->where('nombre', 'Auxiliar'))
+        // El personal administrativo al que se le agenda, por su cargo.
+        $administrativos = Administrativo::query()
+            ->with(['especialidad:id,nombre', 'cargo:id,nombre'])
+            ->whereHas('cargo', fn($q) => $q->whereIn('nombre', self::CARGOS_QUE_ATIENDEN))
             ->orderBy('nombres')
             ->get()
-            ->map(fn(Administrativo $a) => self::comoFila('auxiliar', $a->id, $a->nombre_completo, 'Auxiliar', $a->especialidad?->nombre));
+            ->map(fn(Administrativo $a) => self::comoFila(
+                'auxiliar',
+                $a->id,
+                $a->nombre_completo,
+                $a->cargo?->nombre ?? 'Auxiliar',
+                $a->especialidad?->nombre
+            ));
 
-        return $terapeutas->concat($auxiliares)->values();
+        return $terapeutas->concat($administrativos)->values();
     }
 
     /** Cómo atiende el usuario logueado, o null si no atiende citas. */
     public static function de(User $user): ?array
     {
         if ($user->administrativo) {
-            return self::comoFila('auxiliar', $user->administrativo->id, $user->administrativo->nombre_completo, 'Auxiliar', $user->administrativo->especialidad?->nombre);
+            return self::comoFila(
+                'auxiliar',
+                $user->administrativo->id,
+                $user->administrativo->nombre_completo,
+                $user->administrativo->cargo?->nombre ?? 'Auxiliar',
+                $user->administrativo->especialidad?->nombre
+            );
         }
 
         if ($user->terapeuta) {

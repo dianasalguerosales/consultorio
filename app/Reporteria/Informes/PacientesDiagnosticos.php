@@ -59,6 +59,7 @@ class PacientesDiagnosticos extends Informe
     {
         return array_merge(
             $this->rangoFechas('fecha_inicio', 'Apertura'),
+            $this->filtroPaciente(fn($q, $v) => $q->where('paciente_id', $v)),
             [
                 'diagnostico_id' => [
                     'etiqueta' => 'Diagnóstico',

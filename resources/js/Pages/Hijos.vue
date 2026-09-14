@@ -9,8 +9,10 @@ defineProps({
   hijos: { type: Array, default: () => [] },
 })
 
-// Al encargado no se le muestran las Evaluaciones del expediente.
-const TABS_ENCARGADO = ['Datos generales', 'Historia Clínica', 'Atención terapéutica']
+// Del expediente al encargado le toca solo el terapeuta, las terapias y los
+// objetivos. Los datos generales, la historia clínica y las evaluaciones son
+// del equipo, no del papá.
+const TABS_ENCARGADO = ['Terapias y objetivos']
 
 const seleccionado = ref(null)
 const verExpediente = ref(false)

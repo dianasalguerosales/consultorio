@@ -1,11 +1,12 @@
 <script setup>
-import { Head, usePage, useForm, router } from "@inertiajs/vue3";
+import { Head, Link, usePage, useForm, router } from "@inertiajs/vue3";
 import { ref } from "vue";
 import PacienteForm from "@/Components/PacienteForm.vue";
 import ExpedienteModal from "@/Components/ExpedienteModal.vue";
 import HistorialModal from "@/Components/HistorialModal.vue";
 import AsignarProgramaModal from "@/Components/AsignarProgramaModal.vue";
 import { avatarPaciente } from "@/Utils/avatares";
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const { props } = usePage();
 const pacientes = props.pacientes;
@@ -64,7 +65,7 @@ function saveChanges() {
 }
 
 function deletePaciente(paciente) {
-    if (confirm(`¿Seguro que deseas eliminar a ${paciente.nombres} ${paciente.apellidos}?`)) {
+    if (confirmarEliminacion(`al paciente ${paciente.nombres} ${paciente.apellidos}`)) {
         form.delete(route("pacientes.destroy", paciente.id), {
             onSuccess: () => {
                 router.visit(route("pacientes.index"), { only: ["pacientes"] });
@@ -183,6 +184,13 @@ function closeHistorial() {
                         @click="openHistorial(paciente)">
                         Historial
                     </button>
+                    <!-- Página aparte y no un modal: lo que se escribe acá son
+                         párrafos largos que en una celda no se pueden leer. -->
+                    <Link :href="`/pacientes/${paciente.id}/observaciones`"
+                        class="col-span-2 bg-caine-celeste text-white py-2 rounded-md text-sm text-center
+                               hover:bg-caine-azul">
+                        Observaciones
+                    </Link>
                     <button v-if="puedeAsignarPrograma"
                         class="col-span-2 bg-caine-morado text-white py-2 rounded-md text-sm hover:bg-caine-azul"
                         @click="pacienteConPrograma = paciente">

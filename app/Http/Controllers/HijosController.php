@@ -20,14 +20,13 @@ class HijosController extends Controller
             'genero',
             'escolaridad',
 
-            // El expediente se muestra sin la pestaña de Evaluaciones, así que
-            // esa relación no hace falta.
-            'expediente.estado',
-            'expediente.modalidad',
-            'expediente.diagnosticos',
+            // Del expediente el encargado ve una sola pestaña: terapeuta,
+            // terapias y objetivos. Lo demás ni se carga, así no viaja a su
+            // navegador. Las terapias son `servicios`; el terapeuta cuelga del
+            // paciente, no del expediente.
             'expediente.servicios',
-            'expediente.anamnesis.items.criterio',
-            'expediente.paciente.escolaridad',
+            'expediente.paciente.terapeutas.especialidad',
+            'expediente.paciente.objetivos.servicio',
 
             'citas' => fn($q) => $q->orderBy('fecha')->orderBy('hora_inicio'),
             'citas.servicio',

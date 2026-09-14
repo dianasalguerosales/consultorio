@@ -86,6 +86,37 @@ abstract class Informe
         ];
     }
 
+    /** Igual que rangoFechas, pero la fecha vive en una relación. */
+    protected function rangoFechasDe(string $relacion, string $columna, string $etiqueta): array
+    {
+        $enRelacion = fn(string $operador) => fn($q, $v) => $q->whereHas(
+            $relacion,
+            fn($r) => $r->whereDate($columna, $operador, $v)
+        );
+
+        return [
+            'desde' => ['etiqueta' => "$etiqueta desde", 'tipo' => 'date', 'aplicar' => $enRelacion('>=')],
+            'hasta' => ['etiqueta' => "$etiqueta hasta", 'tipo' => 'date', 'aplicar' => $enRelacion('<=')],
+        ];
+    }
+
+    /**
+     * Filtro por paciente. Cada informe pasa cómo llegar al paciente desde su
+     * propia consulta: unos lo tienen en una columna, otros a través de la cita
+     * o del expediente.
+     */
+    protected function filtroPaciente(callable $aplicar): array
+    {
+        return [
+            'paciente_id' => [
+                'etiqueta' => 'Paciente',
+                'tipo' => 'select',
+                'opciones' => $this->opcionesPersonas(Paciente::class),
+                'aplicar' => $aplicar,
+            ],
+        ];
+    }
+
     /** Opciones de un catálogo con columna `nombre`. */
     protected function opciones(string $modelo): callable
     {

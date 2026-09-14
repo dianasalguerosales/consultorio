@@ -22,36 +22,77 @@ const props = defineProps({
   horasMinimasReprogramacion: { type: Number, default: 24 },
 })
 
-/* ---------- Colores por estado ---------- */
+/* ---------- Estados de la cita ---------- */
 
-// Paleta caine. El borde va más saturado que el fondo para que el texto se lea.
-const COLOR_ESTADO = {
-  Confirmada: { fondo: '#E3F5E0', borde: '#74BE69', texto: '#2F5B28' },
-  // Verde más oscuro que Confirmada, para que se distingan entre sí.
-  Atendida: { fondo: '#D2EBCC', borde: '#3F7A34', texto: '#24501C' },
-  Programada: { fondo: '#E1F4F7', borde: '#53C6D3', texto: '#1F5A62' },
-  Pendiente: { fondo: '#FDEEDA', borde: '#F4A654', texto: '#7A4E15' },
-  Reprogramada: { fondo: '#EDE7FA', borde: '#8B70CD', texto: '#3F2E66' },
-  Cancelada: { fondo: '#FBE3E5', borde: '#D64550', texto: '#7A1F26' },
-  // Gris: se quedó sin desenlace, no es un error como Cancelada.
-  Vencida: { fondo: '#E8E6E1', borde: '#8A8578', texto: '#4A463D' },
-}
+// El estado no pinta nada en el calendario: el color está tomado por la
+// terapia, y dos códigos de color sobre el mismo evento no se leen. Acá queda
+// solo la lista, que es lo que arma el filtro y el resumen del día.
+const ESTADOS = [
+  'Confirmada',
+  'Atendida',
+  'Programada',
+  'Pendiente',
+  'Reprogramada',
+  'Cancelada',
+  'Vencida',
+]
 
 const COLOR_POR_OMISION = { fondo: '#EEF0F4', borde: '#9CA3AF', texto: '#374151' }
 
-const colorDe = (estado) => COLOR_ESTADO[estado] ?? COLOR_POR_OMISION
+/* ---------- Colores por terapia ---------- */
 
-const leyenda = Object.keys(COLOR_ESTADO)
+// El relleno del evento dice qué terapia es; es el único código de color del
+// calendario. Son ocho tonos porque el catálogo de servicios crece: a partir
+// del noveno se repiten.
+const COLOR_TERAPIA = [
+  { fondo: '#FCE4EE', borde: '#EE518E', texto: '#7A1E45' },
+  { fondo: '#E1F4F7', borde: '#53C6D3', texto: '#1F5A62' },
+  { fondo: '#E8F4E5', borde: '#74BE69', texto: '#2F5B28' },
+  { fondo: '#EDE7FA', borde: '#8B70CD', texto: '#3F2E66' },
+  { fondo: '#FDEEDA', borde: '#F4A654', texto: '#7A4E15' },
+  { fondo: '#E4E4EF', borde: '#2D2B5B', texto: '#2D2B5B' },
+  { fondo: '#DFF1EC', borde: '#3FA88F', texto: '#1E5347' },
+  { fondo: '#F7E6F2', borde: '#B45BA6', texto: '#5E2354' },
+]
+
+// Las terapias que Diana pidió de un color concreto se fijan por nombre: el id
+// cambia entre ambientes, el nombre no. Lo que no está acá toma un tono del
+// resto de la paleta, repartido por id para que no se mueva al cambiar de rango.
+const COLOR_POR_NOMBRE = {
+  'Evaluación Cognitiva': COLOR_TERAPIA[0], // rosado
+}
+
+const colorTerapia = (servicioId, nombre = null) => {
+  if (nombre && COLOR_POR_NOMBRE[nombre]) return COLOR_POR_NOMBRE[nombre]
+
+  // Sin servicio no hay terapia que colorear, y el evento queda en gris.
+  return servicioId ? COLOR_TERAPIA[Number(servicioId) % COLOR_TERAPIA.length] : COLOR_POR_OMISION
+}
+
+// Solo las terapias que aparecen en el rango cargado, igual que el selector
+// de abajo: una leyenda con el catálogo entero no explicaría el calendario.
+const leyendaTerapias = computed(() => {
+  const vistas = new Map()
+
+  for (const cita of props.citas) {
+    const nombre = cita.extendedProps?.servicio ?? 'Sin terapia'
+    if (vistas.has(nombre)) continue
+
+    vistas.set(nombre, { nombre, color: colorTerapia(cita.extendedProps?.servicioId, nombre) })
+  }
+
+  return [...vistas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
+})
 
 /* ---------- Filtros ---------- */
 
 // Arrancan todos marcados: el filtro sirve para quitar ruido, no para tener que
 // armar la vista desde cero cada vez que se entra.
-const estadosVisibles = ref([...leyenda])
+const estadosVisibles = ref([...ESTADOS])
 
 const todosLosEstados = computed({
-  get: () => estadosVisibles.value.length === leyenda.length,
-  set: (marcar) => { estadosVisibles.value = marcar ? [...leyenda] : [] },
+  get: () => estadosVisibles.value.length === ESTADOS.length,
+  set: (marcar) => { estadosVisibles.value = marcar ? [...ESTADOS] : [] },
 })
 
 // Al encargado le sirve filtrar por hijo, no por quién atiende: todas sus
@@ -99,19 +140,19 @@ const citasFiltradas = computed(() =>
 )
 
 function limpiarFiltros() {
-  estadosVisibles.value = [...leyenda]
+  estadosVisibles.value = [...ESTADOS]
   atiendeFiltro.value = ''
 }
 
 const hayFiltro = computed(() =>
-  Boolean(atiendeFiltro.value) || estadosVisibles.value.length !== leyenda.length
+  Boolean(atiendeFiltro.value) || estadosVisibles.value.length !== ESTADOS.length
 )
 
 /* ---------- Eventos para FullCalendar ---------- */
 
 const eventos = computed(() =>
   citasFiltradas.value.map((cita) => {
-    const color = colorDe(cita.extendedProps?.estado)
+    const color = colorTerapia(cita.extendedProps?.servicioId, cita.extendedProps?.servicio)
 
     return {
       ...cita,
@@ -199,7 +240,7 @@ const citasDeHoy = computed(() =>
 // Conteo por estado para el "Resumen del día".
 const resumenDeHoy = computed(() => {
   const conteo = {}
-  for (const estado of leyenda) conteo[estado] = 0
+  for (const estado of ESTADOS) conteo[estado] = 0
 
   for (const cita of citasDeHoy.value) {
     const estado = cita.extendedProps?.estado
@@ -311,10 +352,12 @@ const opcionesCalendario = computed(() => ({
 
           <!-- Calendario -->
           <div class="bg-white shadow rounded-lg p-4">
-            <!-- Filtros. Las casillas llevan el color del estado, así que la
-                 fila también hace de leyenda. -->
+            <!-- El estado solo filtra: el color del calendario es el de la
+                 terapia, y la leyenda de abajo es la que lo explica. -->
             <div class="mb-4 pb-4 border-b border-gray-100 space-y-3">
               <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span class="text-xs font-semibold text-caine-azul">Estado</span>
+
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" v-model="todosLosEstados"
                     class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
@@ -323,14 +366,25 @@ const opcionesCalendario = computed(() => ({
 
                 <span class="w-px h-4 bg-gray-200"></span>
 
-                <label v-for="estado in leyenda" :key="estado"
+                <label v-for="estado in ESTADOS" :key="estado"
                   class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" :value="estado" v-model="estadosVisibles"
                     class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
-                  <span class="w-3 h-3 rounded-sm inline-block shrink-0"
-                    :style="{ backgroundColor: colorDe(estado).borde }"></span>
                   <span class="text-xs text-gray-600">{{ estado }}</span>
                 </label>
+              </div>
+
+              <!-- Leyenda de terapias. No filtra: solo explica el color del
+                   relleno, que es lo que se ve primero en la tarjeta. -->
+              <div v-if="leyendaTerapias.length" class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span class="text-xs font-semibold text-caine-azul">Terapia</span>
+
+                <span v-for="t in leyendaTerapias" :key="t.nombre"
+                  class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-sm inline-block shrink-0 border"
+                    :style="{ backgroundColor: t.color.fondo, borderColor: t.color.borde }"></span>
+                  <span class="text-xs text-gray-600">{{ t.nombre }}</span>
+                </span>
               </div>
 
               <div class="flex flex-wrap items-center gap-3">
@@ -394,7 +448,7 @@ const opcionesCalendario = computed(() => ({
               <p class="text-sm text-gray-400 mb-4">{{ fechaCorta(hoy) }}</p>
 
               <dl class="space-y-2">
-                <div v-for="estado in leyenda" :key="estado"
+                <div v-for="estado in ESTADOS" :key="estado"
                   class="flex items-center justify-between text-sm">
                   <dt class="text-gray-600">{{ estado }}s</dt>
                   <dd class="font-semibold text-[#2D2B5B]">{{ resumenDeHoy[estado] }}</dd>
@@ -413,7 +467,7 @@ const opcionesCalendario = computed(() => ({
               <ul v-if="proximasCitas.length" class="divide-y divide-gray-200">
                 <li v-for="cita in proximasCitas" :key="cita.id"
                   class="text-sm border-l-2 pl-3 py-4 first:pt-0 last:pb-0"
-                  :style="{ borderColor: colorDe(cita.extendedProps?.estado).borde }">
+                  :style="{ borderColor: colorTerapia(cita.extendedProps?.servicioId, cita.extendedProps?.servicio).borde }">
                   <!-- Fecha y acción en la misma línea -->
                   <div class="flex items-center justify-between gap-2">
                     <p class="text-gray-500">
@@ -443,7 +497,7 @@ const opcionesCalendario = computed(() => ({
                   </div>
 
                   <p class="text-[#2D2B5B] font-medium">
-                    {{ cita.title }}
+                    {{ cita.extendedProps?.paciente }}
 
                     <!-- Atendida = ya tiene sesión registrada. -->
                     <span v-if="cita.extendedProps?.sesion"
@@ -453,7 +507,7 @@ const opcionesCalendario = computed(() => ({
                       Atendida
                     </span>
                   </p>
-                  <p class="text-gray-500">{{ cita.extendedProps?.paciente }}</p>
+                  <p class="text-gray-500">{{ cita.extendedProps?.servicio }}</p>
                   <p class="text-xs text-gray-400">{{ cita.extendedProps?.atiende }}</p>
                 </li>
               </ul>

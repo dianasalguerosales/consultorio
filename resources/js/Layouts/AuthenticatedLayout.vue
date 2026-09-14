@@ -16,17 +16,17 @@ const roles = props.auth?.user?.roles ?? []
 const menuPorRol = {
   administrador: [
     'usuarios', 'pacientes', 'personas', 'agenda', 'expedientes',
-    'programas', 'evaluaciones', 'indicadores', 'parametros', 'pagos', 'informes'
+    'programas', 'objetivos', 'evaluaciones', 'indicadores', 'parametros', 'pagos', 'informes'
   ],
   auxiliar: [
     'pacientes', 'agenda', 'evaluaciones', 'pagos'
   ],
   coordinador: [
     'pacientes', 'usuarios', 'agenda', 'personas',
-    'programas', 'evaluaciones', 'pagos', 'informes', 'indicadores'
+    'programas', 'objetivos', 'evaluaciones', 'pagos', 'informes', 'indicadores'
   ],
   encargado: [
-    'hijos', 'agenda', 'evaluaciones', 'estado-cuenta'
+    'hijos', 'agenda', 'objetivos', 'evaluaciones', 'estado-cuenta'
   ],
   // 'indicadores' no va aquí: el rol pruebas no tiene el permiso
   // 'ver indicadores', así que el enlace le daría 403.

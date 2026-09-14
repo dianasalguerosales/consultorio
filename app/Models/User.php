@@ -35,6 +35,18 @@ class User extends Authenticatable
         return $this->hasOne(Encargado::class);
     }
 
+    /**
+     * El nombre con que se muestra al usuario. `users` solo guarda el correo:
+     * la persona vive en terapeuta, encargado o administrativo, según el rol.
+     * Sin ninguna de las tres queda el correo, que siempre está.
+     */
+    public function getNombreCompletoAttribute(): string
+    {
+        $persona = $this->terapeuta ?? $this->encargado ?? $this->administrativo;
+
+        return $persona?->nombre_completo ?: $this->email;
+    }
+
     protected $hidden = [
         'password',
         'remember_token',

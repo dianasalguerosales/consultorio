@@ -36,6 +36,9 @@ class Pago extends Model
         'Depósito',
     ];
 
+    /** Los roles que cobran sin que nadie más tenga que dar el visto bueno. */
+    public const ROLES_SIN_AUTORIZACION = ['administrador', 'coordinador'];
+
     protected $fillable = [
         'paciente_id',
         'cita_id',
@@ -46,11 +49,14 @@ class Pago extends Model
         'estado',
         'fecha',
         'registrado_por',
+        'autorizado_por',
+        'autorizado_en',
     ];
 
     protected $casts = [
         'fecha' => 'date:Y-m-d',
         'monto' => 'decimal:2',
+        'autorizado_en' => 'datetime',
     ];
 
     /* ---------- Relaciones ---------- */
@@ -73,6 +79,33 @@ class Pago extends Model
     public function registradoPor()
     {
         return $this->belongsTo(User::class, 'registrado_por');
+    }
+
+    public function autorizadoPor()
+    {
+        return $this->belongsTo(User::class, 'autorizado_por');
+    }
+
+    /* ---------- Autorización ---------- */
+
+    /**
+     * Un pago necesita autorización solo cuando lo registró un auxiliar: el
+     * administrador y el coordinador cobran por sí mismos.
+     *
+     * Se mira el rol que tiene hoy quien lo registró, no uno guardado con el
+     * pago: si a alguien le cambian el rol, sus cobros viejos cambian con él.
+     */
+    public function requiereAutorizacion(): bool
+    {
+        $registro = $this->registradoPor;
+
+        return $registro !== null
+            && ! $registro->hasAnyRole(self::ROLES_SIN_AUTORIZACION);
+    }
+
+    public function estaAutorizado(): bool
+    {
+        return $this->autorizado_por !== null;
     }
 
     /* ---------- Consultas ---------- */

@@ -29,6 +29,12 @@ class Paciente extends Model
         return $this->hasOne(Expediente::class);
     }
 
+    /** Los objetivos terapéuticos, agrupados por área al mostrarlos. */
+    public function objetivos()
+    {
+        return $this->hasMany(ObjetivoTerapeutico::class)->orderBy('area')->orderBy('id');
+    }
+
     public function citas()
     {
         return $this->hasMany(Cita::class);

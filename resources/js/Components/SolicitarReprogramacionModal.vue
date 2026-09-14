@@ -37,7 +37,7 @@ function enviar() {
     <div class="px-6 py-4 space-y-4">
       <div class="rounded-md bg-[#FAF9F7] p-4 text-sm">
         <p class="font-medium text-caine-azul">{{ datos.paciente }}</p>
-        <p class="text-gray-600">{{ cita?.title }}</p>
+        <p class="text-gray-600">{{ datos.servicio }}</p>
         <p class="text-gray-600">
           {{ datos.horaInicio }}<template v-if="datos.horaFin"> - {{ datos.horaFin }}</template>
           · {{ datos.atiende }}

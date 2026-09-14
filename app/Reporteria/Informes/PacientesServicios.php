@@ -54,13 +54,17 @@ class PacientesServicios extends Informe
 
     public function filtros(): array
     {
-        return [
-            'servicio_id' => [
-                'etiqueta' => 'Servicio',
-                'tipo' => 'select',
-                'opciones' => $this->opciones(Servicio::class),
-                'aplicar' => fn($q, $v) => $q->whereHas('servicios', fn($s) => $s->where('servicios.id', $v)),
-            ],
-        ];
+        return array_merge(
+            $this->rangoFechas('fecha_inicio', 'Apertura'),
+            $this->filtroPaciente(fn($q, $v) => $q->where('paciente_id', $v)),
+            [
+                'servicio_id' => [
+                    'etiqueta' => 'Servicio',
+                    'tipo' => 'select',
+                    'opciones' => $this->opciones(Servicio::class),
+                    'aplicar' => fn($q, $v) => $q->whereHas('servicios', fn($s) => $s->where('servicios.id', $v)),
+                ],
+            ]
+        );
     }
 }

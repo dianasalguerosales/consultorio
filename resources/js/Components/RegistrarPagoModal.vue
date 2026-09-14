@@ -88,8 +88,8 @@ function anular() {
 
       <div>
         <label class="block text-sm font-medium text-[#2D2B5B] mb-1">
-          Número de autorización
-          <span class="font-normal text-gray-400">(voucher o boleta)</span>
+          N.° de documento
+          <span class="font-normal text-gray-400">(voucher, boleta o recibo)</span>
         </label>
         <input v-model="form.numero_autorizacion" type="text" placeholder="Ej. 0045873"
           class="block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />

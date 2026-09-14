@@ -5,6 +5,7 @@ import RolesModal from '@/Components/personas/RolesModal.vue'
 import { Link } from '@inertiajs/vue3'
 import TerapeutaModalVer from '@/Components/personas/TerapeutaModalVer.vue'
 import TerapeutaModalEditar from '@/Components/personas/TerapeutaModalEditar.vue'
+import { confirmarEnClic } from '@/Utils/confirmar'
 
 const props = defineProps({
   terapeutas: Array,
@@ -95,6 +96,7 @@ function abrirRoles(persona) {
 
               <!-- Eliminar -->
               <Link as="button" method="delete" :href="`/personas/terapeutas/${t.id}`"
+                @click="confirmarEnClic($event, `al terapeuta ${t.nombres} ${t.apellidos}`)"
                 class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Eliminar</span>

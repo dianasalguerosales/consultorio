@@ -5,6 +5,7 @@ import ExpedienteModal from '@/Components/ExpedienteModal.vue'
 import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
 import { avatarPaciente } from '@/Utils/avatares'
 import { fecha } from '@/Utils/fechas'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   expedientes: Array,
@@ -57,7 +58,7 @@ function closeEditModal() {
 }
 
 function deleteExpediente(exp) {
-  if (confirm(`¿Seguro que deseas eliminar el expediente #${exp.codigo}?`)) {
+  if (confirmarEliminacion(`el expediente #${exp.codigo}`)) {
     router.delete(route('expedientes.destroy', exp.id), {
       onSuccess: () => {
         console.log('Expediente eliminado correctamente')

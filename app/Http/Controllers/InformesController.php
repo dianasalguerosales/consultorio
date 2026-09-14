@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Reporteria\Exportador;
 use App\Reporteria\Informe;
 use App\Reporteria\Registro;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InformesController extends Controller
 {
@@ -31,25 +31,15 @@ class InformesController extends Controller
 
         abort_unless($resultado, 404, 'Informe no encontrado.');
 
-        $nombre = str_replace(' ', '-', strtolower($resultado['nombre']));
-        $archivo = "{$nombre}-" . now()->format('Ymd-His') . '.csv';
+        // Un formato que no esté en la lista baja como CSV en vez de reventar.
+        $formato = $request->query('formato', 'csv');
+        $formato = in_array($formato, Exportador::FORMATOS, true) ? $formato : 'csv';
 
-        return new StreamedResponse(function () use ($resultado) {
-            $salida = fopen('php://output', 'w');
-
-            // BOM para que Excel reconozca UTF-8 y no rompa las tildes.
-            fwrite($salida, "\xEF\xBB\xBF");
-
-            fputcsv($salida, $resultado['encabezados'], '|');
-            foreach ($resultado['filas'] as $fila) {
-                fputcsv($salida, $fila, '|');
-            }
-
-            fclose($salida);
-        }, 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$archivo}\"",
-        ]);
+        return (new Exportador(
+            $resultado['nombre'],
+            $resultado['encabezados'],
+            $resultado['filas'],
+        ))->responder($formato);
     }
 
     /**

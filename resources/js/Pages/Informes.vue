@@ -71,9 +71,17 @@ function elegir(informe) {
   clave.value = informe.clave
 }
 
-function descargar() {
+// Los tres formatos salen del mismo informe armado; solo cambia el envoltorio.
+const FORMATOS = [
+  { clave: 'xlsx', etiqueta: 'Excel', icono: 'table_view' },
+  { clave: 'pdf', etiqueta: 'PDF', icono: 'picture_as_pdf' },
+  { clave: 'csv', etiqueta: 'CSV', icono: 'description' },
+]
+
+function descargar(formato) {
   const query = new URLSearchParams()
   query.set('informe', clave.value)
+  query.set('formato', formato)
   columnas.value.forEach((c) => query.append('columnas[]', c))
   for (const [k, v] of Object.entries(parametros.value.filtros)) {
     query.append(`filtros[${k}]`, v)
@@ -204,13 +212,16 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
                     mostrando {{ resultado.mostradas }}</template>
                 </span>
 
-                <button type="button" @click="descargar" :disabled="!columnas.length"
-                  class="inline-flex items-center gap-1 border border-caine-azul text-caine-azul px-4 py-2
-                         rounded-lg text-sm font-semibold hover:bg-caine-azul hover:text-white transition
-                         disabled:opacity-40">
-                  <span class="material-icons text-base">download</span>
-                  CSV
-                </button>
+                <div class="flex flex-wrap gap-2">
+                  <button v-for="f in FORMATOS" :key="f.clave" type="button"
+                    @click="descargar(f.clave)" :disabled="!columnas.length"
+                    class="inline-flex items-center gap-1 border border-caine-azul text-caine-azul px-3 py-2
+                           rounded-lg text-sm font-semibold hover:bg-caine-azul hover:text-white transition
+                           disabled:opacity-40">
+                    <span class="material-icons text-base">{{ f.icono }}</span>
+                    {{ f.etiqueta }}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -235,7 +246,7 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
             </p>
 
             <p v-else-if="resultado.mostradas < resultado.total" class="mt-3 text-xs text-gray-400">
-              La descarga incluye los {{ resultado.total }} registros, no solo los que se ven acá.
+              Las descargas incluyen los {{ resultado.total }} registros, no solo los que se ven acá.
             </p>
           </div>
         </template>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use App\Models\Expediente;
 use App\Models\Escolaridad;
@@ -118,12 +119,19 @@ class ExpedienteController extends Controller
             'motivo_consulta' => 'nullable|string',
             'consentimiento' => 'boolean',
             'observaciones' => 'nullable|string',
+            // La escolaridad se edita desde acá pero vive en `pacientes`.
+            'escolaridad_id' => 'nullable|integer|exists:escolaridades,id',
         ]);
 
-        $expediente->update($validated);
+        $expediente->update(Arr::except($validated, 'escolaridad_id'));
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
         $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
+
+        // Sin esto el selector de Escolaridad se llenaba y no guardaba nada.
+        if ($request->filled('escolaridad_id') && $expediente->paciente) {
+            $expediente->paciente->update(['escolaridad_id' => $validated['escolaridad_id']]);
+        }
 
         return redirect()->route('expedientes')->with('success', 'Expediente actualizado correctamente');
     }

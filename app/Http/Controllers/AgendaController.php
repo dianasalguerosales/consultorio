@@ -301,7 +301,9 @@ class AgendaController extends Controller
 
         return [
             'id' => $cita->id,
-            'title' => $cita->servicio?->nombre ?? $cita->tipoCita?->nombre ?? 'Cita',
+            // En la tarjeta se lee el nombre del niño; la terapia va aparte,
+            // en extendedProps, porque ahora la comunica el color.
+            'title' => $cita->paciente?->nombre_completo ?? 'Cita',
             'start' => $cita->fecha->toDateString() . 'T' . $cita->hora_inicio,
             'end' => $cita->hora_fin
                 ? $cita->fecha->toDateString() . 'T' . $cita->hora_fin
@@ -315,6 +317,9 @@ class AgendaController extends Controller
                 'atiendeId' => $cita->atendido_por_id,
                 'estado' => $cita->estadoCita?->nombre,
                 'estadoId' => $cita->estado_cita_id,
+                // El nombre de la terapia: lo usan la leyenda de colores, los
+                // paneles laterales y los modales, que antes lo leían del title.
+                'servicio' => $cita->servicio?->nombre ?? $cita->tipoCita?->nombre,
                 'servicioId' => $cita->servicio_id,
                 'modalidad' => $cita->modalidad?->nombre,
                 'modalidadId' => $cita->modalidad_id,
@@ -333,7 +338,6 @@ class AgendaController extends Controller
 
                 // null = aún sin atender. Sirve para abrir el modal con lo escrito.
                 'sesion' => $cita->sesion ? [
-                    'evolucion' => $cita->sesion->evolucion,
                     'observacionesClinicas' => $cita->sesion->observaciones_clinicas,
                     'observacionesGenerales' => $cita->sesion->observaciones_generales,
                     'duracionMinutos' => $cita->sesion->duracion_minutos,

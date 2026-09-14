@@ -430,11 +430,11 @@ class AgendaTest extends TestCase
         $negados = ['terapeuta', 'auxiliar', 'encargado'];
 
         foreach ($permitidos as $rol) {
-            $this->actingAs($this->usuarioCon($rol))->get('/agenda/ocupacion')->assertOk();
+            $this->actingAs($this->usuarioCon($rol))->get('/indicadores/ocupacion')->assertOk();
         }
 
         foreach ($negados as $rol) {
-            $this->actingAs($this->usuarioCon($rol))->get('/agenda/ocupacion')->assertForbidden();
+            $this->actingAs($this->usuarioCon($rol))->get('/indicadores/ocupacion')->assertForbidden();
         }
     }
 
@@ -453,7 +453,7 @@ class AgendaTest extends TestCase
         $this->crearCitaEn($paciente, $tera, $estado, $lunes->toDateString(), '11:00', '12:00');
         $this->crearCitaEn($paciente, $tera, $estado, $lunes->copy()->addDays(2)->toDateString(), '09:00', '10:30');
 
-        $props = $this->actingAs($coord)->get('/agenda/ocupacion')->viewData('page')['props'];
+        $props = $this->actingAs($coord)->get('/indicadores/ocupacion')->viewData('page')['props'];
 
         $fila = collect($props['personal'])->firstWhere('clave', 'terapeuta:' . $tera->id);
 
@@ -485,7 +485,7 @@ class AgendaTest extends TestCase
             $lunes, '11:00', '12:00'
         );
 
-        $props = $this->actingAs($coord)->get('/agenda/ocupacion')->viewData('page')['props'];
+        $props = $this->actingAs($coord)->get('/indicadores/ocupacion')->viewData('page')['props'];
         $fila = collect($props['personal'])->firstWhere('clave', 'terapeuta:' . $tera->id);
 
         $this->assertSame(1, $fila['totales']['citas'], 'la cancelada no cuenta');
@@ -515,7 +515,7 @@ class AgendaTest extends TestCase
             'cargo_id' => $otroCargo->id,
         ]);
 
-        $props = $this->actingAs($coord)->get('/agenda/ocupacion')->viewData('page')['props'];
+        $props = $this->actingAs($coord)->get('/indicadores/ocupacion')->viewData('page')['props'];
         $claves = collect($props['personal'])->pluck('clave');
 
         $this->assertTrue($claves->contains('auxiliar:' . $auxiliar->id));
@@ -526,12 +526,12 @@ class AgendaTest extends TestCase
     {
         $coord = $this->usuarioCon('coordinador');
 
-        $props = $this->actingAs($coord)->get('/agenda/ocupacion')->viewData('page')['props'];
+        $props = $this->actingAs($coord)->get('/indicadores/ocupacion')->viewData('page')['props'];
         $this->assertTrue($props['semana']['esActual']);
 
         $anterior = $props['semana']['anterior'];
         $props2 = $this->actingAs($coord)
-            ->get('/agenda/ocupacion?semana=' . $anterior)
+            ->get('/indicadores/ocupacion?semana=' . $anterior)
             ->viewData('page')['props'];
 
         $this->assertFalse($props2['semana']['esActual']);
@@ -550,7 +550,7 @@ class AgendaTest extends TestCase
         $lunes = now()->startOfWeek()->toDateString();
         $this->crearCitaEn($paciente, $tera, EstadoCita::first(), $lunes, '09:00', '10:30');
 
-        $props = $this->actingAs($coord)->get('/agenda/ocupacion')->viewData('page')['props'];
+        $props = $this->actingAs($coord)->get('/indicadores/ocupacion')->viewData('page')['props'];
         $fila = collect($props['personal'])->firstWhere('clave', 'terapeuta:' . $tera->id);
 
         $this->assertCount(1, $fila['citas']);

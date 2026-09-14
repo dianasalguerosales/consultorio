@@ -1,12 +1,19 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
+import GenerarPaqueteModal from '@/Components/GenerarPaqueteModal.vue'
 import { avatarPaciente } from '@/Utils/avatares'
 import { fecha } from '@/Utils/fechas'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   asignaciones: { type: Array, default: () => [] },
+  puedeRenovar: { type: Boolean, default: false },
 })
+
+// El paquete que se está por generar. No se renueva solo: lo dispara el
+// coordinador desde el botón, que es lo que pidió Diana.
+const renovando = ref(null)
 
 const search = ref('')
 
@@ -34,7 +41,9 @@ const asignacionesFiltradas = computed(() => {
 })
 
 function cancelar(a) {
-  if (!confirm(`¿Cancelar el programa de ${a.paciente}? Se retiran del calendario sus citas pendientes.`)) return
+  if (!confirmarEliminacion(
+    `el programa de ${a.paciente} y se retirarán del calendario sus citas pendientes`
+  )) return
 
   router.delete(`/programas/${a.id}`, { preserveScroll: true })
 }
@@ -49,7 +58,8 @@ function cancelar(a) {
       <div>
         <h2 class="text-2xl font-bold text-[#2D2B5B]">Programas</h2>
         <p class="text-sm text-gray-500">
-          Los programas se asignan desde la ficha de cada paciente.
+          Se asignan desde la ficha de cada paciente. El paquete del mes siguiente
+          se genera a mano, con el botón de cada fila.
         </p>
       </div>
       <div class="relative">
@@ -98,14 +108,24 @@ function cancelar(a) {
               {{ a.citas_creadas }}
               <span v-if="a.citas_creadas !== a.cantidad_citas" class="text-gray-500">/ {{ a.cantidad_citas }}</span>
             </td>
-            <td class="px-4 py-2 whitespace-nowrap">{{ fecha(a.fecha_inicio) }}</td>
+            <td class="px-4 py-2 whitespace-nowrap">
+              {{ fecha(a.fecha_inicio) }}
+              <span v-if="a.ultima_cita" class="block text-sm text-gray-500">
+                al {{ fecha(a.ultima_cita) }}
+              </span>
+            </td>
             <td class="px-4 py-2">
               <span class="px-2 py-1 rounded-full text-sm font-medium whitespace-nowrap"
                 :class="ESTADOS[a.estado] ?? 'bg-gray-100 text-gray-600'">
                 {{ a.estado }}
               </span>
             </td>
-            <td class="px-4 py-2 text-center">
+            <td class="px-4 py-2 text-center whitespace-nowrap">
+              <button v-if="puedeRenovar && a.puede_renovar" @click="renovando = a"
+                class="inline-flex items-center px-3 py-1 text-[#74BE69] hover:text-[#2D2B5B]">
+                <span class="material-icons text-base">event_repeat</span>
+                <span class="ml-1">Generar paquete</span>
+              </button>
               <button @click="cancelar(a)" class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Cancelar</span>
@@ -121,6 +141,8 @@ function cancelar(a) {
         </tbody>
       </table>
     </div>
+
+    <GenerarPaqueteModal v-if="renovando" :asignacion="renovando" @close="renovando = null" />
   </div>
 </template>
 

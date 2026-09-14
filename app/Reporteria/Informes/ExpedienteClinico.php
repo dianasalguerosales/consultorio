@@ -56,6 +56,7 @@ class ExpedienteClinico extends Informe
     {
         return array_merge(
             $this->rangoFechas('fecha_inicio', 'Ingreso'),
+            $this->filtroPaciente(fn($q, $v) => $q->where('paciente_id', $v)),
             [
                 'estado_expediente_id' => [
                     'etiqueta' => 'Estado',

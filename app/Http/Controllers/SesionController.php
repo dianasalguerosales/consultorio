@@ -17,8 +17,8 @@ class SesionController extends Controller
     {
         $terapeuta = $this->terapeutaQueAtiende($request, $cita);
 
+        // `observaciones_clinicas` es lo que el formulario rotula "Evolución".
         $datos = $request->validate([
-            'evolucion' => 'nullable|string',
             'observaciones_clinicas' => 'nullable|string',
             'observaciones_generales' => 'nullable|string',
             'duracion_minutos' => 'nullable|integer|min:1|max:600',

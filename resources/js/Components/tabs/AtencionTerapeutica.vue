@@ -1,10 +1,16 @@
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   expediente: {
     type: Object,
     required: true
   }
 })
+
+// La relación del expediente se llama `servicios`. Esto leía `terapias`, que no
+// existe, así que la fila salía siempre vacía.
+const terapias = computed(() => props.expediente?.servicios ?? [])
 </script>
 
 <template>
@@ -16,7 +22,7 @@ const props = defineProps({
         <td class="p-2 border w-4/5">
           <div class="space-y-2">
             <label
-              v-for="terapia in expediente?.terapias || []"
+              v-for="terapia in terapias"
               :key="terapia.id"
               class="flex items-center space-x-2 text-gray-800"
             >

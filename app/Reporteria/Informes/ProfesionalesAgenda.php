@@ -56,6 +56,7 @@ class ProfesionalesAgenda extends Informe
     {
         return array_merge(
             $this->rangoFechas('fecha', 'Fecha'),
+            $this->filtroPaciente(fn($q, $v) => $q->where('paciente_id', $v)),
             [
                 'tipo_profesional' => [
                     'etiqueta' => 'Tipo de profesional',

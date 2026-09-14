@@ -360,7 +360,7 @@ const etiquetaNivel = computed(() =>
       <h2 class="text-2xl font-bold text-caine-azul">Indicadores</h2>
 
       <Link v-if="$page.props.auth.user.permissions.includes('ver ocupacion personal')"
-        href="/agenda/ocupacion"
+        href="/indicadores/ocupacion"
         class="inline-flex items-center gap-1 px-4 py-3 rounded-lg border border-caine-azul
                text-caine-azul font-semibold hover:bg-caine-azul hover:text-white transition">
         <span class="material-icons text-base">insights</span>

@@ -6,21 +6,21 @@ use App\Models\Sesion;
 use App\Models\Terapeuta;
 use App\Reporteria\Informe;
 
-class SesionesObservaciones extends Informe
+class Evoluciones extends Informe
 {
     public function clave(): string
     {
-        return 'sesiones-observaciones';
+        return 'evoluciones';
     }
 
     public function nombre(): string
     {
-        return 'Sesiones y observaciones';
+        return 'Evoluciones';
     }
 
     public function descripcion(): string
     {
-        return 'Las sesiones atendidas con lo que escribió el terapeuta.';
+        return 'Las sesiones atendidas con la evolución que escribió el terapeuta.';
     }
 
     public function tablas(): string
@@ -44,27 +44,32 @@ class SesionesObservaciones extends Informe
             'servicio' => ['etiqueta' => 'Servicio', 'valor' => fn(Sesion $s) => $s->cita?->servicio?->nombre],
             'estado' => ['etiqueta' => 'Estado de la sesión', 'valor' => fn(Sesion $s) => $s->estadoSesion?->nombre],
             'duracion' => ['etiqueta' => 'Duración (min)', 'valor' => fn(Sesion $s) => $s->duracion_minutos],
-            'evolucion' => ['etiqueta' => 'Evolución', 'valor' => fn(Sesion $s) => $s->evolucion],
-            'obs_clinicas' => ['etiqueta' => 'Observaciones clínicas', 'valor' => fn(Sesion $s) => $s->observaciones_clinicas],
-            'obs_generales' => ['etiqueta' => 'Observaciones generales', 'valor' => fn(Sesion $s) => $s->observaciones_generales],
+            'obs_clinicas' => ['etiqueta' => 'Evolución', 'valor' => fn(Sesion $s) => $s->observaciones_clinicas],
+            'obs_generales' => ['etiqueta' => 'Observaciones públicas', 'valor' => fn(Sesion $s) => $s->observaciones_generales],
             'con_observacion' => ['etiqueta' => '¿Tiene observaciones?', 'valor' => fn(Sesion $s) => ($s->observaciones_clinicas || $s->observaciones_generales) ? 'Sí' : 'No'],
         ];
     }
 
     public function filtros(): array
     {
-        return [
-            'terapeuta_id' => [
+        return array_merge(
+            $this->rangoFechasDe('cita', 'fecha', 'Fecha de la cita'),
+            $this->filtroPaciente(
+                fn($q, $v) => $q->whereHas('cita', fn($c) => $c->where('paciente_id', $v))
+            ),
+            [
+                'terapeuta_id' => [
                 'etiqueta' => 'Terapeuta',
                 'tipo' => 'select',
-                'opciones' => $this->opcionesPersonas(Terapeuta::class),
-                'aplicar' => fn($q, $v) => $q->where('terapeuta_id', $v),
-            ],
-            'sin_observaciones' => [
-                'etiqueta' => 'Solo sesiones sin observaciones',
-                'tipo' => 'checkbox',
-                'aplicar' => fn($q, $v) => $q->whereNull('observaciones_clinicas')->whereNull('observaciones_generales'),
-            ],
-        ];
+                    'opciones' => $this->opcionesPersonas(Terapeuta::class),
+                    'aplicar' => fn($q, $v) => $q->where('terapeuta_id', $v),
+                ],
+                'sin_observaciones' => [
+                    'etiqueta' => 'Solo sesiones sin observaciones',
+                    'tipo' => 'checkbox',
+                    'aplicar' => fn($q, $v) => $q->whereNull('observaciones_clinicas')->whereNull('observaciones_generales'),
+                ],
+            ]
+        );
     }
 }

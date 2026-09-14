@@ -37,6 +37,7 @@ class PacientesController extends Controller
             'citas.modalidad',
             'citas.sesion',
             'citas.atendidoPor',
+
         ])->orderBy('apellidos')->get();
 
         return Inertia::render('Pacientes', [
@@ -74,6 +75,44 @@ class PacientesController extends Controller
         return Inertia::render('Pacientes/Historial', [
             'paciente' => $paciente,
             'citas' => $citas,
+        ]);
+    }
+
+    /**
+     * Lo que el terapeuta escribió en cada sesión, a página completa.
+     *
+     * La ruta ya existía apuntando a un método que no estaba. Va aparte del
+     * modal de Historial porque ahí la evolución cae dentro de una celda de
+     * tabla, y lo que se escribe son párrafos largos que quedan ilegibles.
+     */
+    public function observaciones(Paciente $paciente)
+    {
+        $citas = Cita::with(['atendidoPor', 'servicio', 'estadoCita', 'sesion'])
+            ->where('paciente_id', $paciente->id)
+            // Solo las atendidas: una cita sin sesión no tiene nada escrito.
+            ->whereHas('sesion')
+            ->orderBy('fecha', 'desc')
+            ->orderBy('hora_inicio', 'desc')
+            ->get();
+
+        return Inertia::render('Pacientes/Observaciones', [
+            'paciente' => [
+                'id' => $paciente->id,
+                'nombre_completo' => $paciente->nombre_completo,
+                'expediente' => $paciente->expediente?->codigo,
+            ],
+
+            'sesiones' => $citas->map(fn(Cita $cita) => [
+                'id' => $cita->id,
+                'fecha' => $cita->fecha->toDateString(),
+                'hora' => substr($cita->hora_inicio, 0, 5),
+                'servicio' => $cita->servicio?->nombre,
+                'atiende' => $cita->atendidoPor?->nombre_completo,
+                'estado' => $cita->estadoCita?->nombre,
+                'duracion' => $cita->sesion?->duracion_minutos,
+                'evolucion' => $cita->sesion?->observaciones_clinicas,
+                'observaciones' => $cita->sesion?->observaciones_generales,
+            ]),
         ]);
     }
 

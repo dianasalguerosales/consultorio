@@ -28,25 +28,44 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 const step = ref(1)
 
+// Una fecha puede venir como '2026-09-09' o con hora; el <input type="date">
+// solo acepta lo primero.
+const soloFecha = (valor) => (valor ? String(valor).slice(0, 10) : '')
+
+// Lo que ya está respondido en la anamnesis, por criterio.
+const respuestasGuardadas = new Map(
+  (props.expediente?.anamnesis?.items ?? []).map(i => [i.criterio_id, i.respuesta])
+)
+
+// Un renglón por criterio, con su respuesta si el expediente ya la tenía.
+const itemsDe = (criterios) =>
+  criterios.map(c => ({
+    criterio_id: c.id,
+    respuesta: respuestasGuardadas.get(c.id) ?? null,
+  }))
+
 const form = useForm({
   paciente_id: props.pacienteId || props.expediente?.paciente_id || null,
   nombres: props.expediente?.nombres || '',
   apellidos: props.expediente?.apellidos || '',
-  fecha_nacimiento: props.expediente?.fecha_nacimiento || '',
+  fecha_nacimiento: soloFecha(props.expediente?.fecha_nacimiento),
   estado_expediente_id: props.expediente?.estado_expediente_id || null,
   modalidad_id: props.expediente?.modalidad_id || null,
   anamnesis_id: props.expediente?.anamnesis_id || null,
   diagnosticos: props.expediente?.diagnosticos?.map(d => d.id) || [],
-  terapias: props.expediente?.terapias?.map(t => t.id) || [],
+  // La relación se llama `servicios`; con el nombre viejo el formulario mandaba
+  // la lista vacía y cada guardado borraba las terapias del expediente.
+  servicios: props.expediente?.servicios?.map(s => s.id) || [],
   evaluaciones: props.expediente?.evaluaciones?.map(e => e.id) || [],
-  escolaridad_id: props.expediente?.escolaridad_id || null,
+  // La escolaridad es del paciente, no del expediente.
+  escolaridad_id: props.expediente?.paciente?.escolaridad_id || null,
   motivo_consulta: props.expediente?.motivo_consulta || '',
-  fecha_inicio: props.expediente?.fecha_inicio || '',
-  consentimiento: props.expediente?.consentimiento || false,
+  fecha_inicio: soloFecha(props.expediente?.fecha_inicio),
+  consentimiento: Boolean(props.expediente?.consentimiento),
   observaciones: props.expediente?.observaciones || '',
-  itemsModulo1: [],
-  itemsModulo2: [],
-  itemsModulo3: []
+  itemsModulo1: itemsDe(props.criteriosModulo1),
+  itemsModulo2: itemsDe(props.criteriosModulo2),
+  itemsModulo3: itemsDe(props.criteriosModulo3)
 })
 
 function nextStep() { step.value++ }
@@ -73,10 +92,6 @@ function saveChanges() {
   }
 }
 
-// Inicializar criterios
-props.criteriosModulo1.forEach(c => form.itemsModulo1.push({ criterio_id: c.id, respuesta: null }))
-props.criteriosModulo2.forEach(c => form.itemsModulo2.push({ criterio_id: c.id, respuesta: null }))
-props.criteriosModulo3.forEach(c => form.itemsModulo3.push({ criterio_id: c.id, respuesta: null }))
 </script>
 
 <template>

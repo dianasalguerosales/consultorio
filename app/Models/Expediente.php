@@ -25,6 +25,17 @@ class Expediente extends Model
         'observaciones',
     ];
 
+    /**
+     * Sin estos casts las fechas viajaban como "2026-09-09 15:12:24" y un
+     * `<input type="date">` no reconoce ese formato: el campo salía en blanco
+     * al editar aunque el dato estuviera guardado.
+     */
+    protected $casts = [
+        'fecha_nacimiento' => 'date:Y-m-d',
+        'fecha_inicio' => 'date:Y-m-d',
+        'consentimiento' => 'boolean',
+    ];
+
     public function paciente()
     {
         return $this->belongsTo(Paciente::class);

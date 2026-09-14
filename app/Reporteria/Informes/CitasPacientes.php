@@ -57,6 +57,7 @@ class CitasPacientes extends Informe
     {
         return array_merge(
             $this->rangoFechas('fecha', 'Fecha'),
+            $this->filtroPaciente(fn($q, $v) => $q->where('paciente_id', $v)),
             [
                 'estado_cita_id' => [
                     'etiqueta' => 'Estado',
