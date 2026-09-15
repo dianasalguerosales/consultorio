@@ -19,6 +19,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Google_Service_Calendar;
+use Google_Service_Calendar_Event;
+
 
 class AgendaController extends Controller
 {
@@ -41,7 +44,6 @@ class AgendaController extends Controller
                 'modalidad',
                 'tipoCita',
                 'sesion',
-                // Para no ofrecer dos veces la reprogramación de la misma cita.
                 'solicitudesReprogramacion',
             ]),
             $user
@@ -92,34 +94,105 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         $datos = $this->validar($request);
-
         $this->verificarSolapamiento($datos);
 
         $cita = Cita::create($datos);
+
+        // --- Google Calendar ---
+        $client = new \Google_Client();
+        $client->setAuthConfig(storage_path('app/google-calendar/credentials.json'));
+        $client->addScope(\Google_Service_Calendar::CALENDAR);
+
+        $token = json_decode($request->user()->google_token, true);
+        $client->setAccessToken($token);
+
+        if ($client->isAccessTokenExpired()) {
+            $refreshToken = $token['refresh_token'] ?? null;
+            if ($refreshToken) {
+                $client->fetchAccessTokenWithRefreshToken($refreshToken);
+                $request->user()->update([
+                    'google_token' => json_encode($client->getAccessToken()),
+                ]);
+            } else {
+                return redirect()->route('google.auth');
+            }
+        }
+
+        $calendar = new \Google_Service_Calendar($client);
+
+        $event = new \Google_Service_Calendar_Event([
+            'summary' => 'Consulta CAINE - ' . ($cita->paciente?->nombre_completo ?? 'Sin nombre'),
+            'description' => 'Servicio: ' . (optional($cita->servicio)->nombre ?? 'Sin servicio'),
+            'start' => [
+                'dateTime' => $cita->fecha->format('Y-m-d') . 'T' . date('H:i:s', strtotime($cita->hora_inicio)),
+                'timeZone' => 'America/Guatemala',
+            ],
+            'end' => [
+                'dateTime' => $cita->fecha->format('Y-m-d') . 'T' . date('H:i:s', strtotime($cita->hora_fin)),
+                'timeZone' => 'America/Guatemala',
+            ],
+        ]);
+
+        $googleEvent = $calendar->events->insert('primary', $event);
+        $cita->update(['google_event_id' => $googleEvent->id]);
 
         return redirect()
             ->route('agenda.index')
             ->with('success', "Cita creada para el {$cita->fecha->format('d/m/Y')}.");
     }
 
+
     public function update(Request $request, Cita $cita)
     {
         $this->verificarPuedeGestionar($request->user(), $cita);
 
         $datos = $this->validar($request);
-
         $this->verificarSolapamiento($datos, $cita->id);
 
         $cita->update($datos);
+
+        // --- Google Calendar ---
+        $client = new \Google_Client();
+        $client->setAuthConfig(storage_path('app/google-calendar/credentials.json'));
+        $client->addScope(\Google_Service_Calendar::CALENDAR);
+        $client->setAccessToken(json_decode($request->user()->google_token, true));
+
+        $calendar = new \Google_Service_Calendar($client);
+
+        if ($cita->google_event_id) {
+            $event = $calendar->events->get('primary', $cita->google_event_id);
+
+            $event->summary = 'Consulta CAINE - ' . ($cita->paciente?->nombre_completo ?? 'Sin nombre');
+            $event->description = 'Servicio: ' . (optional($cita->servicio)->nombre ?? 'Sin servicio');
+            $event->start->dateTime = $cita->fecha->format('Y-m-d') . 'T' . date('H:i:s', strtotime($cita->hora_inicio));
+            $event->start->timeZone = 'America/Guatemala';
+            $event->end->dateTime = $cita->fecha->format('Y-m-d') . 'T' . date('H:i:s', strtotime($cita->hora_fin));
+            $event->end->timeZone = 'America/Guatemala';
+
+            $calendar->events->update('primary', $event->id, $event);
+        }
 
         return redirect()
             ->route('agenda.index')
             ->with('success', 'Cita actualizada.');
     }
 
+
     public function destroy(Request $request, Cita $cita)
     {
         $this->verificarPuedeGestionar($request->user(), $cita);
+
+        // --- Google Calendar ---
+        $client = new \Google_Client();
+        $client->setAuthConfig(storage_path('app/google-calendar/credentials.json'));
+        $client->addScope(\Google_Service_Calendar::CALENDAR);
+        $client->setAccessToken(json_decode($request->user()->google_token, true));
+
+        $calendar = new \Google_Service_Calendar($client);
+
+        if ($cita->google_event_id) {
+            $calendar->events->delete('primary', $cita->google_event_id);
+        }
 
         $cita->delete();
 
@@ -127,6 +200,7 @@ class AgendaController extends Controller
             ->route('agenda.index')
             ->with('success', 'Cita eliminada.');
     }
+
     /* ---------- Alcance por rol ---------- */
 
     /**
@@ -179,7 +253,7 @@ class AgendaController extends Controller
     private function soloAgendaParaSiMismo(User $user): bool
     {
         return $user->hasRole('auxiliar')
-            && ! $user->hasAnyRole(['administrador', 'coordinador']);
+            && !$user->hasAnyRole(['administrador', 'coordinador']);
     }
 
     // El auxiliar gestiona solo las citas que él atiende. validar() revisa a
@@ -187,7 +261,7 @@ class AgendaController extends Controller
     // editar o borrar una ajena mandando su id.
     private function verificarPuedeGestionar(User $user, Cita $cita): void
     {
-        if (! $this->soloAgendaParaSiMismo($user)) {
+        if (!$this->soloAgendaParaSiMismo($user)) {
             return;
         }
 
@@ -195,8 +269,8 @@ class AgendaController extends Controller
 
         abort_unless(
             $propio
-                && $cita->atendido_por_type === QuienAtiende::clase($propio['tipo'])
-                && (int) $cita->atendido_por_id === $propio['id'],
+            && $cita->atendido_por_type === QuienAtiende::clase($propio['tipo'])
+            && (int) $cita->atendido_por_id === $propio['id'],
             403,
             'Solo puede modificar las citas que usted mismo atiende.'
         );
@@ -228,7 +302,7 @@ class AgendaController extends Controller
         $claseAtiende = QuienAtiende::clase($validado['atiende_tipo']);
 
         // exists: no sirve aquí porque la tabla depende del tipo elegido.
-        if (! $claseAtiende::whereKey($validado['atiende_id'])->exists()) {
+        if (!$claseAtiende::whereKey($validado['atiende_id'])->exists()) {
             throw ValidationException::withMessages([
                 'atiende_id' => 'La persona seleccionada no existe.',
             ]);
@@ -243,7 +317,7 @@ class AgendaController extends Controller
                 && $validado['atiende_tipo'] === $propio['tipo']
                 && (int) $validado['atiende_id'] === $propio['id'];
 
-            if (! $esElMismo) {
+            if (!$esElMismo) {
                 throw ValidationException::withMessages([
                     'atiende_id' => 'Solo puede agendar citas que usted mismo atiende.',
                 ]);
@@ -278,7 +352,7 @@ class AgendaController extends Controller
             $ignorarId
         )->with('paciente')->first();
 
-        if (! $choque) {
+        if (!$choque) {
             return;
         }
 
