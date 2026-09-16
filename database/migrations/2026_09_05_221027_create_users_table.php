@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('email')->unique();
             $table->string('password');
+            $table->text('google_token')->nullable()->change();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();

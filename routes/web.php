@@ -28,7 +28,7 @@ use App\Http\Controllers\EvaluacionesController;
 use App\Http\Controllers\InformesController;
 use App\Http\Controllers\TerapeutaController;
 use App\Http\Controllers\EncargadoController;
-
+use App\Http\Controllers\GoogleController;
 use App\Models\Servicio;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +36,10 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+
+Route::get('/google/auth', [GoogleController::class, 'redirect'])->name('google.auth');
+Route::get('/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
@@ -212,6 +216,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/personas/encargados/{id}/edit', [EncargadoController::class, 'edit'])->name('personas.encargados.edit');
             Route::put('/personas/encargados/{id}', [EncargadoController::class, 'update'])->name('personas.encargados.update');
             Route::delete('/personas/encargados/{id}', [EncargadoController::class, 'destroy'])->name('personas.encargados.destroy');
+
+
+
         });
 
 
@@ -246,6 +253,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/personas/terapeuta/{id}/pacientes', [TerapeutaController::class, 'pacientes'])->name('terapeuta.pacientes');
         Route::get('/personas/encargado/{id}/pacientes', [EncargadoController::class, 'pacientes'])->name('encargado.pacientes');
+
     });
 });
 
