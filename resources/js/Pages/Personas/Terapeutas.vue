@@ -5,7 +5,7 @@ import RolesModal from '@/Components/personas/RolesModal.vue'
 import { Link } from '@inertiajs/vue3'
 import TerapeutaModalVer from '@/Components/personas/TerapeutaModalVer.vue'
 import TerapeutaModalEditar from '@/Components/personas/TerapeutaModalEditar.vue'
-import { confirmarEnClic } from '@/Utils/confirmar'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   terapeutas: Array,
@@ -96,7 +96,7 @@ function abrirRoles(persona) {
 
               <!-- Eliminar -->
               <Link as="button" method="delete" :href="`/personas/terapeutas/${t.id}`"
-                @click="confirmarEnClic($event, `al terapeuta ${t.nombres} ${t.apellidos}`)"
+                @before="confirmarEliminacion(`al terapeuta ${t.nombres} ${t.apellidos}`)"
                 class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Eliminar</span>
@@ -122,22 +122,11 @@ function abrirRoles(persona) {
     </table>
 
     <!-- Modal de perfil -->
-    <TerapeutaModalVer
-      v-if="showViewModal"
-      :terapeuta="selectedTerapeuta"
-      @close="closeViewModal"
-    />
+    <TerapeutaModalVer v-if="showViewModal" :terapeuta="selectedTerapeuta" @close="closeViewModal" />
 
     <!-- Modal de edición -->
-    <TerapeutaModalEditar
-      v-if="showEditModal"
-      :terapeuta="selectedTerapeuta"
-      :especialidades="especialidades"
-      :generos="generos"
-      :usuariosDisponibles="usuariosDisponibles"
-      @close="closeEditModal"
-    />
-    <RolesModal v-if="enRoles" :persona="enRoles" tipo="terapeuta" :roles="roles ?? []"
-      @close="enRoles = null" />
+    <TerapeutaModalEditar v-if="showEditModal" :terapeuta="selectedTerapeuta" :especialidades="especialidades"
+      :generos="generos" :usuariosDisponibles="usuariosDisponibles" @close="closeEditModal" />
+    <RolesModal v-if="enRoles" :persona="enRoles" tipo="terapeuta" :roles="roles ?? []" @close="enRoles = null" />
   </div>
 </template>

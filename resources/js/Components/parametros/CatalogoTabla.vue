@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import CatalogoModalVer from './CatalogoModalVer.vue'
 import CatalogoModalEditar from './CatalogoModalEditar.vue'
-import { confirmarEnClic } from '@/Utils/confirmar'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   // Una entrada de App\Catalogos\Catalogos: clave, titulo, conDescripcion, items.
@@ -95,7 +95,7 @@ function cerrar() {
                 <!-- Sin el @click borraba de un solo clic, sin preguntar. -->
                 <Link as="button" method="delete" preserve-scroll
                   :href="route('catalogos.destroy', [catalogo.clave, item.id])"
-                  @click="confirmarEnClic($event, `«${item.nombre}» de ${catalogo.nombre}`)"
+                  @before="confirmarEliminacion(`«${item.nombre}» de ${catalogo.nombre}`)"
                   class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                   <span class="material-icons text-base">delete</span>
                   <span class="ml-1">Eliminar</span>
@@ -114,7 +114,7 @@ function cerrar() {
     <CatalogoModalVer v-if="viendo" :item="seleccionado" :titulo="catalogo.titulo"
       :conDescripcion="catalogo.conDescripcion" :campos="campos" @close="cerrar" />
 
-    <CatalogoModalEditar v-if="editando" :item="seleccionado" :catalogo="catalogo.clave"
-      :titulo="catalogo.titulo" :conDescripcion="catalogo.conDescripcion" :campos="campos" @close="cerrar" />
+    <CatalogoModalEditar v-if="editando" :item="seleccionado" :catalogo="catalogo.clave" :titulo="catalogo.titulo"
+      :conDescripcion="catalogo.conDescripcion" :campos="campos" @close="cerrar" />
   </div>
 </template>

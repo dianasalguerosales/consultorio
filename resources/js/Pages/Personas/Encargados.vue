@@ -5,7 +5,7 @@ import EncargadoModalVer from '@/Components/personas/EncargadoModalVer.vue'
 import EncargadoModalEditar from '@/Components/personas/EncargadoModalEditar.vue'
 import { avatarUsuario } from '@/Utils/avatares'
 import RolesModal from '@/Components/personas/RolesModal.vue'
-import { confirmarEnClic } from '@/Utils/confirmar'
+import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
   encargados: Array,
@@ -97,7 +97,7 @@ function abrirRoles(persona) {
 
               <!-- Eliminar -->
               <Link as="button" method="delete" :href="`/personas/encargados/${e.id}`"
-                @click="confirmarEnClic($event, `al encargado ${e.nombres} ${e.apellidos}`)"
+                @before="confirmarEliminacion(`al encargado ${e.nombres} ${e.apellidos}`)"
                 class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Eliminar</span>
@@ -126,14 +126,9 @@ function abrirRoles(persona) {
     <EncargadoModalVer v-if="showViewModal" :encargado="selectedEncargado" @close="closeViewModal" />
 
     <!-- Modal de edición -->
-    <EncargadoModalEditar v-if="showEditModal" 
-    :encargado="selectedEncargado" 
-    :generos="generos"
-    :estadosCiviles="estadosCiviles" 
-    :relacionesPaciente="relacionesPaciente"
-    :usuariosDisponibles="usuariosDisponibles" 
-  @close="closeEditModal" />
-    <RolesModal v-if="enRoles" :persona="enRoles" tipo="encargado" :roles="roles ?? []"
-      @close="enRoles = null" />
+    <EncargadoModalEditar v-if="showEditModal" :encargado="selectedEncargado" :generos="generos"
+      :estadosCiviles="estadosCiviles" :relacionesPaciente="relacionesPaciente"
+      :usuariosDisponibles="usuariosDisponibles" @close="closeEditModal" />
+    <RolesModal v-if="enRoles" :persona="enRoles" tipo="encargado" :roles="roles ?? []" @close="enRoles = null" />
   </div>
 </template>

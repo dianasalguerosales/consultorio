@@ -18,14 +18,3 @@ export function confirmarEliminacion(detalle = null) {
 
   return window.confirm(texto)
 }
-
-/**
- * Para los botones que borran con `<Link method="delete">`: si el usuario
- * cancela, se frena el clic y la petición nunca sale.
- */
-export function confirmarEnClic(evento, detalle = null) {
-  if (confirmarEliminacion(detalle)) return
-
-  evento.preventDefault()
-  evento.stopPropagation()
-}
