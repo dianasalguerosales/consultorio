@@ -16,6 +16,7 @@ asistente — sin tener que reconstruir el razonamiento desde cero.
 | [Informe 09-09](informe_09-09.md) | El 9 de septiembre de 2026: módulos Hijos, Evaluaciones e Informes, organigrama, layout responsivo y fechas dd/mm/yyyy |
 | [Informe 10-09](informe1009.md) | El 10 de septiembre de 2026: migración a Laravel 12, modularización, y los módulos Roles, Reprogramación de citas y Pagos |
 | [Informe 11-09](informe1109.md) | El 11 de septiembre de 2026: módulo de Programas con reparto exacto del precio, catálogos nuevos, cumpleaños y responsive del perfil |
+| [Informe 14-09](informe1409.md) | El 14 de septiembre de 2026: cobro por paquete, módulo de Objetivos, exportación a Excel y PDF, generar el paquete del mes a mano, y seis bugs viejos |
 
 ## Reglas de trabajo
 
