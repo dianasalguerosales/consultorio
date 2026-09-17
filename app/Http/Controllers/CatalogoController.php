@@ -17,6 +17,7 @@ class CatalogoController extends Controller
         'entero' => ['nullable', 'integer', 'min:1'],
         'moneda' => ['nullable', 'numeric', 'min:0'],
         'texto' => ['nullable', 'string', 'max:255'],
+        'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
     ];
 
     public function store(Request $request, string $catalogo)
@@ -69,15 +70,21 @@ class CatalogoController extends Controller
         }
 
         $etiquetas = [];
+        $mensajes = [];
 
         foreach ($c['campos'] as $campo) {
             $reglas[$campo['clave']] = self::REGLAS[$campo['tipo']];
             // Sin esto el error sale como "sesiones por mes" en vez de
             // "Cantidad de citas", que es lo que dice la pantalla.
             $etiquetas[$campo['clave']] = $campo['etiqueta'];
+
+            // "El formato es inválido" no dice cuál es el formato bueno.
+            if ($campo['tipo'] === 'color') {
+                $mensajes[$campo['clave'] . '.regex'] = 'El color va en hexadecimal, como #53C6D3.';
+            }
         }
 
-        return $request->validate($reglas, [], $etiquetas);
+        return $request->validate($reglas, $mensajes, $etiquetas);
     }
 
     /** "Servicio creado", "Escolaridad creada": el género va en el registro. */

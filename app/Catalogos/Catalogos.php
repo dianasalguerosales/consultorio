@@ -23,7 +23,8 @@ use App\Models\TipoCita;
  * escribir. Y funciona como lista blanca: el CRUD solo atiende estas claves.
  *
  * `campos` es para los que llevan algo más que nombre y descripción, como
- * Programas con su cantidad de citas y su costo. Tipos: entero, moneda, texto.
+ * Programas con su cantidad de citas y su costo. Tipos: entero, moneda, texto,
+ * color.
  */
 class Catalogos
 {
@@ -34,6 +35,10 @@ class Catalogos
             'etiqueta' => 'Servicios',
             'genero' => 'o',
             'conDescripcion' => true,
+            'campos' => [
+                // Sin color elegido, la agenda le da uno de su paleta.
+                ['clave' => 'color', 'etiqueta' => 'Color en agenda', 'tipo' => 'color'],
+            ],
         ],
         'especialidades' => [
             'modelo' => Especialidad::class,

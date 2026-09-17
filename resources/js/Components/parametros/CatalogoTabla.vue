@@ -69,7 +69,14 @@ function cerrar() {
             <td v-if="catalogo.conDescripcion" class="px-4 py-2 text-gray-700">{{ item.descripcion }}</td>
 
             <td v-for="c in campos" :key="c.clave" class="px-4 py-2 text-right whitespace-nowrap">
-              {{ valor(item, c) }}
+              <!-- Un color se entiende viéndolo; el hex va al lado por si lo
+                   quieren copiar a otro lado. -->
+              <span v-if="c.tipo === 'color' && item[c.clave]" class="inline-flex items-center gap-2 justify-end">
+                <span class="w-5 h-5 rounded border border-gray-300 shrink-0"
+                  :style="{ backgroundColor: item[c.clave] }"></span>
+                <span class="uppercase text-gray-600">{{ item[c.clave] }}</span>
+              </span>
+              <template v-else>{{ valor(item, c) }}</template>
             </td>
 
             <td class="px-4 py-2 text-center">

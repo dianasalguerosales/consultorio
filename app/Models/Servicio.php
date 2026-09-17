@@ -13,6 +13,8 @@ class Servicio extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        // Con qué color se pinta esta terapia en la agenda, en #RRGGBB.
+        'color',
         'activo',
     ];
 

@@ -62,7 +62,14 @@ const COLOR_POR_NOMBRE = {
   'Evaluación Cognitiva': COLOR_TERAPIA[0], // rosado
 }
 
-const colorTerapia = (servicioId, nombre = null) => {
+// El color que eligieron en Parámetros es un solo hex y el evento necesita
+// tres tonos: el hex pinta el borde, su versión translúcida el relleno, y el
+// texto va siempre en el azul de marca — con un color elegido a mano no se
+// puede garantizar que un texto del mismo tono se lea.
+const desdeHex = (hex) => ({ fondo: `${hex}22`, borde: hex, texto: '#2D2B5B' })
+
+const colorTerapia = (servicioId, nombre = null, hex = null) => {
+  if (hex) return desdeHex(hex)
   if (nombre && COLOR_POR_NOMBRE[nombre]) return COLOR_POR_NOMBRE[nombre]
 
   // Sin servicio no hay terapia que colorear, y el evento queda en gris.
@@ -78,7 +85,10 @@ const leyendaTerapias = computed(() => {
     const nombre = cita.extendedProps?.servicio ?? 'Sin terapia'
     if (vistas.has(nombre)) continue
 
-    vistas.set(nombre, { nombre, color: colorTerapia(cita.extendedProps?.servicioId, nombre) })
+    vistas.set(nombre, {
+      nombre,
+      color: colorTerapia(cita.extendedProps?.servicioId, nombre, cita.extendedProps?.servicioColor),
+    })
   }
 
   return [...vistas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
@@ -152,7 +162,11 @@ const hayFiltro = computed(() =>
 
 const eventos = computed(() =>
   citasFiltradas.value.map((cita) => {
-    const color = colorTerapia(cita.extendedProps?.servicioId, cita.extendedProps?.servicio)
+    const color = colorTerapia(
+      cita.extendedProps?.servicioId,
+      cita.extendedProps?.servicio,
+      cita.extendedProps?.servicioColor,
+    )
 
     return {
       ...cita,
@@ -332,6 +346,7 @@ const opcionesCalendario = computed(() => ({
 </script>
 
 <template>
+
   <Head title="Agenda" />
 
   <div class="p-8 max-w-7xl mx-auto">
@@ -350,182 +365,170 @@ const opcionesCalendario = computed(() => ({
          las columnas de la semana no quedan amontonadas. -->
     <div class="space-y-6">
 
-          <!-- Calendario -->
-          <div class="bg-white shadow rounded-lg p-4">
-            <!-- El estado solo filtra: el color del calendario es el de la
+      <!-- Calendario -->
+      <div class="bg-white shadow rounded-lg p-4">
+        <!-- El estado solo filtra: el color del calendario es el de la
                  terapia, y la leyenda de abajo es la que lo explica. -->
-            <div class="mb-4 pb-4 border-b border-gray-100 space-y-3">
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <span class="text-xs font-semibold text-caine-azul">Estado</span>
+        <div class="mb-4 pb-4 border-b border-gray-100 space-y-3">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span class="text-xs font-semibold text-caine-azul">Estado</span>
 
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" v-model="todosLosEstados"
-                    class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
-                  <span class="text-xs font-medium text-caine-azul">Todos</span>
-                </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" v-model="todosLosEstados"
+                class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
+              <span class="text-xs font-medium text-caine-azul">Todos</span>
+            </label>
 
-                <span class="w-px h-4 bg-gray-200"></span>
+            <span class="w-px h-4 bg-gray-200"></span>
 
-                <label v-for="estado in ESTADOS" :key="estado"
-                  class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" :value="estado" v-model="estadosVisibles"
-                    class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
-                  <span class="text-xs text-gray-600">{{ estado }}</span>
-                </label>
-              </div>
+            <label v-for="estado in ESTADOS" :key="estado" class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" :value="estado" v-model="estadosVisibles"
+                class="rounded border-gray-300 text-caine-azul focus:ring-caine-azul" />
+              <span class="text-xs text-gray-600">{{ estado }}</span>
+            </label>
+          </div>
+          
+          <div v-if="leyendaTerapias.length" class="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span class="text-sm font-semibold text-caine-azul">Terapia</span>
 
-              <!-- Leyenda de terapias. No filtra: solo explica el color del
-                   relleno, que es lo que se ve primero en la tarjeta. -->
-              <div v-if="leyendaTerapias.length" class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <span class="text-xs font-semibold text-caine-azul">Terapia</span>
-
-                <span v-for="t in leyendaTerapias" :key="t.nombre"
-                  class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-sm inline-block shrink-0 border"
-                    :style="{ backgroundColor: t.color.fondo, borderColor: t.color.borde }"></span>
-                  <span class="text-xs text-gray-600">{{ t.nombre }}</span>
-                </span>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-3">
-                <!-- Con una sola opción el selector no filtra nada. -->
-                <label v-if="opcionesFiltro.length > 1" class="flex items-center gap-2">
-                  <span class="text-xs font-medium text-caine-azul">{{ etiquetaFiltro }}</span>
-                  <select v-model="atiendeFiltro"
-                    class="text-xs rounded-md border-gray-300 py-1 focus:ring-caine-celeste focus:border-caine-celeste">
-                    <option value="">Todos</option>
-                    <option v-for="o in opcionesFiltro" :key="o.clave" :value="o.clave">
-                      {{ o.nombre }}
-                    </option>
-                  </select>
-                </label>
-
-                <span class="text-xs text-gray-400">
-                  {{ citasFiltradas.length }} de {{ citas.length }} citas
-                </span>
-
-                <button v-if="hayFiltro" type="button" @click="limpiarFiltros"
-                  class="text-xs font-medium text-caine-celeste hover:underline">
-                  Limpiar filtros
-                </button>
-              </div>
-            </div>
-
-            <FullCalendar ref="calendario" :options="opcionesCalendario" />
+            <!-- Cada entrada se pinta como el evento del calendario: mismo relleno
+             y mismo borde, para que la equivalencia se vea sin explicarla. -->
+            <span v-for="t in leyendaTerapias" :key="t.nombre"
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-medium"
+              :style="{ backgroundColor: t.color.fondo, borderColor: t.color.borde, color: t.color.texto }">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: t.color.borde }"></span>
+              {{ t.nombre }}
+            </span>
           </div>
 
-          <!-- Solicitudes de reprogramación esperando respuesta -->
-          <div v-if="permisos.resolverReprogramacion && solicitudes.length"
-            class="bg-white shadow rounded-lg p-5">
-            <h3 class="font-bold text-[#2D2B5B] mb-1">Solicitudes de reprogramación</h3>
-            <p class="text-sm text-gray-400 mb-4">{{ solicitudes.length }} esperando respuesta</p>
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Con una sola opción el selector no filtra nada. -->
+            <label v-if="opcionesFiltro.length > 1" class="flex items-center gap-2">
+              <span class="text-xs font-medium text-caine-azul">{{ etiquetaFiltro }}</span>
+              <select v-model="atiendeFiltro"
+                class="text-xs rounded-md border-gray-300 py-1 focus:ring-caine-celeste focus:border-caine-celeste">
+                <option value="">Todos</option>
+                <option v-for="o in opcionesFiltro" :key="o.clave" :value="o.clave">
+                  {{ o.nombre }}
+                </option>
+              </select>
+            </label>
 
-            <ul class="space-y-3">
-              <li v-for="s in solicitudes" :key="s.id"
-                class="flex flex-wrap items-center justify-between gap-3 border-l-2 border-caine-naranja pl-3">
-                <div class="text-sm">
-                  <p class="font-medium text-[#2D2B5B]">{{ s.paciente }}</p>
-                  <p class="text-gray-500">{{ s.fecha }} · {{ s.hora }} · {{ s.servicio }}</p>
-                  <p v-if="s.motivo" class="text-gray-500 italic">«{{ s.motivo }}»</p>
-                </div>
+            <span class="text-xs text-gray-400">
+              {{ citasFiltradas.length }} de {{ citas.length }} citas
+            </span>
 
-                <button type="button" @click="solicitudAResolver = s"
-                  class="inline-flex items-center gap-1 rounded-md border border-caine-azul px-3 py-1
-                         text-xs font-medium text-caine-azul transition hover:bg-caine-azul hover:text-white">
-                  <span class="material-icons text-sm">event_available</span>
-                  Resolver
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Paneles, ahora debajo del calendario y en dos columnas -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            <!-- Resumen del día -->
-            <div class="bg-white shadow rounded-lg p-5">
-              <h3 class="font-bold text-[#2D2B5B]">Resumen del día</h3>
-              <p class="text-sm text-gray-400 mb-4">{{ fechaCorta(hoy) }}</p>
-
-              <dl class="space-y-2">
-                <div v-for="estado in ESTADOS" :key="estado"
-                  class="flex items-center justify-between text-sm">
-                  <dt class="text-gray-600">{{ estado }}s</dt>
-                  <dd class="font-semibold text-[#2D2B5B]">{{ resumenDeHoy[estado] }}</dd>
-                </div>
-              </dl>
-
-              <p v-if="!citasDeHoy.length" class="mt-4 text-sm text-gray-400">
-                No hay citas para hoy.
-              </p>
-            </div>
-
-            <!-- Próximas citas -->
-            <div class="bg-white shadow rounded-lg p-5">
-              <h3 class="font-bold text-[#2D2B5B] mb-4">Próximas citas</h3>
-
-              <ul v-if="proximasCitas.length" class="divide-y divide-gray-200">
-                <li v-for="cita in proximasCitas" :key="cita.id"
-                  class="text-sm border-l-2 pl-3 py-4 first:pt-0 last:pb-0"
-                  :style="{ borderColor: colorTerapia(cita.extendedProps?.servicioId, cita.extendedProps?.servicio).borde }">
-                  <!-- Fecha y acción en la misma línea -->
-                  <div class="flex items-center justify-between gap-2">
-                    <p class="text-gray-500">
-                      {{ fechaCorta(cita.start) }} · {{ cita.extendedProps?.horaInicio }}
-                    </p>
-
-                    <button v-if="puedeSolicitar(cita)" type="button" @click="citaAReprogramar = cita"
-                      class="inline-flex shrink-0 items-center gap-1 rounded-md border
-                             border-caine-celeste px-2 py-1 text-xs font-medium text-caine-celeste
-                             transition hover:bg-caine-celeste hover:text-white">
-                      <span class="material-icons text-sm">event_repeat</span>
-                      Reprogramar
-                    </button>
-
-                    <span v-else-if="motivoSinReprogramar(cita)"
-                      class="shrink-0 text-xs text-gray-400">
-                      {{ motivoSinReprogramar(cita) }}
-                    </span>
-
-                    <button v-if="puedeAtender(cita)" type="button" @click="atender(cita)"
-                      class="inline-flex shrink-0 items-center gap-1 rounded-md border
-                             border-caine-azul px-2 py-1 text-xs font-medium text-caine-azul
-                             transition hover:bg-caine-azul hover:text-white">
-                      <span class="material-icons text-sm">edit_note</span>
-                      {{ cita.extendedProps?.sesion ? 'Ver observaciones' : 'Atender' }}
-                    </button>
-                  </div>
-
-                  <p class="text-[#2D2B5B] font-medium">
-                    {{ cita.extendedProps?.paciente }}
-
-                    <!-- Atendida = ya tiene sesión registrada. -->
-                    <span v-if="cita.extendedProps?.sesion"
-                      class="ml-1 align-middle inline-flex items-center gap-0.5 rounded
-                             bg-caine-verde/15 px-1.5 py-0.5 text-xs font-medium text-[#2F5B28]">
-                      <span class="material-icons text-xs">check</span>
-                      Atendida
-                    </span>
-                  </p>
-                  <p class="text-gray-500">{{ cita.extendedProps?.servicio }}</p>
-                  <p class="text-xs text-gray-400">{{ cita.extendedProps?.atiende }}</p>
-                </li>
-              </ul>
-
-              <p v-else class="text-sm text-gray-400">No hay citas próximas.</p>
-            </div>
+            <button v-if="hayFiltro" type="button" @click="limpiarFiltros"
+              class="text-xs font-medium text-caine-celeste hover:underline">
+              Limpiar filtros
+            </button>
           </div>
         </div>
 
-    <CitaModal v-if="permisos.agendar" :show="modalAbierto" :catalogos="catalogos"
-      :cita="citaSeleccionada" :hueco="slotSeleccionado" :permisos="permisos"
-      @close="cerrarModal" />
+        <FullCalendar ref="calendario" :options="opcionesCalendario" />
+      </div>
 
-    <SesionModal v-if="citaAtendiendo" :cita="citaAtendiendo"
-      @close="cerrarSesionModal" />
+      <!-- Solicitudes de reprogramación esperando respuesta -->
+      <div v-if="permisos.resolverReprogramacion && solicitudes.length" class="bg-white shadow rounded-lg p-5">
+        <h3 class="font-bold text-[#2D2B5B] mb-1">Solicitudes de reprogramación</h3>
+        <p class="text-sm text-gray-400 mb-4">{{ solicitudes.length }} esperando respuesta</p>
 
-    <SolicitarReprogramacionModal v-if="citaAReprogramar" :cita="citaAReprogramar"
-      @close="citaAReprogramar = null" />
+        <ul class="space-y-3">
+          <li v-for="s in solicitudes" :key="s.id"
+            class="flex flex-wrap items-center justify-between gap-3 border-l-2 border-caine-naranja pl-3">
+            <div class="text-sm">
+              <p class="font-medium text-[#2D2B5B]">{{ s.paciente }}</p>
+              <p class="text-gray-500">{{ s.fecha }} · {{ s.hora }} · {{ s.servicio }}</p>
+              <p v-if="s.motivo" class="text-gray-500 italic">«{{ s.motivo }}»</p>
+            </div>
+
+            <button type="button" @click="solicitudAResolver = s" class="inline-flex items-center gap-1 rounded-md border border-caine-azul px-3 py-1
+                         text-xs font-medium text-caine-azul transition hover:bg-caine-azul hover:text-white">
+              <span class="material-icons text-sm">event_available</span>
+              Resolver
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Paneles, ahora debajo del calendario y en dos columnas -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Resumen del día -->
+        <div class="bg-white shadow rounded-lg p-5">
+          <h3 class="font-bold text-[#2D2B5B]">Resumen del día</h3>
+          <p class="text-sm text-gray-400 mb-4">{{ fechaCorta(hoy) }}</p>
+
+          <dl class="space-y-2">
+            <div v-for="estado in ESTADOS" :key="estado" class="flex items-center justify-between text-sm">
+              <dt class="text-gray-600">{{ estado }}s</dt>
+              <dd class="font-semibold text-[#2D2B5B]">{{ resumenDeHoy[estado] }}</dd>
+            </div>
+          </dl>
+
+          <p v-if="!citasDeHoy.length" class="mt-4 text-sm text-gray-400">
+            No hay citas para hoy.
+          </p>
+        </div>
+
+        <!-- Próximas citas -->
+        <div class="bg-white shadow rounded-lg p-5">
+          <h3 class="font-bold text-[#2D2B5B] mb-4">Próximas citas</h3>
+
+          <ul v-if="proximasCitas.length" class="divide-y divide-gray-200">
+            <li v-for="cita in proximasCitas" :key="cita.id" class="text-sm border-l-2 pl-3 py-4 first:pt-0 last:pb-0"
+              :style="{ borderColor: colorTerapia(cita.extendedProps?.servicioId, cita.extendedProps?.servicio, cita.extendedProps?.servicioColor).borde }">
+              <!-- Fecha y acción en la misma línea -->
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-gray-500">
+                  {{ fechaCorta(cita.start) }} · {{ cita.extendedProps?.horaInicio }}
+                </p>
+
+                <button v-if="puedeSolicitar(cita)" type="button" @click="citaAReprogramar = cita" class="inline-flex shrink-0 items-center gap-1 rounded-md border
+                             border-caine-celeste px-2 py-1 text-xs font-medium text-caine-celeste
+                             transition hover:bg-caine-celeste hover:text-white">
+                  <span class="material-icons text-sm">event_repeat</span>
+                  Reprogramar
+                </button>
+
+                <span v-else-if="motivoSinReprogramar(cita)" class="shrink-0 text-xs text-gray-400">
+                  {{ motivoSinReprogramar(cita) }}
+                </span>
+
+                <button v-if="puedeAtender(cita)" type="button" @click="atender(cita)" class="inline-flex shrink-0 items-center gap-1 rounded-md border
+                             border-caine-azul px-2 py-1 text-xs font-medium text-caine-azul
+                             transition hover:bg-caine-azul hover:text-white">
+                  <span class="material-icons text-sm">edit_note</span>
+                  {{ cita.extendedProps?.sesion ? 'Ver observaciones' : 'Atender' }}
+                </button>
+              </div>
+
+              <p class="text-[#2D2B5B] font-medium">
+                {{ cita.extendedProps?.paciente }}
+
+                <!-- Atendida = ya tiene sesión registrada. -->
+                <span v-if="cita.extendedProps?.sesion" class="ml-1 align-middle inline-flex items-center gap-0.5 rounded
+                             bg-caine-verde/15 px-1.5 py-0.5 text-xs font-medium text-[#2F5B28]">
+                  <span class="material-icons text-xs">check</span>
+                  Atendida
+                </span>
+              </p>
+              <p class="text-gray-500">{{ cita.extendedProps?.servicio }}</p>
+              <p class="text-xs text-gray-400">{{ cita.extendedProps?.atiende }}</p>
+            </li>
+          </ul>
+
+          <p v-else class="text-sm text-gray-400">No hay citas próximas.</p>
+        </div>
+      </div>
+    </div>
+
+    <CitaModal v-if="permisos.agendar" :show="modalAbierto" :catalogos="catalogos" :cita="citaSeleccionada"
+      :hueco="slotSeleccionado" :permisos="permisos" @close="cerrarModal" />
+
+    <SesionModal v-if="citaAtendiendo" :cita="citaAtendiendo" @close="cerrarSesionModal" />
+
+    <SolicitarReprogramacionModal v-if="citaAReprogramar" :cita="citaAReprogramar" @close="citaAReprogramar = null" />
 
     <ResolverReprogramacionModal v-if="solicitudAResolver" :solicitud="solicitudAResolver"
       @close="solicitudAResolver = null" />

@@ -1,6 +1,7 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import ModalCapa from '@/Components/ModalCapa.vue'
 
 // Importar subcomponentes
 import DatosGenerales from './expedientes/DatosGenerales.vue'

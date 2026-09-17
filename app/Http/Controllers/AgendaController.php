@@ -395,6 +395,8 @@ class AgendaController extends Controller
                 // paneles laterales y los modales, que antes lo leían del title.
                 'servicio' => $cita->servicio?->nombre ?? $cita->tipoCita?->nombre,
                 'servicioId' => $cita->servicio_id,
+                // El color elegido en Parámetros. Sin él, la agenda usa su paleta.
+                'servicioColor' => $cita->servicio?->color,
                 'modalidad' => $cita->modalidad?->nombre,
                 'modalidadId' => $cita->modalidad_id,
                 'tipoCitaId' => $cita->tipo_cita_id,

@@ -15,6 +15,11 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+// El selector nativo de color no tiene estado "sin elegir": con el campo vacío
+// muestra negro. Se le da el celeste de marca como punto de partida, y el campo
+// sigue guardándose vacío mientras nadie lo toque.
+const COLOR_SUGERIDO = '#53C6D3'
+
 // Los campos extra se declaran aca a proposito: useForm solo manda las llaves
 // que existen en el objeto inicial, y un v-model sobre una llave no declarada
 // se descarta sin avisar.
@@ -59,8 +64,21 @@ function guardar() {
 
       <div v-for="c in campos" :key="c.clave">
         <label class="block text-sm font-medium">{{ c.etiqueta }}</label>
-        <input v-model="form[c.clave]" type="number" :step="c.tipo === 'moneda' ? '0.01' : '1'" min="0"
+
+        <div v-if="c.tipo === 'color'" class="mt-1 flex items-center gap-2">
+          <input type="color" :value="form[c.clave] || COLOR_SUGERIDO"
+            @input="form[c.clave] = $event.target.value"
+            class="h-10 w-14 shrink-0 rounded-md border border-gray-300 p-1 cursor-pointer" />
+          <input v-model="form[c.clave]" type="text" maxlength="7" placeholder="Sin color"
+            class="block w-32 uppercase border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+          <!-- Devolverlo a vacío es lo que lo regresa a la paleta de la agenda. -->
+          <button v-if="form[c.clave]" type="button" @click="form[c.clave] = ''"
+            class="text-sm text-gray-500 hover:text-caine-error">Quitar</button>
+        </div>
+
+        <input v-else v-model="form[c.clave]" type="number" :step="c.tipo === 'moneda' ? '0.01' : '1'" min="0"
           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+
         <p v-if="form.errors[c.clave]" class="mt-1 text-sm text-caine-error">{{ form.errors[c.clave] }}</p>
       </div>
 
