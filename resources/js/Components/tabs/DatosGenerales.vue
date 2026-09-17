@@ -16,13 +16,26 @@ const nombrePaciente = computed(() => {
 })
 
 function imprimirPDF(url) {
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
+  // El visor de PDF no se inicializa con display:none: hay que renderizarlo fuera de pantalla.
+  document.getElementById('iframe-impresion')?.remove()
+
+  const iframe = document.createElement('iframe')
+  iframe.id = 'iframe-impresion'
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0'
+
+  // El onload va antes del src para no perder el evento si el PDF ya está en caché.
   iframe.onload = () => {
-    iframe.contentWindow.print();
-  };
+    try {
+      iframe.contentWindow.focus()
+      iframe.contentWindow.print()
+    } catch {
+      window.open(url, '_blank')
+    }
+  }
+  iframe.onerror = () => window.open(url, '_blank')
+
+  iframe.src = url
+  document.body.appendChild(iframe)
 }
 
 </script>
@@ -61,7 +74,7 @@ function imprimirPDF(url) {
       <tr>
         <td class="p-2 border font-semibold bg-gray-100">Consentimiento Informado</td>
         <td class="p-2 border">
-          <button @click="imprimirPDF('/storage/consentimiento/Consentimiento.pdf')"
+          <button @click="imprimirPDF('/documentos/Consentimiento.pdf')"
             class="bg-caine-azul text-white px-4 py-2 rounded-md hover:bg-caine-morado">
             Imprimir
           </button>
