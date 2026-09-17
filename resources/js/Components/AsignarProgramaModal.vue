@@ -33,38 +33,15 @@ const form = useForm({
   fecha_inicio: new Date().toLocaleDateString('sv-SE'),
 })
 
-// Caine Kids es el único paquete con horario fijo: entra a las 9:15 y sale a
-// las 12:15. Los demás se acomodan al terapeuta, así que no tienen horario que
-// traer y por eso esto vive acá y no como columna de `programas`.
-const HORARIO_FIJO = {
-  'caine kids': { hora_inicio: '09:15', hora_fin: '12:15' },
-}
-
-const horarioDe = (nombre) => HORARIO_FIJO[String(nombre ?? '').trim().toLowerCase()] ?? null
-
-// Al elegir el paquete se traen su cantidad de citas y su costo, que quedan
-// editables: a un niño se le puede cobrar distinto.
+// Al elegir el paquete se traen su cantidad de citas y su costo, y quedan
+// bloqueados: el precio es del programa, no del niño. Se cambia en Parámetros.
 watch(() => form.programa_id, (id) => {
   const programa = props.catalogos.programas.find((p) => p.id === Number(id))
   if (!programa) return
 
   form.cantidad_citas = programa.sesiones_por_mes ?? ''
   form.precio = programa.precio_mensual ?? ''
-
-  // El horario también queda editable: es una propuesta, no un candado.
-  const horario = horarioDe(programa.nombre)
-  if (horario) {
-    form.hora_inicio = horario.hora_inicio
-    form.hora_fin = horario.hora_fin
-  }
 })
-
-// Para avisar en el formulario de dónde salió el horario.
-const programaConHorarioFijo = computed(() =>
-  horarioDe(props.catalogos.programas?.find((p) => p.id === Number(form.programa_id))?.nombre)
-    ? props.catalogos.programas.find((p) => p.id === Number(form.programa_id)).nombre
-    : null
-)
 
 // La especialidad viene de quien atiende, no se selecciona aparte.
 const especialidadDeQuienAtiende = computed(() =>
@@ -132,15 +109,15 @@ function guardar() {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-[#2D2B5B] mb-1">Costo del programa</label>
-          <input v-model="form.precio" type="number" step="0.01" min="0"
-            class="block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+          <input v-model="form.precio" type="number" readonly placeholder="Elija un programa"
+            class="block w-full border border-gray-200 rounded-md px-3 py-2 bg-[#FAF9F7] text-gray-600" />
           <p v-if="form.errors.precio" class="mt-1 text-sm text-red-600">{{ form.errors.precio }}</p>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-[#2D2B5B] mb-1">Cantidad de citas</label>
-          <input v-model="form.cantidad_citas" type="number" step="1" min="1"
-            class="block w-full border rounded-md px-3 py-2 focus:ring-[#53C6D3] focus:border-[#53C6D3]" />
+          <input v-model="form.cantidad_citas" type="number" readonly placeholder="Elija un programa"
+            class="block w-full border border-gray-200 rounded-md px-3 py-2 bg-[#FAF9F7] text-gray-600" />
           <p v-if="form.errors.cantidad_citas" class="mt-1 text-sm text-red-600">{{ form.errors.cantidad_citas }}</p>
         </div>
 
@@ -151,6 +128,12 @@ function guardar() {
           </p>
         </div>
       </div>
+
+      <!-- Los dos salen del programa; el `-mt-3` los deja pegados a la fila. -->
+      <p class="-mt-3 text-xs text-gray-500">
+        El costo y la cantidad de citas se toman del programa.
+        Para cambiarlos, vaya a Parámetros › Programas.
+      </p>
 
       <!-- Días y horario -->
       <div>
@@ -165,12 +148,6 @@ function guardar() {
         </div>
         <p v-if="form.errors.dias" class="mt-1 text-sm text-red-600">{{ form.errors.dias }}</p>
       </div>
-
-      <!-- Se avisa de dónde salió el horario, porque se llenó solo. -->
-      <p v-if="programaConHorarioFijo" class="flex items-center gap-2 text-xs text-gray-500">
-        <span class="material-icons text-sm text-[#53C6D3]">schedule</span>
-        {{ programaConHorarioFijo }} entra de 9:15 a 12:15. Puede cambiarlo si este niño lleva otro horario.
-      </p>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
