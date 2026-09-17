@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { avatarUsuario } from '@/Utils/avatares'
+import { avatarPaciente, avatarUsuario } from '@/Utils/avatares'
 
 const props = defineProps({
   nodo: { type: Object, required: true },
@@ -17,6 +17,14 @@ const coloresRol = {
 }
 
 const colorLinea = computed(() => coloresRol[props.nodo.rol] || '#ccc')
+
+// El paciente se distingue por género y el personal por rol. El encargado es
+// el caso mixto: entra por rol, pero la imagen sale del género (Madre/Padre).
+const avatar = computed(() =>
+  props.nodo.rol === 'paciente'
+    ? avatarPaciente(props.nodo.genero)
+    : avatarUsuario([props.nodo.rol], props.nodo.genero)
+)
 
 /* ---------- Hijos ---------- */
 const hijos = computed(() => Array.isArray(props.nodo.subalternos) ? props.nodo.subalternos : [])
@@ -46,7 +54,7 @@ function agruparEnPares(arr) {
     <!-- Card -->
     <div class="flex flex-col rounded-lg shadow-md min-w-[18rem] bg-white border border-gray-200">
       <div class="flex items-center gap-3 px-4 py-3">
-        <img :src="avatarUsuario([nodo.rol])" :alt="nodo.cargo ?? ''"
+        <img :src="avatar" :alt="nodo.cargo ?? ''"
           class="w-12 h-12 rounded-full object-cover shrink-0 border border-gray-300" />
         <div class="text-left">
           <p class="font-semibold text-gray-900">{{ nodo.nombre }}</p>

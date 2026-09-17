@@ -73,7 +73,7 @@ class EncargadoController extends Controller
     /** Los pacientes a cargo, en forma de organigrama. */
     public function pacientes($id)
     {
-        $encargado = Encargado::with('pacientes')->findOrFail($id);
+        $encargado = Encargado::with(['genero', 'pacientes.genero'])->findOrFail($id);
 
         return Inertia::render('Personas/EncargadoPacientes', [
             'organigrama' => [
@@ -82,12 +82,14 @@ class EncargadoController extends Controller
                 'cargo' => 'Encargado',
                 'correo' => $encargado->correo,
                 'rol' => 'encargado',
+                'genero' => $encargado->genero?->nombre,
                 'subalternos' => $encargado->pacientes->map(fn($p) => [
                     'id' => $p->id,
                     'nombre' => $p->nombre_completo,
                     'cargo' => 'Paciente',
                     'correo' => null,
                     'rol' => 'paciente',
+                    'genero' => $p->genero?->nombre,
                     'subalternos' => [],
                 ]),
             ],

@@ -70,7 +70,7 @@ class TerapeutaController extends Controller
     /** Los pacientes del terapeuta, en forma de organigrama. */
     public function pacientes($id)
     {
-        $terapeuta = Terapeuta::with('pacientes')->findOrFail($id);
+        $terapeuta = Terapeuta::with('pacientes.genero')->findOrFail($id);
 
         return Inertia::render('Personas/TerapeutaPacientes', [
             'organigrama' => [
@@ -85,6 +85,7 @@ class TerapeutaController extends Controller
                     'cargo' => 'Paciente',
                     'correo' => null,
                     'rol' => 'paciente',
+                    'genero' => $p->genero?->nombre,
                     'subalternos' => [],
                 ]),
             ],
