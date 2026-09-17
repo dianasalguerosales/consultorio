@@ -9,7 +9,6 @@ import Modulo1 from './expedientes/Modulo1.vue'
 import Modulo2 from './expedientes/Modulo2.vue'
 import Modulo3 from './expedientes/Modulo3.vue'
 import HistoriaClinica from './expedientes/HistoriaClinica.vue'
-import Terapias from './expedientes/Terapias.vue'
 import Evaluaciones from './expedientes/Evaluaciones.vue'
 
 const props = defineProps({
@@ -108,9 +107,9 @@ function saveChanges() {
       <!-- Barra de progreso -->
       <div class="px-6 pt-4">
         <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-          <div class="bg-blue-600 h-2.5 rounded-full" :style="{ width: (step / 7 * 100) + '%' }"></div>
+          <div class="bg-blue-600 h-2.5 rounded-full" :style="{ width: (step / 6 * 100) + '%' }"></div>
         </div>
-        <p class="text-sm text-gray-600">Paso {{ step }} de 7</p>
+        <p class="text-sm text-gray-600">Paso {{ step }} de 6</p>
       </div>
 
       <!-- Body dinámico -->
@@ -121,8 +120,7 @@ function saveChanges() {
           3: Modulo2,
           4: Modulo3,
           5: HistoriaClinica,
-          6: Terapias,
-          7: Evaluaciones
+          6: Evaluaciones
         }[step]" :form="form" :criteriosModulo1="criteriosModulo1" :criteriosModulo2="criteriosModulo2"
           :criteriosModulo3="criteriosModulo3" :escolaridadesList="escolaridadesList"
           :diagnosticosList="diagnosticosList" :serviciosList="serviciosList" :evaluacionesList="evaluacionesList"

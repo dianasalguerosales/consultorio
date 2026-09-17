@@ -12,6 +12,7 @@ use App\Models\Diagnostico;
 use App\Models\Servicio;
 use App\Models\Modalidad;
 use App\Models\EstadoExpediente;
+use App\Expedientes\TerapiasUsadas;
 use App\Models\Evaluacion;
 
 class ExpedienteController extends Controller
@@ -51,6 +52,9 @@ class ExpedienteController extends Controller
         }
 
         $expedientes = $query->orderBy('fecha_inicio', 'desc')->get();
+
+        // El récord de terapias que muestra la pestaña de atención terapéutica.
+        TerapiasUsadas::colgarEn($expedientes);
 
         return Inertia::render('Expedientes', [
             'expedientes' => $expedientes,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Expedientes\TerapiasUsadas;
 use App\Models\Paciente;
 use App\Models\Expediente;
 use App\Models\Cita;
@@ -39,6 +40,10 @@ class PacientesController extends Controller
             'citas.atendidoPor',
 
         ])->orderBy('apellidos')->get();
+
+        // El modal de Expediente se abre desde aquí, y su pestaña de atención
+        // terapéutica muestra el récord de terapias.
+        TerapiasUsadas::colgarEn($pacientes->pluck('expediente')->filter());
 
         return Inertia::render('Pacientes', [
             'pacientes' => $pacientes,

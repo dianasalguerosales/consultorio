@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { fecha } from '@/Utils/fechas'
 
 const props = defineProps({
   expediente: {
@@ -8,41 +9,29 @@ const props = defineProps({
   }
 })
 
-// La relación del expediente se llama `servicios`. Esto leía `terapias`, que no
-// existe, así que la fila salía siempre vacía.
-const terapias = computed(() => props.expediente?.servicios ?? [])
+// El récord de lo que el niño ya llevó, no lo que se le planificó al ingresar:
+// sale de sus citas atendidas. Lo arma App\Expedientes\TerapiasUsadas.
+const terapias = computed(() => props.expediente?.terapias_usadas ?? [])
 </script>
 
 <template>
   <table class="w-full border-collapse bg-white shadow-sm rounded-md">
     <tbody>
-      <!-- Terapias -->
+      <!-- Terapias que el paciente ha llevado -->
       <tr>
-        <td class="p-2 border font-semibold bg-gray-100 w-1/5">Terapias</td>
+        <td class="p-2 border font-semibold bg-gray-100 w-1/5 align-top">Terapias</td>
         <td class="p-2 border w-4/5">
-          <div class="space-y-2">
-            <label
-              v-for="terapia in terapias"
-              :key="terapia.id"
-              class="flex items-center space-x-2 text-gray-800"
-            >
-              <input type="checkbox" checked disabled />
-              <span>{{ terapia.nombre }}</span>
-            </label>
-          </div>
+          <ul v-if="terapias.length" class="space-y-1">
+            <li v-for="t in terapias" :key="t.nombre"
+              class="flex flex-wrap items-baseline justify-between gap-x-4 text-gray-800">
+              <span>{{ t.nombre }}</span>
+              <span class="text-sm text-gray-500">
+                {{ t.citas }} {{ t.citas === 1 ? 'cita' : 'citas' }} · última {{ fecha(t.ultima) }}
+              </span>
+            </li>
+          </ul>
+          <span v-else class="text-gray-400">Sin terapias registradas</span>
         </td>
-      </tr>
-
-      <!-- Objetivos terapéuticos -->
-      <tr>
-        <td class="p-2 border font-semibold bg-gray-100">Objetivos terapéuticos</td>
-        <td class="p-2 border">{{ expediente?.objetivos_terapeuticos || 'No definidos' }}</td>
-      </tr>
-
-      <!-- Planificación terapéutica -->
-      <tr>
-        <td class="p-2 border font-semibold bg-gray-100">Planificación terapéutica</td>
-        <td class="p-2 border">{{ expediente?.planificacion_terapeutica || 'Pendiente' }}</td>
       </tr>
     </tbody>
   </table>
