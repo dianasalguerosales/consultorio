@@ -34,6 +34,7 @@ asistente — sin tener que reconstruir el razonamiento desde cero.
 |---|---|
 | [Convenciones de Vue del proyecto](convenciones-vue-proyecto.md) | Cómo se aplica el layout, dónde va el título, permisos en el frontend, `EscClose` en modales |
 | [Paleta dataviz caine](paleta-dataviz-caine.md) | Rampa secuencial validada del azul de marca, para heatmaps y gráficas de magnitud |
+| [Impresión de documentos](impresion-de-documentos.md) | Los dos caminos que ya existen (dompdf y `@media print`) y la decisión pendiente de unificarlos para evaluaciones y expedientes |
 
 ## Decisiones por módulo
 

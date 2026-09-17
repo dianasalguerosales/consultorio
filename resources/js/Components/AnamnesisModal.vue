@@ -17,8 +17,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-// La escala vive en @/Utils/anamnesis, compartida con Historia Clínica e
-// /indicadores.
+// La escala vive en @/Utils/anamnesis, compartida con Historia Clínica e /indicadores.
 
 const items = computed(() => props.expediente?.anamnesis?.items ?? [])
 
@@ -153,15 +152,15 @@ function imprimir() {
 </script>
 
 <template>
-  <ModalCapa clase="anamnesis-modal" @close="emit('close')"
-    panel="max-w-4xl max-h-[92vh] flex flex-col anamnesis-hoja">
+  <Teleport to="body">
+    <ModalCapa clase="anamnesis-modal" @close="emit('close')"
+      panel="max-w-4xl max-h-[92vh] flex flex-col anamnesis-hoja">
 
       <!-- Encabezado -->
       <div class="flex items-start justify-between gap-4 px-6 py-4 border-b border-gray-200">
         <div>
           <h3 class="text-lg font-bold text-caine-azul">Anamnesis</h3>
-          <!-- En papel esto lo cubre la ficha de datos de abajo, así que se
-               oculta para no repetir el nombre dos veces. -->
+          <!-- En papel esto lo cubre la ficha de datos de abajo, así que se oculta para no repetir el nombre dos veces. -->
           <p class="text-sm text-gray-500 no-imprimir">
             {{ paciente }}
             <template v-if="expediente?.codigo"> · Expediente {{ expediente.codigo }}</template>
@@ -169,15 +168,13 @@ function imprimir() {
         </div>
 
         <div class="flex items-center gap-2 no-imprimir">
-          <button v-if="tieneAnamnesis" type="button" @click="imprimir"
-            class="inline-flex items-center gap-1 px-3 py-2 rounded-md bg-caine-azul text-white
+          <button v-if="tieneAnamnesis" type="button" @click="imprimir" class="inline-flex items-center gap-1 px-3 py-2 rounded-md bg-caine-azul text-white
                    text-sm font-medium hover:opacity-90 transition">
             <span class="material-icons text-base">print</span>
             Imprimir
           </button>
 
-          <button type="button" @click="emit('close')"
-            class="text-gray-400 hover:text-gray-600" aria-label="Cerrar">
+          <button type="button" @click="emit('close')" class="text-gray-400 hover:text-gray-600" aria-label="Cerrar">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -248,8 +245,7 @@ function imprimir() {
             </button>
           </div>
 
-          <p v-if="hayFiltro && !modulos.length"
-            class="py-8 text-center text-sm text-gray-400">
+          <p v-if="hayFiltro && !modulos.length" class="py-8 text-center text-sm text-gray-400">
             Ningún criterio cumple con los filtros.
           </p>
 
@@ -264,16 +260,14 @@ function imprimir() {
                 <h5 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   {{ area.nombre }}
                 </h5>
-                <span v-if="area.deficientes" class="text-xs shrink-0"
-                  :style="{ color: NIVELES[OBSERVACION].texto }">
+                <span v-if="area.deficientes" class="text-xs shrink-0" :style="{ color: NIVELES[OBSERVACION].texto }">
                   {{ area.deficientes }} en observación
                 </span>
               </div>
 
               <table class="w-full text-sm">
                 <tbody>
-                  <tr v-for="item in area.items" :key="item.id"
-                    class="border-b border-gray-50 last:border-0">
+                  <tr v-for="item in area.items" :key="item.id" class="border-b border-gray-50 last:border-0">
                     <td class="py-1.5 pr-3 align-top text-gray-400 tabular-nums w-8">
                       {{ item.criterio?.numero }}.
                     </td>
@@ -295,8 +289,7 @@ function imprimir() {
           </div>
 
           <!-- Observaciones -->
-          <div v-if="expediente?.anamnesis?.observaciones"
-            class="pt-4 border-t border-gray-200 anamnesis-area">
+          <div v-if="expediente?.anamnesis?.observaciones" class="pt-4 border-t border-gray-200 anamnesis-area">
             <h4 class="text-sm font-bold text-caine-azul mb-2">Observaciones</h4>
             <p class="text-sm text-gray-700 whitespace-pre-line">
               {{ expediente.anamnesis.observaciones }}
@@ -316,28 +309,28 @@ function imprimir() {
           </div>
         </template>
       </div>
-  </ModalCapa>
+    </ModalCapa>
+  </Teleport>
 </template>
 
 <style>
 /* En pantalla el modal es una capa flotante; en papel es la única hoja, así que
    se saca del flujo modal y se deja fluir para que pagine bien. */
 @media print {
-  body * {
-    visibility: hidden;
+  body>*:not(.anamnesis-modal) {
+    display: none !important;
   }
 
-  .anamnesis-modal,
-  .anamnesis-modal * {
-    visibility: visible;
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
   }
 
   .anamnesis-modal {
-    position: absolute !important;
-    inset: 0 !important;
+    position: static !important;
     display: block !important;
     padding: 0 !important;
-    z-index: auto;
   }
 
   .anamnesis-hoja {
