@@ -12,8 +12,7 @@ class Cita extends Model
 
     protected $fillable = [
         'paciente_id',
-        'atendido_por_type',
-        'atendido_por_id',
+        'atiende_user_id',
         'estado_cita_id',
         'modalidad_id',
         'tipo_cita_id',
@@ -38,12 +37,20 @@ class Cita extends Model
     }
 
     /**
-     * Quien atiende la cita: una Terapeuta o un Administrativo con cargo de
-     * auxiliar (los auxiliares atienden solos en sucursal).
+     * Quien atiende la cita: un usuario con un rol que atiende.
+     *
+     * Antes era polimórfico —apuntaba a `terapeutas` o a `administrativos`—, y
+     * eso obligaba a tener ficha del tipo correcto para poder atender. Ahora
+     * manda el rol: quien administra y además atiende lleva los dos y no
+     * necesita una ficha duplicada.
+     *
+     * Se conserva el nombre `atendidoPor` porque es como lo leen las pantallas,
+     * los informes y el expediente. `User::nombre_completo` resuelve el nombre
+     * desde la ficha que tenga la persona.
      */
     public function atendidoPor()
     {
-        return $this->morphTo();
+        return $this->belongsTo(User::class, 'atiende_user_id');
     }
 
     public function servicio()
@@ -103,10 +110,9 @@ class Cita extends Model
      * Citas de quien atiende, sea Terapeuta o Administrativo.
      * $persona es el modelo, no el id, para no confundir ids entre tablas.
      */
-    public function scopeAtendidasPor($query, Model $persona)
+    public function scopeAtendidasPor($query, User $usuario)
     {
-        return $query->where('atendido_por_type', $persona->getMorphClass())
-                     ->where('atendido_por_id', $persona->getKey());
+        return $query->where('atiende_user_id', $usuario->id);
     }
 
     /**
