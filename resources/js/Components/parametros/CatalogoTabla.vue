@@ -45,7 +45,7 @@ function cerrar() {
 <template>
   <div>
     <div class="mb-4 flex justify-end">
-      <button type="button" @click="editar()"
+      <button v-if="$page.props.auth.user.permissions.includes('gestionar parametros')" type="button" @click="editar()"
         class="bg-caine-celeste text-white px-5 py-2 rounded-lg font-semibold shadow hover:scale-105 transition">
         + Nuevo {{ catalogo.titulo.toLowerCase() }}
       </button>
@@ -93,14 +93,14 @@ function cerrar() {
                   <span class="ml-1">Ver</span>
                 </button>
 
-                <button @click="editar(item)"
+                <button v-if="$page.props.auth.user.permissions.includes('gestionar parametros')" @click="editar(item)"
                   class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
                   <span class="material-icons text-base">edit</span>
                   <span class="ml-1">Editar</span>
                 </button>
 
                 <!-- Sin el @click borraba de un solo clic, sin preguntar. -->
-                <Link as="button" method="delete" preserve-scroll
+                <Link v-if="$page.props.auth.user.permissions.includes('gestionar parametros')" as="button" method="delete" preserve-scroll
                   :href="route('catalogos.destroy', [catalogo.clave, item.id])"
                   @before="confirmarEliminacion(`«${item.nombre}» de ${catalogo.nombre}`)"
                   class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">

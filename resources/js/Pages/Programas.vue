@@ -126,7 +126,8 @@ function cancelar(a) {
                 <span class="material-icons text-base">event_repeat</span>
                 <span class="ml-1">Generar paquete</span>
               </button>
-              <button @click="cancelar(a)" class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
+              <button v-if="$page.props.auth.user.permissions.includes('gestionar programas')" @click="cancelar(a)"
+                class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Cancelar</span>
               </button>

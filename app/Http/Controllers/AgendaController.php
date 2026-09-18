@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Agenda\AlcanceDeCitas;
 use App\Agenda\QuienAtiende;
 use App\Cumpleanos\Cumpleanos;
 use App\Models\SolicitudReprogramacion;
@@ -69,10 +70,10 @@ class AgendaController extends Controller
                 // de "Atiende" le queda fijo.
                 'soloParaSiMismo' => $this->soloAgendaParaSiMismo($user),
                 'yoAtiendo' => QuienAtiende::de($user),
-                'atender' => $user->hasRole('terapeuta'),
+                'atender' => $user->can('gestionar evaluaciones'),
                 // El encargado pide mover las citas de sus hijos.
                 'solicitarReprogramacion' => (bool) $user->encargado,
-                'resolverReprogramacion' => $user->hasAnyRole(['administrador', 'coordinador']),
+                'resolverReprogramacion' => $user->can('agendar citas'),
             ],
 
             // La regla de anticipación se manda armada: el frontend no debe
@@ -80,7 +81,7 @@ class AgendaController extends Controller
             'horasMinimasReprogramacion' => SolicitudReprogramacion::HORAS_MINIMAS,
 
             // Las que esperan respuesta, para quien las autoriza.
-            'solicitudes' => $user->hasAnyRole(['administrador', 'coordinador'])
+            'solicitudes' => $user->can('agendar citas')
                 ? $this->solicitudesPendientes()
                 : [],
 
@@ -213,34 +214,7 @@ class AgendaController extends Controller
      */
     private function conAlcanceDe(Builder $query, User $user): Builder
     {
-        if ($user->hasAnyRole(['administrador', 'coordinador'])) {
-            return $query;
-        }
-
-        // Va después del bloque de arriba a propósito: si además fuera
-        // coordinador, gana el alcance amplio.
-        if ($user->hasRole('auxiliar')) {
-            return $user->administrativo
-                ? $query->atendidasPor($user->administrativo)
-                : $query->whereRaw('1 = 0');
-        }
-
-        if ($user->hasRole('terapeuta')) {
-            return $user->terapeuta
-                ? $query->atendidasPor($user->terapeuta)
-                : $query->whereRaw('1 = 0');
-        }
-
-        if ($user->hasRole('encargado')) {
-            return $user->encargado
-                ? $query->whereHas(
-                    'paciente',
-                    fn($q) => $q->where('encargado_id', $user->encargado->id)
-                )
-                : $query->whereRaw('1 = 0');
-        }
-
-        return $query->whereRaw('1 = 0');
+        return AlcanceDeCitas::aplicar($query, $user);
     }
 
     /* ---------- Quién puede agendar para quién ---------- */

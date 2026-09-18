@@ -22,7 +22,7 @@ class ObjetivoTerapeuticoController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $puedeGestionar = $user->can('gestionar pacientes');
+        $puedeGestionar = $user->can('gestionar evaluaciones');
 
         $objetivos = $this->conAlcanceDe(
             ObjetivoTerapeutico::with(['paciente.expediente:id,paciente_id,codigo', 'servicio', 'terapeuta']),

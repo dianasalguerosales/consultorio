@@ -38,7 +38,7 @@ class AsignacionProgramaController extends Controller
             'asignaciones' => $asignaciones,
             'catalogos' => $this->catalogos(),
             // Generar el paquete del mes es decisión de coordinación.
-            'puedeRenovar' => $request->user()->hasAnyRole(['administrador', 'coordinador']),
+            'puedeRenovar' => $request->user()->can('gestionar programas'),
         ]);
     }
 

@@ -19,9 +19,7 @@ const isOpen = ref(false);
 const selectedPaciente = ref(null);
 
 // El programa lo asigna coordinación, no cualquiera que gestione pacientes.
-const puedeAsignarPrograma = ["administrador", "coordinador"].some((r) =>
-    props.auth.user.roles.includes(r)
-);
+const puedeAsignarPrograma = props.auth.user.permissions.includes("gestionar programas");
 const pacienteConPrograma = ref(null);
 
 const form = useForm({

@@ -90,14 +90,15 @@ function abrirRoles(persona) {
               </button>
 
               <!-- Editar -->
-              <button @click="openEditModal(e)"
+              <button v-if="$page.props.auth.user.permissions.includes('gestionar personas')" @click="openEditModal(e)"
                 class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
                 <span class="material-icons text-base">edit</span>
                 <span class="ml-1">Editar</span>
               </button>
 
               <!-- Eliminar -->
-              <Link as="button" method="delete" :href="`/personas/encargados/${e.id}`"
+              <Link v-if="$page.props.auth.user.permissions.includes('gestionar personas')" as="button" method="delete"
+                :href="`/personas/encargados/${e.id}`"
                 @before="confirmarEliminacion(`al encargado ${e.nombres} ${e.apellidos}`)"
                 class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
@@ -105,7 +106,7 @@ function abrirRoles(persona) {
               </Link>
 
               <!-- Permisos: se gestionan sobre el usuario ligado a la persona. -->
-              <button type="button" @click="abrirRoles(e)"
+              <button v-if="$page.props.auth.user.permissions.includes('asignar roles')" type="button" @click="abrirRoles(e)"
                 class="inline-flex items-center px-3 py-1 text-[#2D2B5B] hover:text-[#53C6D3]">
                 <span class="material-icons text-base">lock</span>
                 <span class="ml-1">Permisos</span>
