@@ -7,8 +7,35 @@ import NavLink from '@/Components/NavLink.vue'
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { fecha } from '@/Utils/fechas'
+import { EscClose } from '@/Utils/EscClose'
 
 const mostrandoDropdown = ref(false)
+
+/* ---------- Estado de la interfaz ---------- */
+
+// Vive acá y no en un segundo bloque Options API para que EscClose lo alcance,
+// como en el resto del proyecto.
+const colapsado = ref(false)
+const menuAbierto = ref(false)
+const open = ref(false)
+const mostrarDropdownNotificaciones = ref(false)
+const mostrarModalNotificaciones = ref(false)
+
+function abrirModalNotificaciones() {
+  mostrarDropdownNotificaciones.value = false
+  mostrarModalNotificaciones.value = true
+  open.value = false
+}
+
+// Las dos ventanas de la barra superior se cierran juntas: nunca se muestran
+// las dos a la vez, y salir de una debe salir de ambas.
+function cerrarVentanas() {
+  open.value = false
+  mostrarDropdownNotificaciones.value = false
+}
+
+EscClose(cerrarVentanas)
+
 const { props } = usePage()
 const roles = props.auth?.user?.roles ?? []
 
@@ -165,6 +192,12 @@ const menuConfig = {
         </div>
         <div class="flex items-center space-x-4">
 
+          <!-- Cierra las ventanas de la barra al tocar fuera. Transparente y
+               por debajo de ellas (z-40 contra z-50): se ven normales, pero el
+               clic no las atraviesa. -->
+          <div v-if="open || mostrarDropdownNotificaciones" class="fixed inset-0 z-40"
+            @click="cerrarVentanas"></div>
+
           <!-- Notificaciones -->
           <div class="relative">
             <button class="relative flex items-center focus:outline-none"
@@ -283,22 +316,6 @@ export default {
     notificaciones: {
       type: Array,
       default: () => []
-    }
-  },
-  data() {
-    return {
-      colapsado: false,
-      menuAbierto: false,
-      open: false,
-      mostrarDropdownNotificaciones: false,
-      mostrarModalNotificaciones: false
-    }
-  },
-  methods: {
-    abrirModalNotificaciones() {
-      this.mostrarDropdownNotificaciones = false
-      this.mostrarModalNotificaciones = true
-      this.open = false
     }
   }
 }
