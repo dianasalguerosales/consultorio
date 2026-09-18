@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
+import TablaBase from '@/Components/TablaBase.vue'
 
 const props = defineProps({
   catalogo: { type: Array, default: () => [] },
@@ -19,10 +20,16 @@ const definicion = computed(() =>
 )
 
 // Al cambiar de informe se parte de todas las columnas y sin filtros: los de un
-// informe no significan nada en otro.
+// informe no significan nada en otro. Los que traen valor por omisión —el año
+// del cierre de mes— arrancan con él, porque vacíos no tienen sentido.
 watch(clave, () => {
   columnas.value = definicion.value?.columnas.map((c) => c.clave) ?? []
-  filtros.value = {}
+
+  filtros.value = Object.fromEntries(
+    (definicion.value?.filtros ?? [])
+      .filter((f) => f.defecto !== null && f.defecto !== undefined)
+      .map((f) => [f.clave, f.defecto])
+  )
 })
 
 const todasLasColumnas = computed({
@@ -124,7 +131,8 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
         </ul>
       </div>
 
-      <!-- Vista del informe elegido -->
+      <!-- Armador del informe elegido. El resultado va aparte, a ancho
+           completo: en un tercio de pantalla la tabla no se lee. -->
       <div class="lg:col-span-2 space-y-6">
         <p v-if="!definicion" class="bg-white rounded-lg shadow-md p-10 text-center text-gray-400">
           Elija un informe de la lista para armar la consulta.
@@ -173,7 +181,7 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
 
                   <select v-if="f.tipo === 'select'" v-model="filtros[f.clave]"
                     class="block w-full border rounded-md px-3 py-2 text-sm focus:ring-caine-celeste focus:border-caine-celeste">
-                    <option value="">Todos</option>
+                    <option v-if="!f.obligatorio" value="">Todos</option>
                     <option v-for="o in f.opciones" :key="o.valor" :value="o.valor">{{ o.etiqueta }}</option>
                   </select>
 
@@ -201,8 +209,13 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
             </div>
           </div>
 
-          <!-- Resultado -->
-          <div v-if="resultado" class="bg-white rounded-lg shadow-md p-6">
+        </template>
+      </div>
+
+      <!-- Resultado: fila propia y ancho completo. En un tercio de pantalla la
+           tabla no se lee y hay que arrastrarla de lado. -->
+      <template v-if="definicion">
+        <div v-if="resultado" class="lg:col-span-3 bg-white rounded-lg shadow-md p-6">
             <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4">
               <h3 class="font-bold text-caine-azul">{{ resultado.nombre }}</h3>
 
@@ -225,8 +238,7 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
               </div>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="min-w-full border border-gray-200 text-sm">
+            <TablaBase>
                 <thead class="bg-gray-100 text-caine-azul">
                   <tr>
                     <th v-for="h in resultado.encabezados" :key="h"
@@ -238,8 +250,7 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
                     <td v-for="(celda, j) in fila" :key="j" class="px-3 py-2 text-gray-700">{{ celda }}</td>
                   </tr>
                 </tbody>
-              </table>
-            </div>
+              </TablaBase>
 
             <p v-if="!resultado.filas.length" class="py-10 text-center text-sm text-gray-400">
               No hay registros que cumplan con los filtros.
@@ -248,9 +259,8 @@ const hayFiltros = computed(() => Object.keys(parametros.value.filtros).length >
             <p v-else-if="resultado.mostradas < resultado.total" class="mt-3 text-xs text-gray-400">
               Las descargas incluyen los {{ resultado.total }} registros, no solo los que se ven acá.
             </p>
-          </div>
-        </template>
-      </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>

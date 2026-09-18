@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
 import { confirmarEliminacion } from '@/Utils/confirmar'
+import TablaBase from '@/Components/TablaBase.vue'
 
 const props = defineProps({
     especialidades: { type: Array, default: () => [] }
@@ -69,8 +70,7 @@ const especialidadesFiltradas = computed(() => {
         </div>
 
         <!-- Tabla -->
-        <div class="overflow-x-auto">
-            <table class="w-full border border-gray-200 text-md rounded-lg">
+        <TablaBase>
                 <thead class="bg-gray-200 text-[#2D2B5B]">
                     <tr>
                         <th class="px-4 py-2 text-left w-1/12">#</th>
@@ -121,7 +121,6 @@ const especialidadesFiltradas = computed(() => {
                         </td>
                     </tr>
                 </tbody>
-            </table>
-        </div>
+            </TablaBase>
     </div>
 </template>

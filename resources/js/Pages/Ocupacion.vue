@@ -1,7 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Head, router, Link } from '@inertiajs/vue3'
-import TarjetaIndicador from '@/Components/indicadores/TarjetaIndicador.vue'
+import { Head, router, Link, usePage } from '@inertiajs/vue3'
 import { Chart, Tooltip, CategoryScale } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
 import { RAMPA, SUPERFICIE, cortesDe, pasoEn } from '@/Utils/paleta'
@@ -62,8 +61,22 @@ const diaLargo = (etiqueta) => DIAS_LARGOS[etiqueta] ?? etiqueta
 
 /* ---------- Navegación de semana ---------- */
 
+// Desde qué ficha de indicadores se entró: `?ver=citas` o `?ver=horas`. Sin el
+// parámetro se muestran las dos, que es como se veía esta pantalla antes.
+const pagina = usePage()
+
+const ver = computed(() => {
+  const consulta = pagina.url.split('?')[1] ?? ''
+  return new URLSearchParams(consulta).get('ver')
+})
+
+const muestra = (grafica) => !ver.value || ver.value === grafica
+
 function irA(semana) {
-  router.get('/indicadores/ocupacion', { semana }, { preserveScroll: true, preserveState: true })
+  // `ver` viaja con la semana: cambiar de semana no debe devolver las dos
+  // gráficas cuando se entró a mirar una sola.
+  router.get('/indicadores/ocupacion', { semana, ver: ver.value ?? undefined },
+    { preserveScroll: true, preserveState: true })
 }
 
 /* ---------- Desglose ---------- */
@@ -293,6 +306,8 @@ function dibujar() {
 }
 
 onMounted(() => {
+  // `dibujar` ya se sale solo si el lienzo no está en pantalla (cuando se entró
+  // a ver únicamente la comparación de horas).
   if (vista.value === 'grafica') dibujar()
 })
 
@@ -367,9 +382,16 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Heatmap -->
-    <TarjetaIndicador clave="citas-por-dia" titulo="Citas por día"
-      descripcion="Toque una celda para ver el detalle de ese día.">
-      <template #acciones>
+    <div v-if="muestra('citas')" class="bg-white shadow rounded-lg p-6 mb-6">
+      <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+        <div>
+          <h3 class="font-bold text-caine-azul">Citas por día</h3>
+          <p class="text-sm text-gray-500">
+            Toque una celda para ver el detalle de ese día.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4">
           <!-- Leyenda de escala: el color codifica cantidad, no identidad -->
           <div class="flex items-center gap-2">
             <span class="text-xs text-gray-400">menos</span>
@@ -397,7 +419,8 @@ const masLargas = computed(() => {
               Tabla
             </button>
           </div>
-      </template>
+        </div>
+      </div>
 
       <div v-if="!personal.length" class="py-10 text-center text-sm text-gray-400">
         No hay terapeutas ni auxiliares registrados.
@@ -471,10 +494,10 @@ const masLargas = computed(() => {
           </table>
         </div>
       </template>
-    </TarjetaIndicador>
+    </div>
 
     <!-- Desglose del día seleccionado -->
-    <div v-if="desglose" class="bg-white shadow rounded-lg p-6 mb-6">
+    <div v-if="desglose && muestra('citas')" class="bg-white shadow rounded-lg p-6 mb-6">
       <div class="flex items-start justify-between gap-4 mb-4">
         <div>
           <h3 class="font-bold text-caine-azul">
@@ -533,8 +556,9 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Comparación de horas -->
-    <TarjetaIndicador clave="comparacion-horas" titulo="Comparación de horas">
-      <template #descripcion>
+    <div v-if="muestra('horas')" class="bg-white shadow rounded-lg p-6">
+      <h3 class="font-bold text-caine-azul">Comparación de horas</h3>
+      <p class="text-sm text-gray-500 mb-4">
         El conteo de citas no dice cuánto pesa cada agenda: aquí se ve quién lleva
         citas más largas.
         <template v-if="masLargas">
@@ -543,7 +567,7 @@ const masLargas = computed(() => {
           </span>
           promedia {{ masLargas.totales.promedioMinutos }} min por cita.
         </template>
-      </template>
+      </p>
 
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -580,7 +604,7 @@ const masLargas = computed(() => {
           </tbody>
         </table>
       </div>
-    </TarjetaIndicador>
+    </div>
   </div>
 </template>
 

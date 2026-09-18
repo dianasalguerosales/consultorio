@@ -6,6 +6,7 @@ import EncargadoModalEditar from '@/Components/personas/EncargadoModalEditar.vue
 import { avatarUsuario } from '@/Utils/avatares'
 import RolesModal from '@/Components/personas/RolesModal.vue'
 import { confirmarEliminacion } from '@/Utils/confirmar'
+import TablaBase from '@/Components/TablaBase.vue'
 
 const props = defineProps({
   encargados: Array,
@@ -45,8 +46,8 @@ function abrirRoles(persona) {
 </script>
 
 <template>
-  <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-    <table class="min-w-full border border-gray-200 text-md rounded-lg">
+  <div>
+  <TablaBase>
       <!-- Encabezado -->
       <thead class="bg-gray-200 text-[#2D2B5B]">
         <tr>
@@ -120,7 +121,7 @@ function abrirRoles(persona) {
           </td>
         </tr>
       </tbody>
-    </table>
+    </TablaBase>
 
     <!-- Modal de perfil -->
     <EncargadoModalVer v-if="showViewModal" :encargado="selectedEncargado" @close="closeViewModal" />

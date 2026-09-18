@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3'
 import CatalogoModalVer from './CatalogoModalVer.vue'
 import CatalogoModalEditar from './CatalogoModalEditar.vue'
 import { confirmarEliminacion } from '@/Utils/confirmar'
+import TablaBase from '@/Components/TablaBase.vue'
 
 const props = defineProps({
   // Una entrada de App\Catalogos\Catalogos: clave, titulo, conDescripcion, items.
@@ -50,8 +51,7 @@ function cerrar() {
       </button>
     </div>
 
-    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-      <table class="min-w-full border border-gray-200 text-md rounded-lg">
+    <TablaBase>
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
             <th class="px-4 py-2 text-left">Nombre</th>
@@ -111,12 +111,11 @@ function cerrar() {
             </td>
           </tr>
         </tbody>
-      </table>
+      </TablaBase>
 
       <p v-if="!catalogo.items?.length" class="py-8 text-center text-sm text-gray-400">
         No hay registros.
       </p>
-    </div>
 
     <CatalogoModalVer v-if="viendo" :item="seleccionado" :titulo="catalogo.titulo"
       :conDescripcion="catalogo.conDescripcion" :campos="campos" @close="cerrar" />

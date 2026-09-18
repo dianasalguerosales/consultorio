@@ -21,16 +21,18 @@ use App\Reporteria\Informes\Evoluciones;
  */
 class Registro
 {
+    // El orden es el que ve el usuario. Evoluciones y Cierre de mes van
+    // primeros porque son los que se consultan a diario.
     private const INFORMES = [
+        Evoluciones::class,
+        CierreDeMes::class,
         PacientesDiagnosticos::class,
         PacientesProfesionales::class,
         PacientesServicios::class,
         CitasPacientes::class,
         ExpedienteClinico::class,
-        Evoluciones::class,
         EncargadosPacientes::class,
         ProfesionalesAgenda::class,
-        CierreDeMes::class,
     ];
 
     /** @return Informe[] indexados por su clave */

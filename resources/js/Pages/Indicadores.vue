@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
-import { Head, Link, router } from '@inertiajs/vue3'
-import TarjetaIndicador from '@/Components/indicadores/TarjetaIndicador.vue'
+import { Head, router } from '@inertiajs/vue3'
+import TarjetaFicha from '@/Components/TarjetaFicha.vue'
 import cytoscape from 'cytoscape'
 import { NIVELES, OBSERVACION, EN_DESARROLLO, nivelDe } from '@/Utils/anamnesis'
 import { CATEGORICO, NEUTRO, SUPERFICIE } from '@/Utils/paleta'
@@ -315,6 +315,21 @@ function reencuadrar() {
   cy?.fit(undefined, 24)
 }
 
+/* ---------- Qué gráfica se está viendo ---------- */
+
+// Sin ninguna abierta, la pantalla es el índice de fichas. Con muchas gráficas,
+// verlas todas apiladas no cabe en una laptop.
+const abierto = ref(null)
+
+async function abrir(indicador) {
+  abierto.value = indicador
+
+  // El lienzo no existe mientras la ficha está cerrada, y `dibujar` se sale si
+  // no encuentra su contenedor: hay que esperar a que Vue lo monte.
+  await nextTick()
+  dibujar()
+}
+
 /* ---------- Vista de tabla (equivalente accesible del lienzo) ---------- */
 
 const vista = ref('grafo')
@@ -360,17 +375,60 @@ const etiquetaNivel = computed(() =>
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
       <h2 class="text-2xl font-bold text-caine-azul">Indicadores</h2>
 
-      <Link v-if="$page.props.auth.user.permissions.includes('ver ocupacion personal')"
-        href="/indicadores/ocupacion"
+      <button v-if="abierto" type="button" @click="abierto = null"
         class="inline-flex items-center gap-1 px-4 py-3 rounded-lg border border-caine-azul
                text-caine-azul font-semibold hover:bg-caine-azul hover:text-white transition">
-        <span class="material-icons text-base">insights</span>
-        Ocupación de personal
-      </Link>
+        <span class="material-icons text-base">arrow_back</span>
+        Volver a indicadores
+      </button>
+    </div>
+
+    <!-- Índice: una ficha por gráfica. Cada una se abre a ancho completo. -->
+    <div v-if="!abierto" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <TarjetaFicha accion titulo="Puntos deficientes por diagnóstico"
+        @accion="abrir('grafo')">
+        <template #imagen>
+          <span class="material-icons text-5xl text-caine-azul">hub</span>
+        </template>
+        <template #datos>
+          <p class="text-sm text-gray-500">
+            Qué áreas de la anamnesis salen deficientes en cada diagnóstico.
+          </p>
+          <p class="mt-2 text-sm font-medium text-caine-azul">
+            {{ resumen.diagnosticos }} diagnósticos · {{ resumen.areas }} áreas
+          </p>
+        </template>
+      </TarjetaFicha>
+
+      <template v-if="$page.props.auth.user.permissions.includes('ver ocupacion personal')">
+        <TarjetaFicha accion titulo="Citas por día"
+          @accion="router.visit('/indicadores/ocupacion?ver=citas')">
+          <template #imagen>
+            <span class="material-icons text-5xl text-caine-celeste">calendar_month</span>
+          </template>
+          <template #datos>
+            <p class="text-sm text-gray-500">
+              Cuántas citas lleva cada persona en la semana, día por día.
+            </p>
+          </template>
+        </TarjetaFicha>
+
+        <TarjetaFicha accion titulo="Comparación de horas"
+          @accion="router.visit('/indicadores/ocupacion?ver=horas')">
+          <template #imagen>
+            <span class="material-icons text-5xl text-caine-morado">schedule</span>
+          </template>
+          <template #datos>
+            <p class="text-sm text-gray-500">
+              Quién lleva las citas más largas: el conteo no dice cuánto pesa cada agenda.
+            </p>
+          </template>
+        </TarjetaFicha>
+      </template>
     </div>
 
     <!-- Filtros: una sola fila, arriba de todo lo que condicionan -->
-    <div class="flex flex-wrap items-center gap-3 mb-6">
+    <div v-if="abierto === 'grafo'" class="flex flex-wrap items-center gap-3 mb-6">
       <div class="inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden text-sm font-medium">
         <button type="button" @click="cambiarNivel('observacion')"
           :class="nivel === 'observacion' ? 'bg-caine-azul text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
@@ -391,14 +449,18 @@ const etiquetaNivel = computed(() =>
     </div>
 
     <!-- Grafo -->
-    <TarjetaIndicador clave="grafo-diagnosticos" titulo="Puntos deficientes por diagnóstico">
-      <template #descripcion>
-        Cada línea une un diagnóstico con un área que salió deficiente en la
-        anamnesis; entre más gruesa, en más expedientes coinciden.
-        Mostrando {{ etiquetaNivel }}.
-      </template>
+    <div v-if="abierto === 'grafo'" class="bg-white shadow rounded-lg p-6 mb-6">
+      <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+        <div>
+          <h3 class="font-bold text-caine-azul">Puntos deficientes por diagnóstico</h3>
+          <p class="text-sm text-gray-500">
+            Cada línea une un diagnóstico con un área que salió deficiente en la
+            anamnesis; entre más gruesa, en más expedientes coinciden.
+            Mostrando {{ etiquetaNivel }}.
+          </p>
+        </div>
 
-      <template #acciones>
+        <div class="flex items-center gap-4">
           <!-- Leyenda: forma y color, nunca color solo -->
           <div class="flex items-center gap-4 text-xs">
             <span class="flex items-center gap-1.5">
@@ -425,7 +487,8 @@ const etiquetaNivel = computed(() =>
               Tabla
             </button>
           </div>
-      </template>
+        </div>
+      </div>
 
       <div v-if="!grafo.nodos.length" class="py-12 text-center text-sm text-gray-400">
         No hay expedientes con diagnóstico y anamnesis registrados.
@@ -481,10 +544,10 @@ const etiquetaNivel = computed(() =>
           </table>
         </div>
       </template>
-    </TarjetaIndicador>
+    </div>
 
     <!-- Detalle del nodo seleccionado -->
-    <div v-if="detalle" class="bg-white shadow rounded-lg p-6">
+    <div v-if="abierto === 'grafo' && detalle" class="bg-white shadow rounded-lg p-6">
       <div class="flex items-start justify-between gap-4 mb-4">
         <div>
           <div class="flex items-center gap-2">
