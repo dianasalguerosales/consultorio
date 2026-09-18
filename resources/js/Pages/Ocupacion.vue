@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Head, router, Link } from '@inertiajs/vue3'
+import TarjetaIndicador from '@/Components/indicadores/TarjetaIndicador.vue'
 import { Chart, Tooltip, CategoryScale } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
 import { RAMPA, SUPERFICIE, cortesDe, pasoEn } from '@/Utils/paleta'
@@ -366,16 +367,9 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Heatmap -->
-    <div class="bg-white shadow rounded-lg p-6 mb-6">
-      <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
-        <div>
-          <h3 class="font-bold text-caine-azul">Citas por día</h3>
-          <p class="text-sm text-gray-500">
-            Toque una celda para ver el detalle de ese día.
-          </p>
-        </div>
-
-        <div class="flex items-center gap-4">
+    <TarjetaIndicador clave="citas-por-dia" titulo="Citas por día"
+      descripcion="Toque una celda para ver el detalle de ese día.">
+      <template #acciones>
           <!-- Leyenda de escala: el color codifica cantidad, no identidad -->
           <div class="flex items-center gap-2">
             <span class="text-xs text-gray-400">menos</span>
@@ -403,8 +397,7 @@ const masLargas = computed(() => {
               Tabla
             </button>
           </div>
-        </div>
-      </div>
+      </template>
 
       <div v-if="!personal.length" class="py-10 text-center text-sm text-gray-400">
         No hay terapeutas ni auxiliares registrados.
@@ -478,7 +471,7 @@ const masLargas = computed(() => {
           </table>
         </div>
       </template>
-    </div>
+    </TarjetaIndicador>
 
     <!-- Desglose del día seleccionado -->
     <div v-if="desglose" class="bg-white shadow rounded-lg p-6 mb-6">
@@ -540,9 +533,8 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Comparación de horas -->
-    <div class="bg-white shadow rounded-lg p-6">
-      <h3 class="font-bold text-caine-azul">Comparación de horas</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <TarjetaIndicador clave="comparacion-horas" titulo="Comparación de horas">
+      <template #descripcion>
         El conteo de citas no dice cuánto pesa cada agenda: aquí se ve quién lleva
         citas más largas.
         <template v-if="masLargas">
@@ -551,7 +543,7 @@ const masLargas = computed(() => {
           </span>
           promedia {{ masLargas.totales.promedioMinutos }} min por cita.
         </template>
-      </p>
+      </template>
 
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -588,7 +580,7 @@ const masLargas = computed(() => {
           </tbody>
         </table>
       </div>
-    </div>
+    </TarjetaIndicador>
   </div>
 </template>
 

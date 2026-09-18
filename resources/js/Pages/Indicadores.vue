@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
+import TarjetaIndicador from '@/Components/indicadores/TarjetaIndicador.vue'
 import cytoscape from 'cytoscape'
 import { NIVELES, OBSERVACION, EN_DESARROLLO, nivelDe } from '@/Utils/anamnesis'
 import { CATEGORICO, NEUTRO, SUPERFICIE } from '@/Utils/paleta'
@@ -390,18 +391,14 @@ const etiquetaNivel = computed(() =>
     </div>
 
     <!-- Grafo -->
-    <div class="bg-white shadow rounded-lg p-6 mb-6">
-      <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
-        <div>
-          <h3 class="font-bold text-caine-azul">Puntos deficientes por diagnóstico</h3>
-          <p class="text-sm text-gray-500">
-            Cada línea une un diagnóstico con un área que salió deficiente en la
-            anamnesis; entre más gruesa, en más expedientes coinciden.
-            Mostrando {{ etiquetaNivel }}.
-          </p>
-        </div>
+    <TarjetaIndicador clave="grafo-diagnosticos" titulo="Puntos deficientes por diagnóstico">
+      <template #descripcion>
+        Cada línea une un diagnóstico con un área que salió deficiente en la
+        anamnesis; entre más gruesa, en más expedientes coinciden.
+        Mostrando {{ etiquetaNivel }}.
+      </template>
 
-        <div class="flex items-center gap-4">
+      <template #acciones>
           <!-- Leyenda: forma y color, nunca color solo -->
           <div class="flex items-center gap-4 text-xs">
             <span class="flex items-center gap-1.5">
@@ -428,8 +425,7 @@ const etiquetaNivel = computed(() =>
               Tabla
             </button>
           </div>
-        </div>
-      </div>
+      </template>
 
       <div v-if="!grafo.nodos.length" class="py-12 text-center text-sm text-gray-400">
         No hay expedientes con diagnóstico y anamnesis registrados.
@@ -485,7 +481,7 @@ const etiquetaNivel = computed(() =>
           </table>
         </div>
       </template>
-    </div>
+    </TarjetaIndicador>
 
     <!-- Detalle del nodo seleccionado -->
     <div v-if="detalle" class="bg-white shadow rounded-lg p-6">

@@ -91,17 +91,23 @@ class ExpedienteController extends Controller
             'motivo_consulta' => 'nullable|string',
             'consentimiento' => 'boolean',
             'observaciones' => 'nullable|string',
+            'fecha_inicio' => 'nullable|date',
+            // La escolaridad se elige acá pero vive en `pacientes`, igual que al editar.
+            'escolaridad_id' => 'nullable|integer|exists:escolaridades,id',
         ]);
 
-        $expediente = Expediente::create(array_merge($validated, [
+        $expediente = Expediente::create(array_merge(Arr::except($validated, 'escolaridad_id'), [
             'codigo' => $codigo,
-            'fecha_inicio' => now(),
+            'fecha_inicio' => $validated['fecha_inicio'] ?? now(),
         ]));
 
         $expediente->diagnosticos()->sync($request->diagnosticos ?? []);
         $expediente->servicios()->sync($request->servicios ?? []);
         $expediente->evaluaciones()->sync($request->evaluaciones ?? []);
 
+        if ($request->filled('escolaridad_id') && $expediente->paciente) {
+            $expediente->paciente->update(['escolaridad_id' => $validated['escolaridad_id']]);
+        }
         return redirect()->back()->with('success', 'Expediente creado correctamente');
     }
 

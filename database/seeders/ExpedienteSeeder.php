@@ -13,22 +13,33 @@ class ExpedienteSeeder extends Seeder
         $pacientes = Paciente::all();
 
         foreach ($pacientes as $paciente) {
-            $codigo = Expediente::generarCodigoExpediente();
+            $expediente = Expediente::firstOrNew(['paciente_id' => $paciente->id]);
 
-            Expediente::updateOrCreate(
-                ['paciente_id' => $paciente->id],
-                [
-                    'codigo' => $codigo,
-                    'nombres' => $paciente->nombres,
-                    'apellidos' => $paciente->apellidos,
-                    'fecha_nacimiento' => $paciente->fecha_nacimiento,
-                    'estado_expediente_id' => 1,
-                    'motivo_consulta' => 'Consulta inicial',
-                    'fecha_inicio' => now(),
-                    'consentimiento' => 1,
-                    'observaciones' => 'Expediente inicial generado automáticamente',
-                ]
-            );
+            // El código se genera una sola vez. Antes iba dentro del
+            // updateOrCreate, así que cada corrida renumeraba los expedientes
+            // que ya existían y el correlativo se corría hacia adelante.
+            $expediente->codigo ??= Expediente::generarCodigoExpediente();
+
+            // Lo mismo con la fecha de nacimiento: si el expediente ya la
+            // tiene, se respeta. La fecha vive en `expedientes` y en ningún
+            // otro lado — `pacientes` no tiene esa columna, y por leerla de ahí
+            // los expedientes sembrados nacían sin fecha.
+            $expediente->fecha_nacimiento ??= now()
+                ->subYears(rand(4, 12))
+                ->subDays(rand(0, 364))
+                ->toDateString();
+
+            // Cuándo abrió el caso: tampoco se pisa en cada corrida.
+            $expediente->fecha_inicio ??= now();
+
+            $expediente->fill([
+                'nombres' => $paciente->nombres,
+                'apellidos' => $paciente->apellidos,
+                'estado_expediente_id' => 1,
+                'motivo_consulta' => 'Consulta inicial',
+                'consentimiento' => 1,
+                'observaciones' => 'Expediente inicial generado automáticamente',
+            ])->save();
         }
     }
 }
