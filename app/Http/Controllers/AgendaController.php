@@ -9,6 +9,7 @@ use App\Models\SolicitudReprogramacion;
 use App\Models\Cita;
 use App\Models\EstadoCita;
 use App\Models\Modalidad;
+use App\Pacientes\AlcanceDePacientes;
 use App\Models\Paciente;
 use App\Models\Programa;
 use App\Models\Servicio;
@@ -425,7 +426,9 @@ class AgendaController extends Controller
             : QuienAtiende::todos();
 
         return [
-            'pacientes' => Paciente::query()
+            // Se acota igual que el listado: un selector sin filtrar deja ver
+            // por el nombre a un niño que no es de uno.
+            'pacientes' => AlcanceDePacientes::aplicar(Paciente::query(), $user)
                 ->with('genero')
                 ->orderBy('nombres')
                 ->get()

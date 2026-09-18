@@ -16,6 +16,8 @@ class Paciente extends Model
         'escolaridad_id',
         'genero_id',
         'encargado_id',
+        // Quien lo registro: define de quien es el paciente para el auxiliar.
+        'creado_por',
     ];
 
     public function terapeutas()

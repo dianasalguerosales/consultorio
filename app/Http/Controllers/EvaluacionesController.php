@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evaluacion;
+use App\Pacientes\AlcanceDePacientes;
 use App\Models\Expediente;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -44,7 +45,8 @@ class EvaluacionesController extends Controller
             // La lista de expedientes es para el formulario de aplicar, así que
             // no viaja a quien solo consulta: son todos los pacientes.
             'expedientes' => $puedeAplicar
-                ? Expediente::with('paciente')->orderBy('codigo')->get()
+                ? AlcanceDePacientes::enExpedientes(Expediente::query(), $user)
+                    ->with('paciente')->orderBy('codigo')->get()
                     ->map(fn(Expediente $e) => [
                         'id' => $e->id,
                         'codigo' => $e->codigo,
@@ -78,8 +80,10 @@ class EvaluacionesController extends Controller
      */
     private function conAlcanceDe($query, User $user)
     {
+        // El encargado tiene su propio corte, mas estrecho que el general: ve
+        // a sus hijos aunque no los haya registrado nadie en particular.
         if (! $user->hasRole('encargado')) {
-            return $query;
+            return AlcanceDePacientes::enExpedientes($query, $user);
         }
 
         $encargado = $user->encargado;

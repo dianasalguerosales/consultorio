@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
+use App\Pacientes\AlcanceDePacientes;
 use App\Models\Expediente;
 use App\Models\Escolaridad;
 use App\Models\Criterio;
@@ -19,7 +20,9 @@ class ExpedienteController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Expediente::with([
+        // El auxiliar ve los expedientes de sus pacientes; el resto, todos.
+        $query = AlcanceDePacientes::enExpedientes(Expediente::query(), $request->user())
+            ->with([
             'paciente.genero',
             'estado',
             'modalidad',
