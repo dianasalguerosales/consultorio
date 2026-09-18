@@ -21,8 +21,7 @@ const esEdicion = computed(() => Boolean(props.cita?.id))
 
 const form = useForm({
   paciente_id: '',
-  atiende_tipo: 'terapeuta',
-  atiende_id: '',
+  atiende_user_id: '',
   estado_cita_id: '',
   modalidad_id: '',
   tipo_cita_id: '',
@@ -32,21 +31,6 @@ const form = useForm({
   hora_inicio: '',
   hora_fin: '',
   precio_aplicado: '',
-})
-
-// El <select> de quien atiende necesita un solo valor, pero el backend espera
-// el par (tipo, id) para armar la relación polimórfica.
-const atiendeSeleccionado = ref('')
-
-watch(atiendeSeleccionado, (valor) => {
-  if (!valor) {
-    form.atiende_tipo = 'terapeuta'
-    form.atiende_id = ''
-    return
-  }
-  const [tipo, id] = valor.split(':')
-  form.atiende_tipo = tipo
-  form.atiende_id = id
 })
 
 // Cada vez que se abre, el formulario se llena con la cita a editar, con el
@@ -68,9 +52,7 @@ watch(() => props.show, (abierto) => {
     form.hora_inicio = p.horaInicio ?? ''
     form.hora_fin = p.horaFin ?? ''
     form.precio_aplicado = p.precio ?? ''
-    atiendeSeleccionado.value = p.atiendeTipo && p.atiendeId
-      ? `${p.atiendeTipo}:${p.atiendeId}`
-      : ''
+    form.atiende_user_id = p.atiendeId ?? ''
     return
   }
 
@@ -81,9 +63,7 @@ watch(() => props.show, (abierto) => {
 
   // El auxiliar solo agenda para sí mismo, así que ya viene seleccionado.
   const propio = props.permisos?.yoAtiendo
-  atiendeSeleccionado.value = props.permisos?.soloParaSiMismo && propio
-    ? `${propio.tipo}:${propio.id}`
-    : ''
+  form.atiende_user_id = props.permisos?.soloParaSiMismo && propio ? propio.id : ''
 
   // El estado por omisión es el primero del catálogo (Pendiente).
   form.estado_cita_id = props.catalogos?.estados?.[0]?.id ?? ''
@@ -94,7 +74,7 @@ watch(() => props.show, (abierto) => {
 // nombre para que quien agenda sepa a quién está mandando al niño.
 const especialidadDeQuienAtiende = computed(() => {
   const elegido = (props.catalogos?.atienden ?? []).find(
-    (a) => `${a.tipo}:${a.id}` === atiendeSeleccionado.value
+    (a) => String(a.id) === String(form.atiende_user_id)
   )
 
   return elegido?.especialidad ?? null
@@ -172,12 +152,11 @@ function eliminar() {
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Atiende</label>
-            <select v-model="atiendeSeleccionado" required :disabled="atiendeFijo"
+            <select v-model="form.atiende_user_id" required :disabled="atiendeFijo"
               class="w-full rounded-md border-gray-300 focus:border-caine-azul focus:ring-caine-azul disabled:bg-gray-100 disabled:text-gray-500">
               <option value="">Seleccione…</option>
-              <option v-for="a in catalogos?.atienden ?? []" :key="`${a.tipo}:${a.id}`"
-                :value="`${a.tipo}:${a.id}`">
-                {{ a.nombre_completo }} ({{ a.tipo }})
+              <option v-for="a in catalogos?.atienden ?? []" :key="a.id" :value="a.id">
+                {{ a.nombre_completo }} ({{ a.rol }})
               </option>
             </select>
             <p v-if="especialidadDeQuienAtiende" class="mt-1 text-xs text-gray-500">
@@ -186,8 +165,8 @@ function eliminar() {
             <p v-if="atiendeFijo" class="mt-1 text-xs text-gray-400">
               Solo puede agendar citas que usted mismo atiende.
             </p>
-            <p v-if="form.errors.atiende_id" class="mt-1 text-sm text-caine-error">
-              {{ form.errors.atiende_id }}
+            <p v-if="form.errors.atiende_user_id" class="mt-1 text-sm text-caine-error">
+              {{ form.errors.atiende_user_id }}
             </p>
           </div>
 

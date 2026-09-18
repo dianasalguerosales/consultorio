@@ -49,15 +49,8 @@ class DashboardController extends Controller
             return [];
         }
 
-        $clase = QuienAtiende::clase($quien['tipo']);
-        $persona = $clase::find($quien['id']);
-
-        if (! $persona) {
-            return [];
-        }
-
         return Cita::query()
-            ->atendidasPor($persona)
+            ->atendidasPor($user)
             ->whereDate('fecha', Carbon::today())
             ->with([
                 'paciente:id,nombres,apellidos,genero',

@@ -119,11 +119,10 @@ class Cita extends Model
      * Choque de horario para la misma persona en la misma fecha. Se ignoran las
      * citas canceladas y, al editar, la cita que se está guardando.
      */
-    public function scopeSolapadas($query, string $atendidoPorType, int $atendidoPorId, string $fecha, string $horaInicio, string $horaFin, ?int $ignorarId = null)
+    public function scopeSolapadas($query, int $atiendeUserId, string $fecha, string $horaInicio, string $horaFin, ?int $ignorarId = null)
     {
         return $query
-            ->where('atendido_por_type', $atendidoPorType)
-            ->where('atendido_por_id', $atendidoPorId)
+            ->where('atiende_user_id', $atiendeUserId)
             ->whereDate('fecha', $fecha)
             ->when($ignorarId, fn($q) => $q->where('id', '!=', $ignorarId))
             ->whereHas('estadoCita', fn($q) => $q->where('nombre', '!=', 'Cancelada'))

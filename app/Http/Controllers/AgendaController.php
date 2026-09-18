@@ -243,8 +243,7 @@ class AgendaController extends Controller
 
         abort_unless(
             $propio
-            && $cita->atendido_por_type === QuienAtiende::clase($propio['tipo'])
-            && (int) $cita->atendido_por_id === $propio['id'],
+            && (int) $cita->atiende_user_id === $propio['id'],
             403,
             'Solo puede modificar las citas que usted mismo atiende.'
         );
@@ -260,8 +259,7 @@ class AgendaController extends Controller
     {
         $validado = $request->validate([
             'paciente_id' => ['required', 'integer', 'exists:pacientes,id'],
-            'atiende_tipo' => ['required', Rule::in(QuienAtiende::tipos())],
-            'atiende_id' => ['required', 'integer'],
+            'atiende_user_id' => ['required', 'integer', 'exists:users,id'],
             'estado_cita_id' => ['required', 'integer', 'exists:estado_citas,id'],
             'modalidad_id' => ['nullable', 'integer', 'exists:modalidades,id'],
             'tipo_cita_id' => ['nullable', 'integer', 'exists:tipo_citas,id'],
@@ -273,12 +271,12 @@ class AgendaController extends Controller
             'precio_aplicado' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $claseAtiende = QuienAtiende::clase($validado['atiende_tipo']);
+        // Existir no basta: tiene que ser alguien a quien se le agende.
+        $atiende = User::find($validado['atiende_user_id']);
 
-        // exists: no sirve aquí porque la tabla depende del tipo elegido.
-        if (!$claseAtiende::whereKey($validado['atiende_id'])->exists()) {
+        if (! $atiende || ! QuienAtiende::atiendeCitas($atiende)) {
             throw ValidationException::withMessages([
-                'atiende_id' => 'La persona seleccionada no existe.',
+                'atiende_user_id' => 'Esa persona no atiende citas.',
             ]);
         }
 
@@ -287,21 +285,16 @@ class AgendaController extends Controller
         if ($this->soloAgendaParaSiMismo($request->user())) {
             $propio = QuienAtiende::de($request->user());
 
-            $esElMismo = $propio
-                && $validado['atiende_tipo'] === $propio['tipo']
-                && (int) $validado['atiende_id'] === $propio['id'];
-
-            if (!$esElMismo) {
+            if (! $propio || (int) $validado['atiende_user_id'] !== $propio['id']) {
                 throw ValidationException::withMessages([
-                    'atiende_id' => 'Solo puede agendar citas que usted mismo atiende.',
+                    'atiende_user_id' => 'Solo puede agendar citas que usted mismo atiende.',
                 ]);
             }
         }
 
         return [
             'paciente_id' => $validado['paciente_id'],
-            'atendido_por_type' => $claseAtiende,
-            'atendido_por_id' => $validado['atiende_id'],
+            'atiende_user_id' => $validado['atiende_user_id'],
             'estado_cita_id' => $validado['estado_cita_id'],
             'modalidad_id' => $validado['modalidad_id'] ?? null,
             'tipo_cita_id' => $validado['tipo_cita_id'] ?? null,
@@ -318,8 +311,7 @@ class AgendaController extends Controller
     private function verificarSolapamiento(array $datos, ?int $ignorarId = null): void
     {
         $choque = Cita::solapadas(
-            $datos['atendido_por_type'],
-            $datos['atendido_por_id'],
+            $datos['atiende_user_id'],
             $datos['fecha'],
             $datos['hora_inicio'],
             $datos['hora_fin'],
@@ -361,8 +353,9 @@ class AgendaController extends Controller
                 'paciente' => $cita->paciente?->nombre_completo,
                 'pacienteGenero' => $cita->paciente?->genero?->nombre,
                 'atiende' => $atiende?->nombre_completo,
-                'atiendeTipo' => QuienAtiende::tipoDe($cita->atendido_por_type),
-                'atiendeId' => $cita->atendido_por_id,
+                // Antes viajaban el tipo y el id de la persona; ahora basta el
+                // usuario, que ya es unico entre terapeutas y auxiliares.
+                'atiendeId' => $cita->atiende_user_id,
                 'estado' => $cita->estadoCita?->nombre,
                 'estadoId' => $cita->estado_cita_id,
                 // El nombre de la terapia: lo usan la leyenda de colores, los

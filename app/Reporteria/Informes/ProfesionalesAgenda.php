@@ -33,7 +33,7 @@ class ProfesionalesAgenda extends Informe
     {
         return Cita::query()
             ->with(['atendidoPor', 'paciente', 'servicio', 'estadoCita', 'modalidad'])
-            ->whereNotNull('atendido_por_id')
+            ->whereNotNull('atiende_user_id')
             ->orderBy('fecha')
             ->orderBy('hora_inicio');
     }
@@ -42,7 +42,8 @@ class ProfesionalesAgenda extends Informe
     {
         return [
             'profesional' => ['etiqueta' => 'Profesional', 'valor' => fn(Cita $c) => $this->atiende($c)],
-            'rol' => ['etiqueta' => 'Rol', 'valor' => fn(Cita $c) => $c->atendido_por_type === Terapeuta::class ? 'Terapeuta' : 'Auxiliar'],
+            // El puesto sale del rol del usuario, no de en que tabla este su ficha.
+            'rol' => ['etiqueta' => 'Rol', 'valor' => fn(Cita $c) => $c->atendidoPor?->hasRole('terapeuta') ? 'Terapeuta' : 'Auxiliar'],
             'fecha' => ['etiqueta' => 'Fecha', 'valor' => fn(Cita $c) => $this->fecha($c->fecha)],
             'hora' => ['etiqueta' => 'Hora', 'valor' => fn(Cita $c) => substr($c->hora_inicio, 0, 5)],
             'paciente' => ['etiqueta' => 'Paciente atendido', 'valor' => fn(Cita $c) => $this->nombrePaciente($c->paciente)],
@@ -65,9 +66,9 @@ class ProfesionalesAgenda extends Informe
                         ['valor' => 'terapeuta', 'etiqueta' => 'Terapeutas'],
                         ['valor' => 'auxiliar', 'etiqueta' => 'Auxiliares'],
                     ],
-                    'aplicar' => fn($q, $v) => $q->where(
-                        'atendido_por_type',
-                        $v === 'terapeuta' ? Terapeuta::class : Administrativo::class
+                    'aplicar' => fn($q, $v) => $q->whereHas(
+                        'atendidoPor',
+                        fn($u) => $u->role($v === 'terapeuta' ? 'terapeuta' : 'auxiliar')
                     ),
                 ],
             ]

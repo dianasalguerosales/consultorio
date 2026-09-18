@@ -109,12 +109,12 @@ const todosLosEstados = computed({
 // citas las atiende el personal del consultorio, lo que cambia es el paciente.
 const esEncargado = computed(() => Boolean(props.permisos.solicitarReprogramacion))
 
-// Se clasifica por "tipo:id" y no por id a secas: el terapeuta 1 y el auxiliar 1
-// son personas distintas.
+// Quien atiende es un usuario, asi que su id ya distingue: antes se clasificaba
+// por "tipo:id" porque el terapeuta 1 y el auxiliar 1 eran personas distintas.
 const claveDe = (cita) =>
   esEncargado.value
     ? `paciente:${cita.extendedProps?.pacienteId ?? '?'}`
-    : `${cita.extendedProps?.atiendeTipo ?? '?'}:${cita.extendedProps?.atiendeId ?? '?'}`
+    : `atiende:${cita.extendedProps?.atiendeId ?? '?'}`
 
 // Solo quienes tienen citas en el rango cargado: ofrecer a alguien sin citas
 // daría un calendario vacío sin explicar por qué.

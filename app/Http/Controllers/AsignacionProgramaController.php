@@ -8,6 +8,7 @@ use App\Models\Modalidad;
 use App\Models\Paciente;
 use App\Models\Programa;
 use App\Models\Servicio;
+use App\Models\User;
 use App\Models\TipoCita;
 use App\Programas\CitasDelPrograma;
 use App\Programas\RenovacionPrograma;
@@ -60,16 +61,15 @@ class AsignacionProgramaController extends Controller
             'fecha_inicio' => 'required|date',
         ]);
 
-        [$tipo, $id] = $this->quienAtiende($datos['atiende'] ?? null);
+        $atiendeUserId = $this->quienAtiende($datos['atiende'] ?? null);
 
         // Las citas y la asignación entran juntas: si hay un choque, la
         // excepción revierte todo y no queda un programa a medias.
-        $citas = DB::transaction(function () use ($datos, $paciente, $tipo, $id, $request) {
+        $citas = DB::transaction(function () use ($datos, $paciente, $atiendeUserId, $request) {
             $asignacion = AsignacionPrograma::create([
                 ...Arr::except($datos, 'atiende'),
                 'paciente_id' => $paciente->id,
-                'atendido_por_type' => $tipo,
-                'atendido_por_id' => $id,
+                'atiende_user_id' => $atiendeUserId,
                 'estado' => AsignacionPrograma::ACTIVO,
                 'creado_por' => $request->user()->id,
             ]);
@@ -205,19 +205,22 @@ class AsignacionProgramaController extends Controller
         ];
     }
 
-    /** "terapeuta:3" llega del formulario y se valida contra la lista blanca. */
-    private function quienAtiende(?string $clave): array
+    /**
+     * Del formulario llega el id del usuario que atiende, o nada.
+     *
+     * Antes llegaba "terapeuta:3", porque la cita apuntaba a una tabla de
+     * personas y hacia falta saber a cual. Ahora apunta al usuario.
+     */
+    private function quienAtiende(?string $clave): ?int
     {
         if (! $clave) {
-            return [null, null];
+            return null;
         }
 
-        [$tipo, $id] = array_pad(explode(':', $clave), 2, null);
+        $usuario = User::find($clave);
 
-        $clase = QuienAtiende::clase($tipo);
+        abort_unless($usuario && QuienAtiende::atiendeCitas($usuario), 422, 'Esa persona no atiende citas.');
 
-        abort_unless($clase && $id, 422, 'No se reconoce quién atiende.');
-
-        return [$clase, (int) $id];
+        return $usuario->id;
     }
 }

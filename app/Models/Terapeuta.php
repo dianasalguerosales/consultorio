@@ -28,7 +28,7 @@ class Terapeuta extends Model
     /**
      * nombre_completo viaja en el JSON para que las vistas que reciben esta
      * relación sin pasar por un mapeo del controlador (por ejemplo
-     * cita.atendido_por) puedan mostrar el nombre directamente.
+     * cita.atendidoPor) puedan mostrar el nombre directamente.
      */
     protected $appends = ['nombre_completo'];
 
@@ -43,9 +43,13 @@ class Terapeuta extends Model
                     ->withTimestamps();
     }
 
+    /**
+     * Las citas que atiende, a traves de su usuario: la cita apunta al usuario
+     * y no a esta ficha, para que el rol sea lo que decide quien atiende.
+     */
     public function citas()
     {
-        return $this->morphMany(Cita::class, 'atendido_por');
+        return $this->hasMany(Cita::class, 'atiende_user_id', 'user_id');
     }
 
     public function especialidad()

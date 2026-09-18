@@ -2,133 +2,86 @@
 
 namespace App\Agenda;
 
-use App\Models\Administrativo;
-use App\Models\Terapeuta;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
- * Quién puede atender una cita: una Terapeuta, o un Administrativo con uno de
- * los cargos de CARGOS_QUE_ATIENDEN (los auxiliares atienden solos en sucursal;
- * al administrador también se le agenda).
+ * Quién puede atender una cita: un usuario con un rol que atiende.
  *
- * Vive aparte porque lo usan la agenda y la ocupación. Antes cada una tenía su
- * propia versión de la misma consulta.
+ * Antes se resolvía por la tabla donde estuviera la ficha de la persona —una
+ * Terapeuta, o un Administrativo con cierto cargo—, y la cita guardaba además
+ * de qué tabla se trataba. Eso obligaba a que un administrador que también
+ * atiende tuviera una ficha de terapeuta duplicada.
+ *
+ * Ahora manda el rol: quien administra y atiende lleva los dos roles y aparece
+ * una sola vez, con su ficha única. La cita apunta al usuario.
+ *
+ * Vive aparte porque lo usan la agenda, la ocupación y los programas.
  */
 class QuienAtiende
 {
     /**
-     * Los cargos administrativos a los que se les puede agendar. El `tipo` que
-     * viaja en la cita sigue siendo 'auxiliar' para todos: es la clave del
-     * morph a Administrativo, no el puesto de la persona. El puesto va en `rol`.
+     * Los roles a cuyos usuarios se les puede agendar.
+     *
+     * Al administrador no se le agenda por ser administrador: si atiende, lleva
+     * además el rol de terapeuta. Es la regla que hace útil tener varios roles.
      */
-    public const CARGOS_QUE_ATIENDEN = ['Auxiliar', 'Administrador'];
-
-    /** Se valida contra esta lista, no contra cualquier clase que llegue del formulario. */
-    public const TIPOS = [
-        'terapeuta' => Terapeuta::class,
-        'auxiliar' => Administrativo::class,
-    ];
-
-    public static function tipos(): array
-    {
-        return array_keys(self::TIPOS);
-    }
-
-    public static function clase(string $tipo): ?string
-    {
-        return self::TIPOS[$tipo] ?? null;
-    }
-
-    /** De clase Eloquent a la clave que usa la vista. */
-    public static function tipoDe(?string $clase): ?string
-    {
-        if (! $clase) {
-            return null;
-        }
-
-        return array_search($clase, self::TIPOS, true) ?: null;
-    }
+    public const ROLES_QUE_ATIENDEN = ['terapeuta', 'auxiliar'];
 
     /**
      * Todo el personal que atiende, en una sola lista.
      *
-     * `clave` es "tipo:id" porque el terapeuta 1 y el auxiliar 1 son personas
-     * distintas. Trae más llaves de las que usa cada pantalla: la ocupación lee
-     * `clave`, `nombre_completo` y `rol`; el modal de cita, `tipo` e `id`.
+     * `clave` es el id del usuario. Antes era "tipo:id" porque el terapeuta 1 y
+     * el auxiliar 1 eran personas distintas; con el usuario de por medio el id
+     * ya es único y esa ambigüedad desapareció.
      */
     public static function todos(): Collection
     {
-        $terapeutas = Terapeuta::query()
-            ->with('especialidad:id,nombre')
-            ->orderBy('nombres')
+        return User::query()
+            ->role(self::ROLES_QUE_ATIENDEN)
+            ->with(['terapeuta.especialidad:id,nombre', 'administrativo.especialidad:id,nombre', 'administrativo.cargo:id,nombre'])
             ->get()
-            ->map(fn(Terapeuta $t) => self::comoFila('terapeuta', $t->id, $t->nombre_completo, 'Terapeuta', $t->especialidad?->nombre));
-
-        // El personal administrativo al que se le agenda, por su cargo.
-        $administrativos = Administrativo::query()
-            ->with(['especialidad:id,nombre', 'cargo:id,nombre'])
-            ->whereHas('cargo', fn($q) => $q->whereIn('nombre', self::CARGOS_QUE_ATIENDEN))
-            ->orderBy('nombres')
-            ->get()
-            ->map(fn(Administrativo $a) => self::comoFila(
-                'auxiliar',
-                $a->id,
-                $a->nombre_completo,
-                $a->cargo?->nombre ?? 'Auxiliar',
-                $a->especialidad?->nombre
-            ));
-
-        return $terapeutas->concat($administrativos)->values();
+            ->map(fn (User $u) => self::comoFila($u))
+            ->sortBy('nombre_completo')
+            ->values();
     }
 
     /** Cómo atiende el usuario logueado, o null si no atiende citas. */
     public static function de(User $user): ?array
     {
-        if ($user->administrativo) {
-            return self::comoFila(
-                'auxiliar',
-                $user->administrativo->id,
-                $user->administrativo->nombre_completo,
-                $user->administrativo->cargo?->nombre ?? 'Auxiliar',
-                $user->administrativo->especialidad?->nombre
-            );
-        }
-
-        if ($user->terapeuta) {
-            return self::comoFila('terapeuta', $user->terapeuta->id, $user->terapeuta->nombre_completo, 'Terapeuta', $user->terapeuta->especialidad?->nombre);
-        }
-
-        return null;
+        return self::atiendeCitas($user) ? self::comoFila($user) : null;
     }
 
-    /**
-     * Si a esta persona se le pueden agendar citas.
-     *
-     * `de()` devuelve ficha para cualquier administrativo, tenga el cargo que
-     * tenga; esto responde la otra pregunta: si aparece o no en `todos()`.
-     */
+    /** Si a este usuario se le pueden agendar citas. */
     public static function atiendeCitas(User $user): bool
     {
-        if ($user->terapeuta) {
-            return true;
-        }
-
-        return (bool) $user->administrativo?->cargo
-            && in_array($user->administrativo->cargo->nombre, self::CARGOS_QUE_ATIENDEN, true);
+        return $user->hasAnyRole(self::ROLES_QUE_ATIENDEN);
     }
 
-    private static function comoFila(string $tipo, int $id, ?string $nombre, string $rol, ?string $especialidad = null): array
+    private static function comoFila(User $user): array
     {
+        $persona = $user->terapeuta ?? $user->administrativo;
+
         return [
-            'clave' => "{$tipo}:{$id}",
-            'tipo' => $tipo,
-            'id' => $id,
-            'nombre_completo' => $nombre,
-            'rol' => $rol,
-            // La especialidad sale de la persona: al elegirla, la pantalla la
-            // muestra debajo del nombre en vez de pedir que se escoja aparte.
-            'especialidad' => $especialidad,
+            // Se conservan las tres llaves: `clave` la usan la ocupación y los
+            // filtros; `id` el modal de cita. Ahora las tres son el usuario.
+            'clave' => (string) $user->id,
+            'id' => $user->id,
+            'nombre_completo' => $user->nombre_completo,
+            'rol' => self::rolVisible($user),
+            // La especialidad sale de la ficha: al elegir a la persona, la
+            // pantalla la muestra debajo del nombre en vez de pedirla aparte.
+            'especialidad' => $persona?->especialidad?->nombre,
         ];
+    }
+
+    /** El puesto que se le enseña al usuario, no la lista entera de sus roles. */
+    private static function rolVisible(User $user): string
+    {
+        if ($user->hasRole('terapeuta')) {
+            return 'Terapeuta';
+        }
+
+        return $user->administrativo?->cargo?->nombre ?? 'Auxiliar';
     }
 }

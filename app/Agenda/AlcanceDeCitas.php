@@ -28,18 +28,11 @@ class AlcanceDeCitas
             return $query;
         }
 
-        // El auxiliar atiende solo en sucursal: lo suyo son las citas que
-        // atiende él, y de ahí salen también los cobros que le tocan.
-        if ($user->hasRole('auxiliar')) {
-            return $user->administrativo
-                ? $query->atendidasPor($user->administrativo)
-                : $query->whereRaw('1 = 0');
-        }
-
-        if ($user->hasRole('terapeuta')) {
-            return $user->terapeuta
-                ? $query->atendidasPor($user->terapeuta)
-                : $query->whereRaw('1 = 0');
+        // Quien atiende es el usuario, así que ya no hace falta entrar por su
+        // ficha: el auxiliar ve las citas que atiende, y de ahí salen también
+        // los cobros que le tocan.
+        if ($user->hasAnyRole(['auxiliar', 'terapeuta'])) {
+            return $query->atendidasPor($user);
         }
 
         if ($user->hasRole('encargado')) {

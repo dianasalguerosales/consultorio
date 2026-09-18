@@ -45,11 +45,10 @@ class OcupacionController extends Controller
             ];
         });
 
-        // Se agrupa por "tipo:id" para no confundir el id 1 de terapeutas con
-        // el id 1 de administrativos.
-        $porPersona = $citas->groupBy(
-            fn(Cita $c) => QuienAtiende::tipoDe($c->atendido_por_type) . ':' . $c->atendido_por_id
-        );
+        // Se agrupa por usuario: antes era "tipo:id" para no confundir el id 1
+        // de terapeutas con el id 1 de administrativos, y con el usuario de por
+        // medio esa ambiguedad ya no existe.
+        $porPersona = $citas->groupBy(fn(Cita $c) => (string) $c->atiende_user_id);
 
         return Inertia::render('Ocupacion', [
             'semana' => [
