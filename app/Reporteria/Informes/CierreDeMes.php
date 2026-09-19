@@ -7,6 +7,7 @@ use App\Models\Pago;
 use App\Models\Servicio;
 use App\Models\User;
 use App\Reporteria\Informe;
+use Illuminate\Support\Carbon;
 
 /**
  * El cierre contable del período: todo lo que se cobró, con quién lo cobró y
@@ -76,10 +77,55 @@ class CierreDeMes extends Informe
         ];
     }
 
+    /**
+     * El mes y el año, no un rango libre de fechas: un cierre de mes se
+     * consulta por el mes que cerró, y un rango a mano deja fácil pedir «del 3
+     * al 28» sin darse cuenta de que faltan días.
+     *
+     * El año llega con el actual y no se puede dejar vacío: sin él, elegir
+     * septiembre traería los septiembres de todos los años juntos.
+     */
     public function filtros(): array
     {
         return array_merge(
-            $this->rangoFechas('fecha', 'Pago'),
+            [
+                'mes' => [
+                    'etiqueta' => 'Mes',
+                    'tipo' => 'select',
+                    'opciones' => fn() => array_map(
+                        fn(int $m) => [
+                            'valor' => $m,
+                            'etiqueta' => ucfirst(
+                                Carbon::create(null, $m, 1)->locale('es')->monthName
+                            ),
+                        ],
+                        range(1, 12)
+                    ),
+                    'aplicar' => fn($q, $v) => $q->whereMonth('fecha', $v),
+                ],
+
+                'anio' => [
+                    'etiqueta' => 'Año',
+                    'tipo' => 'select',
+                    'defecto' => (int) date('Y'),
+                    'obligatorio' => true,
+                    // Los años que de verdad tienen cobros: ofrecer 2019
+                    // cuando no hay nada de 2019 solo estorba. El año se saca
+                    // en PHP y no en la consulta porque extraerlo de una fecha
+                    // se escribe distinto en SQLite y en MySQL.
+                    'opciones' => fn() => Pago::query()
+                        ->pluck('fecha')
+                        ->filter()
+                        ->map(fn($f) => (int) Carbon::parse($f)->format('Y'))
+                        ->push((int) date('Y'))
+                        ->unique()
+                        ->sortDesc()
+                        ->values()
+                        ->map(fn(int $a) => ['valor' => $a, 'etiqueta' => (string) $a])
+                        ->all(),
+                    'aplicar' => fn($q, $v) => $q->whereYear('fecha', $v),
+                ],
+            ],
             $this->filtroPaciente(fn($q, $v) => $q->where('paciente_id', $v)),
             [
                 'metodo' => [

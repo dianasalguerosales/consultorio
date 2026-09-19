@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Head, router, Link } from '@inertiajs/vue3'
+import { Head, router, Link, usePage } from '@inertiajs/vue3'
 import { Chart, Tooltip, CategoryScale } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
 import { RAMPA, SUPERFICIE, cortesDe, pasoEn } from '@/Utils/paleta'
@@ -61,8 +61,22 @@ const diaLargo = (etiqueta) => DIAS_LARGOS[etiqueta] ?? etiqueta
 
 /* ---------- Navegación de semana ---------- */
 
+// Desde qué ficha de indicadores se entró: `?ver=citas` o `?ver=horas`. Sin el
+// parámetro se muestran las dos, que es como se veía esta pantalla antes.
+const pagina = usePage()
+
+const ver = computed(() => {
+  const consulta = pagina.url.split('?')[1] ?? ''
+  return new URLSearchParams(consulta).get('ver')
+})
+
+const muestra = (grafica) => !ver.value || ver.value === grafica
+
 function irA(semana) {
-  router.get('/indicadores/ocupacion', { semana }, { preserveScroll: true, preserveState: true })
+  // `ver` viaja con la semana: cambiar de semana no debe devolver las dos
+  // gráficas cuando se entró a mirar una sola.
+  router.get('/indicadores/ocupacion', { semana, ver: ver.value ?? undefined },
+    { preserveScroll: true, preserveState: true })
 }
 
 /* ---------- Desglose ---------- */
@@ -292,6 +306,8 @@ function dibujar() {
 }
 
 onMounted(() => {
+  // `dibujar` ya se sale solo si el lienzo no está en pantalla (cuando se entró
+  // a ver únicamente la comparación de horas).
   if (vista.value === 'grafica') dibujar()
 })
 
@@ -366,7 +382,7 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Heatmap -->
-    <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <div v-if="muestra('citas')" class="bg-white shadow rounded-lg p-6 mb-6">
       <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div>
           <h3 class="font-bold text-caine-azul">Citas por día</h3>
@@ -481,7 +497,7 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Desglose del día seleccionado -->
-    <div v-if="desglose" class="bg-white shadow rounded-lg p-6 mb-6">
+    <div v-if="desglose && muestra('citas')" class="bg-white shadow rounded-lg p-6 mb-6">
       <div class="flex items-start justify-between gap-4 mb-4">
         <div>
           <h3 class="font-bold text-caine-azul">
@@ -540,7 +556,7 @@ const masLargas = computed(() => {
     </div>
 
     <!-- Comparación de horas -->
-    <div class="bg-white shadow rounded-lg p-6">
+    <div v-if="muestra('horas')" class="bg-white shadow rounded-lg p-6">
       <h3 class="font-bold text-caine-azul">Comparación de horas</h3>
       <p class="text-sm text-gray-500 mb-4">
         El conteo de citas no dice cuánto pesa cada agenda: aquí se ve quién lleva

@@ -1,5 +1,6 @@
 <script setup>
 import { Head, usePage, useForm, router } from '@inertiajs/vue3'
+import TarjetaFicha from '@/Components/TarjetaFicha.vue'
 import { ref } from 'vue'
 import UsuarioForm from '@/Components/UsuarioForm.vue'
 import InfoModal from '@/Components/InfoModal.vue'
@@ -99,23 +100,20 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
     </div>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <div v-for="usuario in usuarios" :key="usuario.id"
-        class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
-        
-        <div class="mt-6">
+      <TarjetaFicha v-for="usuario in usuarios" :key="usuario.id"
+        :titulo="usuario.terapeuta?.nombre_completo
+          || usuario.encargado?.nombre_completo
+          || usuario.administrativo?.nombre_completo
+          || '---'">
+
+        <template #imagen>
           <img :src="avatarUsuario(usuario.roles, usuario.encargado?.genero)" alt="Avatar"
             class="h-20 w-20 rounded-full mx-auto" />
-        </div>
+        </template>
 
-        <div class="mt-4">
-          <h3 class="text-lg font-semibold text-gray-900">
-            {{ usuario.terapeuta?.nombre_completo 
-               || usuario.encargado?.nombre_completo 
-               || usuario.administrativo?.nombre_completo 
-               || '---' }}
-          </h3>
+        <template #datos>
           <p class="text-sm text-gray-500">{{ usuario.email }}</p>
-        </div>
+        </template>
 
         <div class="mt-4 flex flex-wrap justify-center gap-2 px-4">
           <span v-for="role in usuario.roles" :key="role"
@@ -126,34 +124,33 @@ const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
             class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm font-semibold">
             Sin rol
           </span>
-        </div> 
+        </div>
 
-        <div class="mt-6 grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200 w-full">
-
+        <template #acciones>
           <!-- Botón Ver (nuevo modal de información) -->
           <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
             class="py-3 text-sm font-medium text-caine-celeste hover:bg-gray-50" @click="openInfoModal(usuario)">
             Ver
           </button>
-          
+
           <!-- Botón Eliminar -->
           <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
             class="py-3 text-sm font-medium text-caine-error hover:bg-gray-50" @click="deleteUser(usuario)">
             Eliminar
           </button>
+        </template>
 
-        </div>
-
-        <div class="border-t border-gray-200 w-full">
-          <!-- Botón Gestionar permisos ocupa toda la parte inferior -->
-          <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
-            class="py-3 w-full text-sm font-medium text-white bg-caine-verde hover:bg-caine-celeste/80 rounded-b-md"
-            @click="openModal(usuario)">
-            Editar
-          </button>
-        </div>
-
-      </div>
+        <template #pie>
+          <div class="border-t border-gray-200 w-full">
+            <!-- Botón Gestionar permisos ocupa toda la parte inferior -->
+            <button v-if="$page.props.auth.user.permissions.includes('gestionar usuarios')"
+              class="py-3 w-full text-sm font-medium text-white bg-caine-verde hover:bg-caine-celeste/80 rounded-b-md"
+              @click="openModal(usuario)">
+              Editar
+            </button>
+          </div>
+        </template>
+      </TarjetaFicha>
     </div>
   </div>
 

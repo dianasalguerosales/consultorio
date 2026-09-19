@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Expedientes\TerapiasUsadas;
+use App\Pacientes\AlcanceDePacientes;
 use App\Models\Paciente;
 use App\Models\Expediente;
 use App\Models\Cita;
@@ -14,9 +15,11 @@ use App\Models\Escolaridad;
 
 class PacientesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pacientes = Paciente::with([
+        // El auxiliar ve solo los suyos; el resto del personal, a todos.
+        $pacientes = AlcanceDePacientes::aplicar(Paciente::query(), $request->user())
+            ->with([
             'expediente',
             // El modal de Expediente se abre también desde aquí, así que necesita las
             // mismas relaciones que carga ExpedienteController::index.
@@ -131,7 +134,9 @@ class PacientesController extends Controller
             'encargado_id' => 'nullable|exists:encargados,id',
         ]);
 
-        Paciente::create($validated);
+        // Quién lo registró: es la mitad de lo que hace "suyo" a un paciente,
+        // y sin esto un auxiliar perdería de vista al que acaba de dar de alta.
+        Paciente::create([...$validated, 'creado_por' => $request->user()->id]);
 
         return redirect()->route('pacientes.index')
             ->with('success', 'Paciente creado correctamente');

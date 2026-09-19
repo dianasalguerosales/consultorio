@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
+import TablaBase from '@/Components/TablaBase.vue'
 import { confirmarEliminacion } from '@/Utils/confirmar'
 
 const props = defineProps({
@@ -70,8 +71,7 @@ const serviciosFiltrados = computed(() => {
     </div>
 
     <!-- Tabla -->
-    <div class="overflow-x-auto">
-      <table class="w-full border border-gray-200 text-md rounded-lg">
+    <TablaBase>
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
             <th class="px-4 py-2 text-left w-1/12">#</th>
@@ -122,7 +122,6 @@ const serviciosFiltrados = computed(() => {
             </td>
           </tr>
         </tbody>
-      </table>
-    </div>
+      </TablaBase>
   </div>
 </template>

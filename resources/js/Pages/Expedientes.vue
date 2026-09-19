@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
+import TablaBase from '@/Components/TablaBase.vue'
 import ExpedienteModal from '@/Components/ExpedienteModal.vue'
 import ExpedienteEditModal from '@/Components/ExpedienteEditModal.vue'
 import { avatarPaciente } from '@/Utils/avatares'
@@ -85,7 +86,7 @@ function deleteExpediente(exp) {
             class="pl-8 pr-3 py-2 border rounded-md text-md focus:ring-2 focus:ring-[#53C6D3]" />
         </div>
         <!-- Botón agregar -->
-        <button @click="openEditModal()"
+        <button v-if="$page.props.auth.user.permissions.includes('gestionar expedientes')" @click="openEditModal()"
           class="inline-flex items-center px-4 py-2 bg-[#2D2B5B] text-white rounded-md hover:bg-green-700">
           <span class="material-icons mr-1">add_circle</span>
           <span>Nuevo</span>
@@ -94,8 +95,7 @@ function deleteExpediente(exp) {
     </div>
 
     <!-- Tabla -->
-    <div class="overflow-x-auto">
-      <table class="w-full border border-gray-200 text-md rounded-lg">
+    <TablaBase>
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
             <th class="px-2 py-2 text-center w-12"></th>
@@ -135,12 +135,12 @@ function deleteExpediente(exp) {
                   <span class="material-icons text-base">assignment</span>
                   <span class="ml-1">Ver</span>
                 </button>
-                <button @click="openEditModal(exp)"
+                <button v-if="$page.props.auth.user.permissions.includes('gestionar expedientes')" @click="openEditModal(exp)"
                   class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
                   <span class="material-icons text-base">edit</span>
                   <span class="ml-1">Editar</span>
                 </button>
-                <button @click="deleteExpediente(exp)"
+                <button v-if="$page.props.auth.user.permissions.includes('gestionar expedientes')" @click="deleteExpediente(exp)"
                   class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                   <span class="material-icons text-base">delete</span>
                   <span class="ml-1">Eliminar</span>
@@ -149,8 +149,7 @@ function deleteExpediente(exp) {
             </td>
           </tr>
         </tbody>
-      </table>
-    </div>
+      </TablaBase>
 
     <!-- Modal detalle -->
     <ExpedienteModal v-if="showModal" :expediente="selectedExpediente" @close="closeModal" />

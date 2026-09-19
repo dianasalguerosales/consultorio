@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Agenda\AlcanceDeCitas;
 use App\Agenda\QuienAtiende;
 use App\Cumpleanos\Cumpleanos;
 use App\Models\SolicitudReprogramacion;
 use App\Models\Cita;
 use App\Models\EstadoCita;
 use App\Models\Modalidad;
+use App\Pacientes\AlcanceDePacientes;
 use App\Models\Paciente;
 use App\Models\Programa;
 use App\Models\Servicio;
@@ -69,10 +71,10 @@ class AgendaController extends Controller
                 // de "Atiende" le queda fijo.
                 'soloParaSiMismo' => $this->soloAgendaParaSiMismo($user),
                 'yoAtiendo' => QuienAtiende::de($user),
-                'atender' => $user->hasRole('terapeuta'),
+                'atender' => $user->can('gestionar evaluaciones'),
                 // El encargado pide mover las citas de sus hijos.
                 'solicitarReprogramacion' => (bool) $user->encargado,
-                'resolverReprogramacion' => $user->hasAnyRole(['administrador', 'coordinador']),
+                'resolverReprogramacion' => $user->can('agendar citas'),
             ],
 
             // La regla de anticipación se manda armada: el frontend no debe
@@ -80,7 +82,7 @@ class AgendaController extends Controller
             'horasMinimasReprogramacion' => SolicitudReprogramacion::HORAS_MINIMAS,
 
             // Las que esperan respuesta, para quien las autoriza.
-            'solicitudes' => $user->hasAnyRole(['administrador', 'coordinador'])
+            'solicitudes' => $user->can('agendar citas')
                 ? $this->solicitudesPendientes()
                 : [],
 
@@ -213,34 +215,7 @@ class AgendaController extends Controller
      */
     private function conAlcanceDe(Builder $query, User $user): Builder
     {
-        if ($user->hasAnyRole(['administrador', 'coordinador'])) {
-            return $query;
-        }
-
-        // Va después del bloque de arriba a propósito: si además fuera
-        // coordinador, gana el alcance amplio.
-        if ($user->hasRole('auxiliar')) {
-            return $user->administrativo
-                ? $query->atendidasPor($user->administrativo)
-                : $query->whereRaw('1 = 0');
-        }
-
-        if ($user->hasRole('terapeuta')) {
-            return $user->terapeuta
-                ? $query->atendidasPor($user->terapeuta)
-                : $query->whereRaw('1 = 0');
-        }
-
-        if ($user->hasRole('encargado')) {
-            return $user->encargado
-                ? $query->whereHas(
-                    'paciente',
-                    fn($q) => $q->where('encargado_id', $user->encargado->id)
-                )
-                : $query->whereRaw('1 = 0');
-        }
-
-        return $query->whereRaw('1 = 0');
+        return AlcanceDeCitas::aplicar($query, $user);
     }
 
     /* ---------- Quién puede agendar para quién ---------- */
@@ -269,8 +244,7 @@ class AgendaController extends Controller
 
         abort_unless(
             $propio
-            && $cita->atendido_por_type === QuienAtiende::clase($propio['tipo'])
-            && (int) $cita->atendido_por_id === $propio['id'],
+            && (int) $cita->atiende_user_id === $propio['id'],
             403,
             'Solo puede modificar las citas que usted mismo atiende.'
         );
@@ -286,8 +260,7 @@ class AgendaController extends Controller
     {
         $validado = $request->validate([
             'paciente_id' => ['required', 'integer', 'exists:pacientes,id'],
-            'atiende_tipo' => ['required', Rule::in(QuienAtiende::tipos())],
-            'atiende_id' => ['required', 'integer'],
+            'atiende_user_id' => ['required', 'integer', 'exists:users,id'],
             'estado_cita_id' => ['required', 'integer', 'exists:estado_citas,id'],
             'modalidad_id' => ['nullable', 'integer', 'exists:modalidades,id'],
             'tipo_cita_id' => ['nullable', 'integer', 'exists:tipo_citas,id'],
@@ -299,12 +272,12 @@ class AgendaController extends Controller
             'precio_aplicado' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $claseAtiende = QuienAtiende::clase($validado['atiende_tipo']);
+        // Existir no basta: tiene que ser alguien a quien se le agende.
+        $atiende = User::find($validado['atiende_user_id']);
 
-        // exists: no sirve aquí porque la tabla depende del tipo elegido.
-        if (!$claseAtiende::whereKey($validado['atiende_id'])->exists()) {
+        if (! $atiende || ! QuienAtiende::atiendeCitas($atiende)) {
             throw ValidationException::withMessages([
-                'atiende_id' => 'La persona seleccionada no existe.',
+                'atiende_user_id' => 'Esa persona no atiende citas.',
             ]);
         }
 
@@ -313,21 +286,16 @@ class AgendaController extends Controller
         if ($this->soloAgendaParaSiMismo($request->user())) {
             $propio = QuienAtiende::de($request->user());
 
-            $esElMismo = $propio
-                && $validado['atiende_tipo'] === $propio['tipo']
-                && (int) $validado['atiende_id'] === $propio['id'];
-
-            if (!$esElMismo) {
+            if (! $propio || (int) $validado['atiende_user_id'] !== $propio['id']) {
                 throw ValidationException::withMessages([
-                    'atiende_id' => 'Solo puede agendar citas que usted mismo atiende.',
+                    'atiende_user_id' => 'Solo puede agendar citas que usted mismo atiende.',
                 ]);
             }
         }
 
         return [
             'paciente_id' => $validado['paciente_id'],
-            'atendido_por_type' => $claseAtiende,
-            'atendido_por_id' => $validado['atiende_id'],
+            'atiende_user_id' => $validado['atiende_user_id'],
             'estado_cita_id' => $validado['estado_cita_id'],
             'modalidad_id' => $validado['modalidad_id'] ?? null,
             'tipo_cita_id' => $validado['tipo_cita_id'] ?? null,
@@ -344,8 +312,7 @@ class AgendaController extends Controller
     private function verificarSolapamiento(array $datos, ?int $ignorarId = null): void
     {
         $choque = Cita::solapadas(
-            $datos['atendido_por_type'],
-            $datos['atendido_por_id'],
+            $datos['atiende_user_id'],
             $datos['fecha'],
             $datos['hora_inicio'],
             $datos['hora_fin'],
@@ -387,8 +354,9 @@ class AgendaController extends Controller
                 'paciente' => $cita->paciente?->nombre_completo,
                 'pacienteGenero' => $cita->paciente?->genero?->nombre,
                 'atiende' => $atiende?->nombre_completo,
-                'atiendeTipo' => QuienAtiende::tipoDe($cita->atendido_por_type),
-                'atiendeId' => $cita->atendido_por_id,
+                // Antes viajaban el tipo y el id de la persona; ahora basta el
+                // usuario, que ya es unico entre terapeutas y auxiliares.
+                'atiendeId' => $cita->atiende_user_id,
                 'estado' => $cita->estadoCita?->nombre,
                 'estadoId' => $cita->estado_cita_id,
                 // El nombre de la terapia: lo usan la leyenda de colores, los
@@ -458,7 +426,9 @@ class AgendaController extends Controller
             : QuienAtiende::todos();
 
         return [
-            'pacientes' => Paciente::query()
+            // Se acota igual que el listado: un selector sin filtrar deja ver
+            // por el nombre a un niño que no es de uno.
+            'pacientes' => AlcanceDePacientes::aplicar(Paciente::query(), $user)
                 ->with('genero')
                 ->orderBy('nombres')
                 ->get()

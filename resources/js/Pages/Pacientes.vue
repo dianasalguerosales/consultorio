@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link, usePage, useForm, router } from "@inertiajs/vue3";
+import TarjetaFicha from "@/Components/TarjetaFicha.vue";
 import { ref } from "vue";
 import PacienteForm from "@/Components/PacienteForm.vue";
 import ExpedienteModal from "@/Components/ExpedienteModal.vue";
@@ -18,9 +19,7 @@ const isOpen = ref(false);
 const selectedPaciente = ref(null);
 
 // El programa lo asigna coordinación, no cualquiera que gestione pacientes.
-const puedeAsignarPrograma = ["administrador", "coordinador"].some((r) =>
-    props.auth.user.roles.includes(r)
-);
+const puedeAsignarPrograma = props.auth.user.permissions.includes("gestionar programas");
 const pacienteConPrograma = ref(null);
 
 const form = useForm({
@@ -122,19 +121,14 @@ function closeHistorial() {
 
         <!-- Grid estilo Contact Cards -->
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="paciente in pacientes" :key="paciente.id"
-                class="bg-white shadow rounded-lg overflow-hidden flex flex-col items-center text-center">
-                <!-- Avatar -->
-                <div class="mt-6">
+            <TarjetaFicha v-for="paciente in pacientes" :key="paciente.id"
+                :titulo="`${paciente.nombres} ${paciente.apellidos}`">
+                <template #imagen>
                     <img :src="avatarPaciente(paciente.genero)" alt="Avatar"
                         class="h-20 w-20 rounded-full mx-auto" />
-                </div>
+                </template>
 
-                <!-- Nombre y expediente -->
-                <div class="mt-4">
-                    <h3 class="text-lg font-semibold text-gray-900">
-                        {{ paciente.nombres }} {{ paciente.apellidos }}
-                    </h3>
+                <template #datos>
                     <p class="text-sm text-gray-500">
                         Expediente:
                         {{ paciente.expediente?.codigo || "No asignado" }}
@@ -149,10 +143,9 @@ function closeHistorial() {
                             : "No asignado"
                         }}
                     </p>
-                </div>
+                </template>
 
-                <!-- Botones de acciones -->
-                <div class="mt-6 grid grid-cols-2 divide-x divide-gray-200 border-t border-gray-200 w-full">
+                <template #acciones>
                     <button v-if="
                         $page.props.auth.user.permissions.includes(
                             'gestionar pacientes'
@@ -169,8 +162,9 @@ function closeHistorial() {
                         @click="deletePaciente(paciente)">
                         Eliminar
                     </button>
-                </div>
+                </template>
 
+                <template #pie>
                 <div class="grid grid-cols-2 gap-2 p-4 w-full border-t" v-if="
                     $page.props.auth.user.permissions.includes(
                         'gestionar pacientes'
@@ -197,7 +191,8 @@ function closeHistorial() {
                         Programa
                     </button>
                 </div>
-            </div>
+                </template>
+            </TarjetaFicha>
         </div>
 
         <!-- Modales -->

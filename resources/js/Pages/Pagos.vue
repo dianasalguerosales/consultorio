@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
+import TablaBase from '@/Components/TablaBase.vue'
 import RegistrarPagoModal from '@/Components/RegistrarPagoModal.vue'
 import PagarPaqueteModal from '@/Components/PagarPaqueteModal.vue'
 import { avatarPaciente } from '@/Utils/avatares'
@@ -372,8 +373,7 @@ const filaEnEdicion = ref(null)
 
     <!-- Tabla. De lg para abajo son catorce columnas que no entran ni
          scrolleando, así que ahí se cambia por las tarjetas de más abajo. -->
-    <div class="hidden lg:block overflow-x-auto">
-      <table class="w-full border border-gray-200 text-md rounded-lg">
+    <TablaBase class="hidden lg:block">
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
             <th class="px-2 py-2 text-center w-12"></th>
@@ -465,8 +465,7 @@ const filaEnEdicion = ref(null)
             </td>
           </tr>
         </tbody>
-      </table>
-    </div>
+    </TablaBase>
 
     <!-- Lo mismo en pantalla chica: una tarjeta por cita, con todos los datos
          de la fila a la vista. Nada queda fuera del borde. -->

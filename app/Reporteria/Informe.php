@@ -29,7 +29,13 @@ abstract class Informe
     /** ['clave' => ['etiqueta' => ..., 'valor' => fn($registro) => ...]] */
     abstract public function columnas(): array;
 
-    /** ['clave' => ['etiqueta','tipo','opciones'?,'aplicar' => fn($q,$v)]] */
+    /**
+     * ['clave' => ['etiqueta','tipo','opciones'?,'defecto'?,'obligatorio'?,'aplicar' => fn($q,$v)]]
+     *
+     * `defecto` es con qué llega el filtro al abrir el informe, y `obligatorio`
+     * le quita la opción «Todos»: juntos sirven para un filtro que no tiene
+     * sentido dejar vacío, como el año de un cierre de mes.
+     */
     public function filtros(): array
     {
         return [];
@@ -150,6 +156,8 @@ abstract class Informe
                     'etiqueta' => $f['etiqueta'],
                     'tipo' => $f['tipo'],
                     'opciones' => isset($f['opciones']) ? ($f['opciones'])() : null,
+                    'defecto' => $f['defecto'] ?? null,
+                    'obligatorio' => (bool) ($f['obligatorio'] ?? false),
                 ])
                 ->values(),
         ];

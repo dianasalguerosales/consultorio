@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
+import TablaBase from '@/Components/TablaBase.vue'
 import GenerarPaqueteModal from '@/Components/GenerarPaqueteModal.vue'
 import { avatarPaciente } from '@/Utils/avatares'
 import { fecha } from '@/Utils/fechas'
@@ -70,8 +71,7 @@ function cancelar(a) {
     </div>
 
     <!-- Tabla -->
-    <div class="overflow-x-auto">
-      <table class="w-full border border-gray-200 text-md rounded-lg">
+    <TablaBase>
         <thead class="bg-gray-200 text-[#2D2B5B]">
           <tr>
             <th class="px-2 py-2 text-center w-12"></th>
@@ -126,7 +126,8 @@ function cancelar(a) {
                 <span class="material-icons text-base">event_repeat</span>
                 <span class="ml-1">Generar paquete</span>
               </button>
-              <button @click="cancelar(a)" class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
+              <button v-if="$page.props.auth.user.permissions.includes('gestionar programas')" @click="cancelar(a)"
+                class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
                 <span class="ml-1">Cancelar</span>
               </button>
@@ -139,8 +140,7 @@ function cancelar(a) {
             </td>
           </tr>
         </tbody>
-      </table>
-    </div>
+      </TablaBase>
 
     <GenerarPaqueteModal v-if="renovando" :asignacion="renovando" @close="renovando = null" />
   </div>

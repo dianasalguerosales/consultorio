@@ -59,8 +59,7 @@ class SesionController extends Controller
         );
 
         abort_unless(
-            $cita->atendido_por_type === $terapeuta->getMorphClass()
-                && (int) $cita->atendido_por_id === $terapeuta->id,
+            (int) $cita->atiende_user_id === $request->user()->id,
             403,
             'Solo puedes registrar observaciones de las citas que atiendes.'
         );

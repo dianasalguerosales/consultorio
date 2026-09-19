@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ModalCapa from '@/Components/ModalCapa.vue'
+import BuscadorSelect from '@/Components/BuscadorSelect.vue'
 import { EscClose } from '@/Utils/EscClose'
 
 const props = defineProps({
@@ -18,6 +19,15 @@ const emit = defineEmits(['close'])
 EscClose(() => emit('close'))
 
 const corrigiendo = computed(() => Boolean(props.fila))
+
+// Primero el expediente y después el nombre, que es el patrón del sistema. El
+// texto es también lo que se filtra: se llega por cualquiera de los dos.
+const opcionesPacientes = computed(() =>
+  props.pacientes.map((p) => ({
+    id: p.id,
+    texto: p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre,
+  }))
+)
 
 // Se arranca con `minimo` renglones vacíos: son los que hay que llenar.
 const inicial = () => {
@@ -88,20 +98,10 @@ const nombrePaciente = computed(() =>
       <!-- A quién y en qué terapia. Al corregir no se mueven: cambiarlos sería
            asignarle el grupo a otro niño, no corregir este. -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-caine-azul mb-1">Paciente</label>
-          <select v-model="form.paciente_id" :disabled="corrigiendo"
-            class="block w-full border rounded-md px-3 py-2 text-sm disabled:bg-gray-100
-                   focus:ring-caine-celeste focus:border-caine-celeste">
-            <option value="">Elija un paciente</option>
-            <option v-for="p in pacientes" :key="p.id" :value="p.id">
-              {{ p.nombre }}<template v-if="p.codigo"> · {{ p.codigo }}</template>
-            </option>
-          </select>
-          <p v-if="form.errors.paciente_id" class="mt-1 text-sm text-caine-error">
-            {{ form.errors.paciente_id }}
-          </p>
-        </div>
+        <BuscadorSelect v-model="form.paciente_id" :opciones="opcionesPacientes"
+          etiqueta="Paciente" marcador="Escriba el expediente o el nombre..."
+          sin-coincidencias="Ningún paciente coincide." texto-quitar="Quitar paciente"
+          :deshabilitado="corrigiendo" :error="form.errors.paciente_id" />
 
         <div>
           <label class="block text-sm font-medium text-caine-azul mb-1">Terapia</label>

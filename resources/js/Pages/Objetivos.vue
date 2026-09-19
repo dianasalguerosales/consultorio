@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
+import TablaBase from '@/Components/TablaBase.vue'
 import AsignarObjetivosModal from '@/Components/AsignarObjetivosModal.vue'
 import { confirmarEliminacion } from '@/Utils/confirmar'
 
@@ -101,8 +102,7 @@ function eliminar(fila) {
         </span>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full border border-gray-200 text-sm rounded-lg">
+      <TablaBase>
           <thead class="bg-gray-100 text-caine-azul">
             <tr>
               <th class="px-4 py-2 text-left">Paciente</th>
@@ -144,8 +144,7 @@ function eliminar(fila) {
               </td>
             </tr>
           </tbody>
-        </table>
-      </div>
+        </TablaBase>
 
       <p v-if="!filtradas.length" class="py-10 text-center text-sm text-gray-400">
         {{ filas.length

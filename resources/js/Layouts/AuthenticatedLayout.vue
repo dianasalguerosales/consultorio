@@ -7,41 +7,63 @@ import NavLink from '@/Components/NavLink.vue'
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { fecha } from '@/Utils/fechas'
+import { EscClose } from '@/Utils/EscClose'
 
 const mostrandoDropdown = ref(false)
-const { props } = usePage()
-const roles = props.auth?.user?.roles ?? []
 
-// Menús por rol
-const menuPorRol = {
-  administrador: [
-    'usuarios', 'pacientes', 'personas', 'agenda', 'expedientes',
-    'programas', 'objetivos', 'evaluaciones', 'indicadores', 'parametros', 'pagos', 'informes'
-  ],
-  auxiliar: [
-    'pacientes', 'agenda', 'evaluaciones', 'pagos'
-  ],
-  coordinador: [
-    'pacientes', 'usuarios', 'agenda', 'personas',
-    'programas', 'objetivos', 'evaluaciones', 'pagos', 'informes', 'indicadores'
-  ],
-  encargado: [
-    'hijos', 'agenda', 'objetivos', 'evaluaciones', 'estado-cuenta'
-  ],
-  // 'indicadores' no va aquí: el rol pruebas no tiene el permiso
-  // 'ver indicadores', así que el enlace le daría 403.
-  pruebas: [
-    'usuarios', 'pacientes', 'informes',
-    'pagos', 'expedientes', 'evaluaciones'
-  ],
-  terapeuta: [
-    'pacientes', 'agenda', 'objetivos', 'evaluaciones'
-  ]
+/* ---------- Estado de la interfaz ---------- */
+
+// Vive acá y no en un segundo bloque Options API para que EscClose lo alcance,
+// como en el resto del proyecto.
+const colapsado = ref(false)
+const menuAbierto = ref(false)
+const open = ref(false)
+const mostrarDropdownNotificaciones = ref(false)
+const mostrarModalNotificaciones = ref(false)
+
+function abrirModalNotificaciones() {
+  mostrarDropdownNotificaciones.value = false
+  mostrarModalNotificaciones.value = true
+  open.value = false
 }
 
-// Opciones comunes
-const comunes = ['dashboard', 'configuracion']
+// Las dos ventanas de la barra superior se cierran juntas: nunca se muestran
+// las dos a la vez, y salir de una debe salir de ambas.
+function cerrarVentanas() {
+  open.value = false
+  mostrarDropdownNotificaciones.value = false
+}
 
+EscClose(cerrarVentanas)
+
+const { props } = usePage()
+
+// Cada opción declara el permiso que necesita, y el menú se arma con lo que
+// tiene el usuario. Antes era un diccionario de opciones por rol: con dos roles
+// había que acordarse de mantener las dos listas, y una opción podía aparecer
+// en el menú sin que la ruta dejara entrar. Ahora es el mismo permiso el que
+// decide las dos cosas.
+//
+// Sin `permiso` la opción la ve cualquiera que haya entrado.
+const menuConfig = {
+  dashboard: { icon: 'home', label: 'Inicio', href: '/dashboard' },
+  pacientes: { icon: 'family_restroom', label: 'Pacientes', href: '/pacientes', permiso: 'ver pacientes' },
+  personas: { icon: 'groups', label: 'Personas', href: '/personas', permiso: 'ver personas' },
+  agenda: { icon: 'today', label: 'Agenda', href: '/agenda', permiso: 'ver agenda' },
+  expedientes: { icon: 'folder_shared', label: 'Expedientes', href: '/expedientes', permiso: 'ver expedientes' },
+  programas: { icon: 'collections_bookmark', label: 'Programas', href: '/programas', permiso: 'ver programas' },
+  indicadores: { icon: 'insights', label: 'Indicadores', href: '/indicadores', permiso: 'ver indicadores' },
+  pagos: { icon: 'payments', label: 'Pagos', href: '/pagos', permiso: 'ver pagos' },
+  parametros: { icon: 'tune', label: 'Parametros', href: '/parametros', permiso: 'ver parametros' },
+  hijos: { icon: 'family_restroom', label: 'Kids', href: '/hijos', permiso: 'acceso portal padres' },
+  usuarios: { icon: 'people', label: 'Usuarios', href: '/usuarios', permiso: 'ver usuarios' },
+  informes: { icon: 'description', label: 'Informes', href: '/informes', permiso: 'ver reportes' },
+  objetivos: { icon: 'flag', label: 'Objetivos terapéuticos', href: '/objetivos', permiso: 'ver evaluaciones' },
+  evaluaciones: { icon: 'assignment', label: 'Evaluaciones', href: '/evaluaciones', permiso: 'ver evaluaciones' },
+  configuracion: { icon: 'settings', label: 'Configuración', href: '/configuracion' },
+}
+
+// El orden en que se muestran. Lo que no esté acá no sale, aunque exista arriba.
 const ordenMenu = [
   'dashboard',
   'pacientes',
@@ -53,66 +75,21 @@ const ordenMenu = [
   'parametros',
   'pagos',
   'hijos',
-  'estado-cuenta',
   'objetivos',
   'evaluaciones',
   'informes',
   'usuarios',
-  'configuracion'
+  'configuracion',
 ]
 
-// Calcular menú final
-// El circulito rojo de la campana.
-const sinLeer = computed(() =>
-  (usePage().props.notificaciones ?? []).filter((n) => !n.leida).length
-)
+const permisos = props.auth?.user?.permissions ?? []
 
-const opcionesLectura = { preserveScroll: true, preserveState: true }
-
-function marcarLeida(notif) {
-  if (notif.leida) return
-
-  router.put(`/notificaciones/${notif.id}/leer`, {}, opcionesLectura)
-}
-
-function marcarTodasLeidas() {
-  if (!sinLeer.value) return
-
-  router.put('/notificaciones/leer-todas', {}, opcionesLectura)
-}
-
-const menuFinal = computed(() => {
-  let opciones = [...comunes]
-  roles.forEach(r => {
-    if (menuPorRol[r]) {
-      opciones.push(...menuPorRol[r])
-    }
+const menuFinal = computed(() =>
+  ordenMenu.filter((item) => {
+    const opcion = menuConfig[item]
+    return opcion && (!opcion.permiso || permisos.includes(opcion.permiso))
   })
-  opciones = [...new Set(opciones)]
-
-  return ordenMenu.filter(item => opciones.includes(item))
-})
-
-// Diccionario de rutas
-const menuConfig = {
-  dashboard: { icon: 'home', label: 'Inicio', href: '/dashboard' },
-  pacientes: { icon: 'family_restroom', label: 'Pacientes', href: '/pacientes' },
-  personas: { icon: 'groups', label: 'Personas', href: '/personas' },
-  agenda: { icon: 'today', label: 'Agenda', href: '/agenda' },
-  expedientes: { icon: 'folder_shared', label: 'Expedientes', href: '/expedientes' },
-  programas: { icon: 'collections_bookmark', label: 'Programas', href: '/programas' },
-  indicadores: { icon: 'insights', label: 'Indicadores', href: '/indicadores' },
-  pagos: { icon: 'payments', label: 'Pagos', href: '/pagos' },
-  parametros: { icon: 'tune', label: 'Parametros', href: '/parametros' },
-  reportes: { icon: 'bar_chart', label: 'Reportes', href: '/reportes' },
-  configuracion: { icon: 'settings', label: 'Configuración', href: '/configuracion' },
-  hijos: { icon: 'family_restroom', label: 'Kids', href: '/hijos' },
-  'estado-cuenta': { icon: 'account_balance_wallet', label: 'Estado de Cuenta', href: '/estado-cuenta' },
-  usuarios: { icon: 'people', label: 'Usuarios', href: '/usuarios' },
-  informes: { icon: 'description', label: 'Informes', href: '/informes' },
-  objetivos: { icon: 'flag', label: 'Objetivos terapéuticos', href: '/objetivos' },
-  evaluaciones: { icon: 'assignment', label: 'Evaluaciones', href: '/evaluaciones' }
-}
+)
 </script>
 
 <template>
@@ -164,6 +141,12 @@ const menuConfig = {
           <h1 class="text-xl font-bold text-[#2D2B5B]"></h1>
         </div>
         <div class="flex items-center space-x-4">
+
+          <!-- Cierra las ventanas de la barra al tocar fuera. Transparente y
+               por debajo de ellas (z-40 contra z-50): se ven normales, pero el
+               clic no las atraviesa. -->
+          <div v-if="open || mostrarDropdownNotificaciones" class="fixed inset-0 z-40"
+            @click="cerrarVentanas"></div>
 
           <!-- Notificaciones -->
           <div class="relative">
@@ -283,22 +266,6 @@ export default {
     notificaciones: {
       type: Array,
       default: () => []
-    }
-  },
-  data() {
-    return {
-      colapsado: false,
-      menuAbierto: false,
-      open: false,
-      mostrarDropdownNotificaciones: false,
-      mostrarModalNotificaciones: false
-    }
-  },
-  methods: {
-    abrirModalNotificaciones() {
-      this.mostrarDropdownNotificaciones = false
-      this.mostrarModalNotificaciones = true
-      this.open = false
     }
   }
 }

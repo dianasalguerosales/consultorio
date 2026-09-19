@@ -27,8 +27,7 @@ class AsignacionPrograma extends Model
         'paciente_id',
         'programa_id',
         'servicio_id',
-        'atendido_por_type',
-        'atendido_por_id',
+        'atiende_user_id',
         'modalidad_id',
         'tipo_cita_id',
         'precio',
@@ -65,9 +64,10 @@ class AsignacionPrograma extends Model
         return $this->belongsTo(Servicio::class);
     }
 
+    /** Quien atiende las citas del paquete: un usuario, como en `citas`. */
     public function atendidoPor()
     {
-        return $this->morphTo();
+        return $this->belongsTo(User::class, 'atiende_user_id');
     }
 
     public function modalidad()

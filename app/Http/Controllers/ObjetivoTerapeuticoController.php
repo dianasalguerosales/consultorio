@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ObjetivoTerapeutico;
+use App\Pacientes\AlcanceDePacientes;
 use App\Models\Paciente;
 use App\Models\Servicio;
 use App\Models\User;
@@ -22,7 +23,7 @@ class ObjetivoTerapeuticoController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $puedeGestionar = $user->can('gestionar pacientes');
+        $puedeGestionar = $user->can('gestionar evaluaciones');
 
         $objetivos = $this->conAlcanceDe(
             ObjetivoTerapeutico::with(['paciente.expediente:id,paciente_id,codigo', 'servicio', 'terapeuta']),
@@ -62,7 +63,8 @@ class ObjetivoTerapeuticoController extends Controller
             // Los catálogos del formulario no viajan a quien solo consulta: son
             // todos los pacientes del consultorio.
             'pacientes' => $puedeGestionar
-                ? Paciente::with('expediente:id,paciente_id,codigo')->orderBy('apellidos')->get()
+                ? AlcanceDePacientes::aplicar(Paciente::query(), $user)
+                    ->with('expediente:id,paciente_id,codigo')->orderBy('apellidos')->get()
                     ->map(fn(Paciente $p) => [
                         'id' => $p->id,
                         'nombre' => $p->nombre_completo,

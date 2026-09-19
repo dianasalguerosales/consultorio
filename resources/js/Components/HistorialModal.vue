@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import ModalCapa from '@/Components/ModalCapa.vue'
 import { fecha } from '@/Utils/fechas'
+import TablaBase from '@/Components/TablaBase.vue'
 
 defineProps({
   paciente: Object,
@@ -34,26 +35,26 @@ function cerrar() {
 
     <!-- Body -->
     <div class="flex-1 p-6 space-y-4 bg-gray-50">
-      <table v-if="!citaVista" class="w-full border-collapse">
+      <TablaBase v-if="!citaVista" sin-marco>
         <thead>
-          <tr class="bg-gray-100">
-            <th class="p-2 border">Fecha</th>
-            <th class="p-2 border">Hora</th>
-            <th class="p-2 border">Atiende</th>
-            <th class="p-2 border">Servicio</th>
-            <th class="p-2 border">Estado</th>
-            <th class="p-2 border">Modalidad</th>
-            <th class="p-2 border">Sesión</th>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Atiende</th>
+            <th>Servicio</th>
+            <th>Estado</th>
+            <th>Modalidad</th>
+            <th>Sesión</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="cita in paciente?.citas || []" :key="cita.id" class="hover:bg-gray-50">
-            <td class="p-2 border">{{ fecha(cita.fecha) }}</td>
-            <td class="p-2 border">{{ cita.hora_inicio }} - {{ cita.hora_fin }}</td>
-            <td class="p-2 border">{{ cita.atendido_por?.nombre_completo }}</td>
-            <td class="p-2 border">{{ cita.servicio?.nombre }}</td>
-            <td class="p-2 border">{{ cita.estado_cita?.nombre }}</td>
-            <td class="p-2 border">{{ cita.modalidad?.nombre }}</td>
+            <td>{{ fecha(cita.fecha) }}</td>
+            <td>{{ cita.hora_inicio }} - {{ cita.hora_fin }}</td>
+            <td>{{ cita.atendido_por?.nombre_completo }}</td>
+            <td>{{ cita.servicio?.nombre }}</td>
+            <td>{{ cita.estado_cita?.nombre }}</td>
+            <td>{{ cita.modalidad?.nombre }}</td>
             <!-- Evolución y observaciones ya no caben en una celda: se leen en el detalle. -->
             <td class="p-2 border text-center">
               <button v-if="cita.sesion" type="button" @click="citaVista = cita"
@@ -64,7 +65,7 @@ function cerrar() {
             </td>
           </tr>
         </tbody>
-      </table>
+      </TablaBase>
       <!-- Misma tarjeta que la página de Observaciones: son párrafos, no celdas. -->
       <article v-else class="bg-white shadow rounded-lg p-5">
         <div class="flex flex-wrap items-baseline justify-between gap-2 pb-3 mb-4 border-b border-gray-100">

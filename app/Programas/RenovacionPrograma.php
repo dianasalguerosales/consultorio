@@ -60,8 +60,7 @@ class RenovacionPrograma
             'paciente_id' => $anterior->paciente_id,
             'programa_id' => $anterior->programa_id,
             'servicio_id' => $anterior->servicio_id,
-            'atendido_por_type' => $anterior->atendido_por_type,
-            'atendido_por_id' => $anterior->atendido_por_id,
+            'atiende_user_id' => $anterior->atiende_user_id,
             'modalidad_id' => $anterior->modalidad_id,
             'tipo_cita_id' => $anterior->tipo_cita_id,
 

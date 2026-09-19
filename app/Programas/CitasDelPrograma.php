@@ -73,8 +73,7 @@ class CitasDelPrograma
         foreach ($fechas as $i => $fecha) {
             $citas[] = Cita::create([
                 'paciente_id' => $asignacion->paciente_id,
-                'atendido_por_type' => $asignacion->atendido_por_type,
-                'atendido_por_id' => $asignacion->atendido_por_id,
+                'atiende_user_id' => $asignacion->atiende_user_id,
                 'estado_cita_id' => $programada,
                 'modalidad_id' => $asignacion->modalidad_id,
                 'tipo_cita_id' => $asignacion->tipo_cita_id,
@@ -103,13 +102,12 @@ class CitasDelPrograma
     /** Sin terapeuta asignado no hay con quién chocar. */
     private static function choca(AsignacionPrograma $asignacion, string $fecha): bool
     {
-        if (! $asignacion->atendido_por_id) {
+        if (! $asignacion->atiende_user_id) {
             return false;
         }
 
         return Cita::solapadas(
-            $asignacion->atendido_por_type,
-            $asignacion->atendido_por_id,
+            $asignacion->atiende_user_id,
             $fecha,
             $asignacion->hora_inicio,
             $asignacion->hora_fin

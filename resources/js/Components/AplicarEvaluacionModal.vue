@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import ModalCapa from '@/Components/ModalCapa.vue'
+import BuscadorSelect from '@/Components/BuscadorSelect.vue'
 
 const props = defineProps({
   evaluaciones: { type: Array, default: () => [] },
@@ -17,6 +18,16 @@ const form = useForm({
 
 const elegida = computed(() =>
   props.evaluaciones.find((e) => e.id === form.evaluacion_id)
+)
+
+// El texto es lo que se ve y lo que se filtra: con el nombre y el código juntos
+// se llega al niño escribiendo cualquiera de los dos.
+const opcionesPacientes = computed(() =>
+  props.expedientes.map((e) => ({ id: e.id, texto: `${e.codigo} · ${e.paciente}` }))
+)
+
+const opcionesEvaluaciones = computed(() =>
+  props.evaluaciones.map((ev) => ({ id: ev.id, texto: ev.nombre }))
 )
 
 function guardar() {
@@ -38,34 +49,19 @@ function guardar() {
       </div>
 
       <form @submit.prevent="guardar" class="px-6 py-4 space-y-5">
-        <div>
-          <label class="block text-sm font-medium text-caine-azul mb-1">Paciente</label>
-          <select v-model="form.expediente_id" required
-            class="block w-full border rounded-md px-3 py-2 focus:ring-caine-celeste focus:border-caine-celeste">
-            <option value="">Seleccione...</option>
-            <option v-for="e in expedientes" :key="e.id" :value="e.id">
-              {{ e.paciente }} · {{ e.codigo }}
-            </option>
-          </select>
-          <p v-if="form.errors.expediente_id" class="mt-1 text-sm text-caine-error">
-            {{ form.errors.expediente_id }}
-          </p>
-        </div>
+        <BuscadorSelect v-model="form.expediente_id" :opciones="opcionesPacientes"
+          etiqueta="Paciente" marcador="Escriba el nombre o el expediente..."
+          sin-coincidencias="Ningún paciente coincide." texto-quitar="Quitar paciente"
+          :error="form.errors.expediente_id" />
 
         <div>
-          <label class="block text-sm font-medium text-caine-azul mb-1">Evaluación</label>
-          <select v-model="form.evaluacion_id" required
-            class="block w-full border rounded-md px-3 py-2 focus:ring-caine-celeste focus:border-caine-celeste">
-            <option value="">Seleccione...</option>
-            <option v-for="ev in evaluaciones" :key="ev.id" :value="ev.id">
-              {{ ev.nombre }}
-            </option>
-          </select>
+          <BuscadorSelect v-model="form.evaluacion_id" :opciones="opcionesEvaluaciones"
+            etiqueta="Evaluación" marcador="Escriba el nombre de la evaluación..."
+            sin-coincidencias="Ninguna evaluación coincide." texto-quitar="Quitar evaluación"
+            :error="form.errors.evaluacion_id" />
+
           <p v-if="elegida?.descripcion" class="mt-2 text-sm text-gray-500">
             {{ elegida.descripcion }}
-          </p>
-          <p v-if="form.errors.evaluacion_id" class="mt-1 text-sm text-caine-error">
-            {{ form.errors.evaluacion_id }}
           </p>
         </div>
       </form>

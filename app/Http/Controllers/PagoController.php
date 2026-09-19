@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Agenda\AlcanceDeCitas;
 use App\Models\AsignacionPrograma;
 use App\Models\Cita;
 use App\Models\Pago;
@@ -30,7 +31,9 @@ class PagoController extends Controller
 
         $filtros = $this->filtrosDePago($request);
 
-        $citas = Cita::query()
+        // El auxiliar cobra solo lo que atiende. Es la misma regla con la que la
+        // agenda le limita el calendario, por eso vive en un solo lugar.
+        $citas = AlcanceDeCitas::aplicar(Cita::query(), $request->user())
             ->enRango($rango->inicio(), $rango->fin())
             ->with(['paciente:id,nombres,apellidos,genero', 'servicio:id,nombre', 'atendidoPor', 'estadoCita:id,nombre'])
             ->when(
@@ -72,9 +75,8 @@ class PagoController extends Controller
             'filtros' => $filtros,
             'metodos' => Pago::METODOS,
             'totales' => $this->totales($filas),
-            'puedeRegistrar' => $request->user()->hasAnyRole(['administrador', 'coordinador', 'auxiliar']),
-            // Autoriza quien no necesita que lo autoricen.
-            'puedeAutorizar' => $request->user()->hasAnyRole(Pago::ROLES_SIN_AUTORIZACION),
+            'puedeRegistrar' => $request->user()->can('registrar pagos'),
+            'puedeAutorizar' => $request->user()->can('autorizar pagos'),
         ]);
     }
 

@@ -48,9 +48,13 @@ class Administrativo extends Model
         return $this->belongsTo(Genero::class);
     }
 
+    /**
+     * Las citas que atiende, a traves de su usuario: la cita apunta al usuario
+     * y no a esta ficha, para que el rol sea lo que decide quien atiende.
+     */
     public function citas()
     {
-        return $this->morphMany(Cita::class, 'atendido_por');
+        return $this->hasMany(Cita::class, 'atiende_user_id', 'user_id');
     }
 
     public function superior()

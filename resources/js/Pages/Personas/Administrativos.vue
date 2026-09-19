@@ -6,6 +6,7 @@ import AdministrativoModalEditar from '@/Components/personas/AdministrativoModal
 import { avatarUsuario } from '@/Utils/avatares'
 import RolesModal from '@/Components/personas/RolesModal.vue'
 import { confirmarEliminacion } from '@/Utils/confirmar'
+import TablaBase from '@/Components/TablaBase.vue'
 
 const props = defineProps({
   administrativos: Array,
@@ -45,8 +46,8 @@ function abrirRoles(persona) {
 </script>
 
 <template>
-  <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-    <table class="min-w-full border border-gray-200 text-md rounded-lg">
+  <div>
+  <TablaBase>
       <!-- Encabezado -->
       <thead class="bg-gray-200 text-[#2D2B5B]">
         <tr>
@@ -89,14 +90,15 @@ function abrirRoles(persona) {
               </button>
 
               <!-- Editar -->
-              <button @click="openEditarModal(a)"
+              <button v-if="$page.props.auth.user.permissions.includes('gestionar personas')" @click="openEditarModal(a)"
                 class="inline-flex items-center px-3 py-1 text-[#53C6D3] hover:text-[#2D2B5B]">
                 <span class="material-icons text-base">edit</span>
                 <span class="ml-1">Editar</span>
               </button>
 
               <!-- Eliminar -->
-              <Link as="button" method="delete" :href="`/personas/administrativos/${a.id}`"
+              <Link v-if="$page.props.auth.user.permissions.includes('gestionar personas')" as="button" method="delete"
+                :href="`/personas/administrativos/${a.id}`"
                 @before="confirmarEliminacion(`a ${a.nombres} ${a.apellidos}`)"
                 class="inline-flex items-center px-3 py-1 text-red-600 hover:text-red-800">
                 <span class="material-icons text-base">delete</span>
@@ -104,7 +106,7 @@ function abrirRoles(persona) {
               </Link>
 
               <!-- Permisos: se gestionan sobre el usuario ligado a la persona. -->
-              <button type="button" @click="abrirRoles(a)"
+              <button v-if="$page.props.auth.user.permissions.includes('asignar roles')" type="button" @click="abrirRoles(a)"
                 class="inline-flex items-center px-3 py-1 text-[#2D2B5B] hover:text-[#53C6D3]">
                 <span class="material-icons text-base">lock</span>
                 <span class="ml-1">Permisos</span>
@@ -120,7 +122,7 @@ function abrirRoles(persona) {
           </td>
         </tr>
       </tbody>
-    </table>
+    </TablaBase>
 
     <!-- Modal Ver -->
     <AdministrativosModalVer

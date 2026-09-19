@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import ModalCapa from '@/Components/ModalCapa.vue'
+import BuscadorSelect from '@/Components/BuscadorSelect.vue'
 
 const props = defineProps({
   paciente: Object,
@@ -15,42 +16,9 @@ const emit = defineEmits(['close', 'save'])
 // buscar el nombre a mano. Acá se escribe y se filtra.
 const nombreEncargado = (e) => [e?.nombres, e?.apellidos].filter(Boolean).join(' ')
 
-const busquedaEncargado = ref('')
-const listaAbierta = ref(false)
-
-const encargadoElegido = computed(() =>
-  (props.encargados ?? []).find((e) => String(e.id) === String(props.form.encargado_id)) ?? null
+const opcionesEncargados = computed(() =>
+  (props.encargados ?? []).map((e) => ({ id: e.id, texto: nombreEncargado(e) }))
 )
-
-// Mientras no se esté escribiendo, el input muestra a quien ya está elegido.
-const textoEncargado = computed({
-  get: () => (listaAbierta.value ? busquedaEncargado.value : nombreEncargado(encargadoElegido.value)),
-  set: (valor) => { busquedaEncargado.value = valor },
-})
-
-const encargadosFiltrados = computed(() => {
-  const texto = busquedaEncargado.value.trim().toLowerCase()
-  const lista = props.encargados ?? []
-  if (!texto) return lista
-
-  return lista.filter((e) => nombreEncargado(e).toLowerCase().includes(texto))
-})
-
-function abrirLista() {
-  busquedaEncargado.value = ''
-  listaAbierta.value = true
-}
-
-function elegirEncargado(encargado) {
-  props.form.encargado_id = encargado.id
-  busquedaEncargado.value = ''
-  listaAbierta.value = false
-}
-
-function limpiarEncargado() {
-  props.form.encargado_id = ''
-  busquedaEncargado.value = ''
-}
 
 </script>
 
@@ -103,34 +71,11 @@ function limpiarEncargado() {
       </select>
     </div>
 
-    <!-- Encargado -->
-    <!-- se escribe para filtrar la lista, que es larga. -->
-    <div class="mb-4 relative">
-      <label class="block text-sm font-medium text-gray-700">Encargado</label>
-
-      <!-- keydown.esc.stop: sin el .stop, Escape lo agarra EscClose de ModalCapa y cierra el modal entero en vez de la lista. -->
-      <input v-model="textoEncargado" type="text" placeholder="Escriba el nombre del encargado..."
-        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-caine-celeste focus:border-caine-celeste"
-        @focus="abrirLista" @blur="listaAbierta = false" @keydown.esc.stop="listaAbierta = false" />
-
-      <!-- mousedown.prevent: con click, el blur cierra la lista antes de que el clic llegue a la opción. -->
-      <ul v-if="listaAbierta"
-        class="absolute z-10 mt-1 w-full max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
-        <li v-for="encargado in encargadosFiltrados" :key="encargado.id" @mousedown.prevent="elegirEncargado(encargado)"
-          class="px-3 py-2 text-sm cursor-pointer hover:bg-caine-celeste hover:text-white"
-          :class="{ 'bg-gray-100': String(encargado.id) === String(form.encargado_id) }">
-          {{ nombreEncargado(encargado) }}
-        </li>
-        <li v-if="!encargadosFiltrados.length" class="px-3 py-2 text-sm text-gray-400">
-          Ningún encargado coincide.
-        </li>
-      </ul>
-
-      <button v-if="form.encargado_id" type="button" @click="limpiarEncargado"
-        class="mt-1 text-xs text-gray-500 hover:text-caine-error">
-        Quitar encargado
-      </button>
-    </div>
+    <!-- Encargado: se escribe para filtrar la lista, que es larga. -->
+    <BuscadorSelect v-model="form.encargado_id" :opciones="opcionesEncargados"
+      etiqueta="Encargado" marcador="Escriba el nombre del encargado..."
+      sin-coincidencias="Ningún encargado coincide." texto-quitar="Quitar encargado"
+      class="mb-4" />
 
     <div class="flex justify-end space-x-3 mt-6">
       <button class="px-4 py-2 bg-gray-200 rounded-md" @click="$emit('close')">
